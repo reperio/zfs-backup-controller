@@ -1,0 +1,36 @@
+{
+  "name": "zfs-backup-controller",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reperio/zfs-backup-controller.git"
+  },
+  "author": "",
+  "license": "MPL2",
+  "dependencies": {
+    "async": "^2.5.0",
+    "hapi": "^16.6.2",
+    "joi": "^13.0.0",
+    "lodash": "^4.17.4",
+    "moment": "^2.19.1",
+    "mysql2": "^1.4.2",
+    "request": "^2.83.0",
+    "request-promise-native": "^1.0.5",
+    "sequelize": "^4.22.5",
+    "uuid": "^3.1.0",
+    "winston": "^2.4.0",
+    "winston-daily-rotate-file": "^1.7.2"
+  },
+  "bugs": {
+    "url": "https://github.com/reperio/zfs-backup-controller/issues"
+  },
+  "homepage": "https://github.com/reperio/zfs-backup-controller#readme",
+  "devDependencies": {
+    "sequelize-cli": "^3.0.0"
+  }
+}
