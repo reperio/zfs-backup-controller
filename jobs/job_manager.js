@@ -21,7 +21,7 @@ class JobManager {
 	async execute() {
 		const self = this;
 		this.logger.info('');
-		this.logger.info('executing');
+		this.logger.info('Job Manager execution started.');
 
 		const jobs = await this. fetch_jobs();
 		const filtered_jobs = await this.filter_eligible_jobs(jobs);
@@ -29,13 +29,13 @@ class JobManager {
 	}
 
 	async fetch_jobs() {
-		this.logger.info('fetching jobs');
+		this.logger.info('Fetching jobs');
 		const jobs = await this.db.jobs_repository.getAllJobs();
 		return jobs;
 	}
 
 	async filter_eligible_jobs(jobs) {
-		this.logger.info(`filtering ${jobs.length} jobs`);
+		this.logger.info(`Filtering ${jobs.length} jobs`);
 
 		const now = moment();
 		return _.filter(jobs, function(job) {
@@ -47,8 +47,7 @@ class JobManager {
 	}
 
 	async execute_jobs(jobs) {
-		this.logger.info(`executing ${jobs.length} jobs`);
-		this.logger.info(_.map(jobs, 'id'));
+		this.logger.info(`Executing ${jobs.length} jobs`);
 
 		for (let index = 0 ; index < jobs.length ; ++index) {
 			const current_job = jobs[index];
