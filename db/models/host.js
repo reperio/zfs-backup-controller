@@ -10,6 +10,7 @@ module.exports = function(sequelize, DataTypes) {
 
         sdc_id: {type: DataTypes.STRING, allowNull: false},
         ip_address: {type: DataTypes.STRING, allowNull: false}
+        port: {type: DataTypes.INTEGER, allowNull: false}
     }, {
         tableName: "hosts",
         timestamps: true,
