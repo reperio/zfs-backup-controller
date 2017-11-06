@@ -31,6 +31,20 @@ class JobsRepository {
             return null;
         }
     }
+
+    async get_job_history_by_id(job_history_id) {
+        this.data_model.logger.info(`Fetching job history entry with id: ${job_history_id}`);
+        try {
+            const job_history = await this.data_model._db.job_history.findAll({
+                where: {id: job_history_id}
+            });
+
+            return job_history;
+        } catch (err) {
+            this.data_model.logger.error(err);
+            return null;
+        }
+    }
 }
 
 module.exports = JobsRepository;

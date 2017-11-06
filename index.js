@@ -9,6 +9,7 @@ require('winston-daily-rotate-file');
 
 const JobManager = require('./jobs/job_manager');
 const DataModel = require('./db');
+const AgentApi = require('./agent_api');
 
 // Create a server with a host and port
 const server = new Hapi.Server({});
@@ -140,7 +141,7 @@ server.start(err => {
     console.log('Server running at:', server.info.uri);
 });
 
-const job_manager = new JobManager(server.app.logger, server.app.db, Config.job_interval);
+const job_manager = new JobManager(server.app.logger, server.app.db, Config.job_interval, AgentApi);
 job_manager.start();
 
 module.exports = server;

@@ -3,9 +3,10 @@ const moment = require('moment');
 const async = require('async');
 
 class JobManager {
-	constructor(logger, db, interval) {
+	constructor(logger, db, interval, agentApi) {
 		this.logger = logger;
 		this.db = db;
+		this.agentApi = agentApi;
 
 		this.interval_id = null;
 		this.interval = interval;
@@ -63,6 +64,12 @@ class JobManager {
 		}
 	}
 
+	static get_random_port() {
+		//returns a random port between 49152 and 65535
+		//TODO maybe put the port range in the config file?
+		return Math.floor(Math.random() * 16383) + 49152;
+    }
+
 	async execute_job(job) {
 		this.logger.info(`  ${job.id} - Executing.`);
 		const now = new Date();
@@ -71,6 +78,8 @@ class JobManager {
 		this.logger.info(`  ${job.id} - Updated job last execution.`);
 		await job.update({last_execution: now});
 		this.logger.info(`  ${job.id} - Job Updated.`);
+
+        const port = this.get_random_port();
 
 		this.logger.info(`  ${job.id} - Creating Job History entry.`);
 		//create job history record
@@ -83,7 +92,7 @@ class JobManager {
 	        target_message: null,
 	        source_result: 0,
 	        target_result: 0,
-	        port: 1234,
+	        port: port,
 		});
 
 		if (!job_history) {
@@ -92,33 +101,46 @@ class JobManager {
 
 		this.logger.info(`  ${job.id} | ${job_history.id} - Job history entry created.`);
 
-		try {
-			this.logger.info(`  ${job.id} | ${job_history.id} - Sending ZFS Receive command to target ${job.target_host.ip_address}.`);
-			//request zfs receive
+        const time_stamp = moment().utc();
+		const snapshot_name = time_stamp.format("YYYYMMDDHHmm");
 
-			this.logger.info(`  ${job.id} | ${job_history.id} - ZFS Receive command sent.`);
+		try {
+			//build snapshot
+            let result = await this.agentApi.zfs_create_snapshot(job, job_history, snapshot_name, true);
+            const snapshot = {
+            	name: snapshot_name,
+				host_id: job_history.source_host_id,
+				snapshot_date_time: time_stamp
+			};
+
+            //add snapshot to snapshots table
+			await this.db._snapshotsRepository.createSnapshotEntry(snapshot);
+		} catch (err) {
+			throw err;
+		}
+
+		try {
+			//request zfs receive
+			await this.agentApi.zfs_receive(job, job_history, port, true);
 
 			//update job history record
 			this.logger.info(`  ${job.id} | ${job_history.id} - Updating job history entry.`);
 			await job_history.update({target_message: 'test', target_result: 1});
 			this.logger.info(`  ${job.id} | ${job_history.id} - Job history entry updated.`);
 		} catch (err) {
-			this.logger.error(`  ${job.id} | ${job_history.id} - Failed to start zfs receive on target`);
 			throw err;
 		}
 
 		try {
-			this.logger.info(`  ${job.id} | ${job_history.id} - Sending ZFS Send command to source ${job.source_host.ip_address}.`);
 			//request zfs send
-
-			this.logger.info(`  ${job.id} | ${job_history.id} - ZFS Send command sent.`);
+			await this.agentApi.zfs_send(job, job_history, snapshot_name, port, true, true, snapshot_name);
 
 			//update job history record
 			this.logger.info(`  ${job.id} | ${job_history.id} - Updating job history entry.`);
 			await job_history.update({source_message: 'test', source_result: 1, result: 1});
 			this.logger.info(`  ${job.id} | ${job_history.id} - Job history entry updated.`);
 		} catch(err) {
-			this.logger.error(`  ${job.id} | ${job_history.id} - Failed to start zfs send on source`);
+
 			throw err;
 		}
 	}
