@@ -19,6 +19,7 @@ module.exports = function(sequelize, DataTypes) {
         source_host_id: {type: DataTypes.UUID, allowNull: false},
         target_host_id: {type: DataTypes.UUID, allowNull: false},
         last_execution: {type: DataTypes.DATE, allowNull: true},
+        last_schedule: {type: DataTypes.DATE, allowNull: true},
         enabled: {type: DataTypes.BOOLEAN, allowNull: false}
     }, {
         tableName: "jobs",

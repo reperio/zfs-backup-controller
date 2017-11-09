@@ -25,7 +25,7 @@ class JobManager {
 		this.logger.info('Job Manager execution started.');
 
 		const jobs = await this. fetch_jobs();
-		const filtered_jobs = await this.filter_eligible_jobs(jobs);
+		const filtered_jobs = this.filter_eligible_jobs(jobs);
 		const result = await this.execute_jobs(filtered_jobs);
 	}
 
@@ -35,15 +35,15 @@ class JobManager {
 		return jobs;
 	}
 
-	async filter_eligible_jobs(jobs) {
+	filter_eligible_jobs(jobs) {
 		this.logger.info(`Filtering ${jobs.length} jobs`);
 
 		const now = moment();
 		return _.filter(jobs, function(job) {
-			const last_execution = moment(job.last_execution);
-			const difference = now.diff(last_execution, 'minutes');
+			const last_schedule = moment(job.last_schedule);
+			const difference = now.diff(last_schedule, 'minutes');
 
-			return difference >= job.schedule.minutes || !job.last_execution;
+			return difference >= job.schedule.minutes || !job.last_schedule;
 		});
 	}
 
@@ -58,7 +58,7 @@ class JobManager {
 				const job_result = await this.execute_job(current_job);
 				this.logger.info(`${current_job.id} - Job finished.`);
 			} catch (err) {
-				this.logger.error(`${current_job.id} - Job failed to execute.`)
+				this.logger.error(`${current_job.id} - Job failed to execute.`);
 				this.logger.error(err);
 			}
 		}
@@ -75,7 +75,7 @@ class JobManager {
 		const now = new Date();
 
 		//update last execution on job
-		this.logger.info(`  ${job.id} - Updated job last execution.`);
+		this.logger.info(`  ${job.id} - Updating job last execution.`);
 		await job.update({last_execution: now});
 		this.logger.info(`  ${job.id} - Job Updated.`);
 
@@ -114,8 +114,13 @@ class JobManager {
 			};
 
             //add snapshot to snapshots table
-			await this.db._snapshotsRepository.createSnapshotEntry(snapshot);
+			const snapshot = await this.db._snapshotsRepository.createSnapshotEntry(snapshot);
+
+			if (!snapshot) {
+				throw new Error('Failed to create snapshot');
+			}
 		} catch (err) {
+			this.logger.error(`  ${job.id} | ${job_history.id} - Create snapshot step failed.`);
 			throw err;
 		}
 
@@ -125,9 +130,10 @@ class JobManager {
 
 			//update job history record
 			this.logger.info(`  ${job.id} | ${job_history.id} - Updating job history entry.`);
-			await job_history.update({target_message: 'test', target_result: 1});
+			await job_history.update({target_message: '', target_result: 1});
 			this.logger.info(`  ${job.id} | ${job_history.id} - Job history entry updated.`);
 		} catch (err) {
+			this.logger.error(`  ${job.id} | ${job_history.id} - ZFS Receive step failed.`);
 			throw err;
 		}
 
@@ -137,10 +143,10 @@ class JobManager {
 
 			//update job history record
 			this.logger.info(`  ${job.id} | ${job_history.id} - Updating job history entry.`);
-			await job_history.update({source_message: 'test', source_result: 1, result: 1});
+			await job_history.update({source_message: '', source_result: 1, result: 1});
 			this.logger.info(`  ${job.id} | ${job_history.id} - Job history entry updated.`);
 		} catch(err) {
-
+			this.logger.error(`  ${job.id} | ${job_history.id} - ZFS Send step failed.`);
 			throw err;
 		}
 	}

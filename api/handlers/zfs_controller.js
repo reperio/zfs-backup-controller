@@ -31,12 +31,15 @@ async function send_complete(request, reply) {
         const job_history_id = payload.job_history_id;
         const code = payload.code;
 
+        logger.info(`${job_history.id} - Fetching job history entry.`);
         const job_history = await db.jobs_repository.get_job_history_by_id(job_history_id);
         logger.info(`${job_history.id} - Updating job history entry.`);
 
+        //TODO message = code, result = 2 if code is non-zero, else 3
         job_history.update({ source_message: 'test', source_result: code});
-
+        logger.info(`${job_history.id} - Finished updating job history entry.`);
     } catch (err) {
+        logger.error(`${job_history.id} - Processing send_complete failed.`);
         logger.error(err);
 
         return reply(Boom.badImplementation('Snapshot send_complete failed.'));
@@ -72,9 +75,11 @@ async function receive_complete(request, reply) {
         const job_history = await db.jobs_repository.get_job_history_by_id(job_history_id);
         logger.info(`${job_history.id} - Updating job history entry.`);
 
+        //TODO message = code, result = 2 if code is non-zero, else 3
         job_history.update({ target_message: 'test', target_result: code});
-
+        logger.info(`${job_history.id} - Finished updating job history entry.`);
     } catch (err) {
+        logger.error(`${job_history.id} - Processing receive_complete failed.`);
         logger.error(err);
 
         return reply(Boom.badImplementation('Snapshot receive_complete failed.'));
