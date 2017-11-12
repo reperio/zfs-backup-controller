@@ -21,12 +21,14 @@ class JobsRepository {
     }
 
     async create_job_history(job_history) {
-        this.data_model.logger.info('Creating job history');
+        this.data_model.logger.info(`  ${job_history.job_id} - Creating job history.`);
         try {
             const job_history_record = await this.data_model._db.job_history.create(job_history);
+            this.data_model.logger.info(`  ${job_history.job_id} | ${job_history_record.id} - Job history entry created.`);
 
             return job_history_record;
         } catch(err) {
+            this.data_model.logger.error(`  ${job_history.job_id} - Creating job history failed.`);
             this.data_model.logger.error(err);
             return null;
         }

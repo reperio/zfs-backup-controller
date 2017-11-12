@@ -18,8 +18,15 @@ module.exports = {
     },
 
     down: function(migration, DataTypes, done) {
+        console.log('test');
         migration
             .dropAllTables()
-            .then(done);
+            .then(function(result) {
+                console.log(result);
+                done();
+            }).catch(function(err) {
+                console.log(err);
+                done();
+            });
     }
 };

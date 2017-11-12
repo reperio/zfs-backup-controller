@@ -11,6 +11,7 @@ module.exports = function(sequelize, DataTypes) {
         job_id: {type: DataTypes.UUID, allowNull: false},
         start_date_time: {type: DataTypes.DATE, allowNull: false},
         end_date_time: {type: DataTypes.DATE, allowNull: true},
+        schedule_date_time: {type: DataTypes.DATE, allowNull: true},
         result: {type: DataTypes.INTEGER, allowNull: false},
         source_message: {type: DataTypes.TEXT, allowNull: true},
         target_message: {type: DataTypes.TEXT, allowNull: true},

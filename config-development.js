@@ -4,6 +4,7 @@ module.exports = {
 	trace_log_level: 'info',
 	app_file_log_level: 'info',
 	app_json_log_level: 'info',
+	stdout_log_level: 'debug',
 	host: '0.0.0.0',
 	port: 8000,
 	job_interval: 5000,

@@ -7,8 +7,8 @@ module.exports = function(sequelize, DataTypes) {
             defaultValue: DataTypes.UUIDV4,
             primaryKey: true
         },
-
-        minutes: {type: DataTypes.INTEGER, allowNull: false}
+        name: {type: DataTypes.STRING, allowNull: false},
+        display_name: {type: DataTypes.STRING, allowNull: false}
     }, {
         tableName: "schedules",
         timestamps: true,

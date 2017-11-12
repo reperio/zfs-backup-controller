@@ -15,14 +15,18 @@ module.exports = {
                 transaction: transaction
             });
 
-            const schedule_60_id = uuid();
-            const schedule_120_id = uuid();
-            const schedule_180_id = uuid();
+            const schedule_quarter_hourly_id = uuid();
+            const schedule_hourly_id = uuid();
+            const schedule_dialy_id = uuid();
+            const schedule_weekly_id = uuid();
+            const schedule_monthly_id = uuid();
 
             const scheduleInsertQuery = await queryInterface.bulkInsert("schedules", [
-                {id: schedule_60_id, minutes: 60, createdAt: new Date(),updatedAt: new Date()},
-                {id: schedule_120_id, minutes: 120, createdAt: new Date(),updatedAt: new Date()},
-                {id: schedule_180_id, minutes: 180, createdAt: new Date(),updatedAt: new Date()}
+                {id: schedule_quarter_hourly_id, name: 'quarter_hour', display_name: 'Every 15 minutes', createdAt: new Date(),updatedAt: new Date()},
+                {id: schedule_hourly_id, name: 'hourly', display_name: 'Hourly', createdAt: new Date(),updatedAt: new Date()},
+                {id: schedule_dialy_id, name: 'daily', display_name: 'Daily', createdAt: new Date(),updatedAt: new Date()},
+                {id: schedule_weekly_id, name: 'weekly', display_name: 'Weekly', createdAt: new Date(),updatedAt: new Date()},
+                {id: schedule_monthly_id, name: 'monthly', display_name: 'Monthly', createdAt: new Date(),updatedAt: new Date()}
             ], {
                 returning: true,
                 transaction: transaction
@@ -36,58 +40,7 @@ module.exports = {
             const jobInsertQuery = await queryInterface.bulkInsert("jobs", [
                 {
                     id: job_0_id,
-                    schedule_id: schedule_60_id,
-                    source_retention: '',
-                    target_retention: '',
-                    sdc_vm_id: '',
-                    source_location: '',
-                    target_location: '',
-                    zfs_type: 1,
-                    zfs_size: 5,
-                    source_host_id: host_0_id,
-                    target_host_id: host_1_id,
-                    last_execution: null,
-                    enabled: true,
-                    createdAt: new Date(),
-                    updatedAt: new Date()
-                },
-                {
-                    id: job_1_id,
-                    schedule_id: schedule_120_id,
-                    source_retention: '',
-                    target_retention: '',
-                    sdc_vm_id: '',
-                    source_location: '',
-                    target_location: '',
-                    zfs_type: 1,
-                    zfs_size: 5,
-                    source_host_id: host_0_id,
-                    target_host_id: host_1_id,
-                    last_execution: null,
-                    enabled: true,
-                    createdAt: new Date(),
-                    updatedAt: new Date()
-                },
-                {
-                    id: job_2_id,
-                    schedule_id: schedule_120_id,
-                    source_retention: '',
-                    target_retention: '',
-                    sdc_vm_id: '',
-                    source_location: '',
-                    target_location: '',
-                    zfs_type: 1,
-                    zfs_size: 5,
-                    source_host_id: host_0_id,
-                    target_host_id: host_1_id,
-                    last_execution: null,
-                    enabled: true,
-                    createdAt: new Date(),
-                    updatedAt: new Date()
-                },
-                {
-                    id: job_3_id,
-                    schedule_id: schedule_180_id,
+                    schedule_id: schedule_quarter_hourly_id,
                     source_retention: '',
                     target_retention: '',
                     sdc_vm_id: '',

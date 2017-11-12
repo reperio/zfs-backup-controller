@@ -24,9 +24,15 @@ class JobManager {
 		this.logger.info('');
 		this.logger.info('Job Manager execution started.');
 
-		const jobs = await this. fetch_jobs();
-		const filtered_jobs = this.filter_eligible_jobs(jobs);
-		const result = await this.execute_jobs(filtered_jobs);
+		try {
+			const jobs = await this. fetch_jobs();
+			const filtered_jobs = this.filter_eligible_jobs(jobs);
+			const result = await this.execute_jobs(filtered_jobs);
+		} catch(err) {
+			this.logger.error(err);
+		}
+
+		this.logger.info('Job Manager execution finished.');
 	}
 
 	async fetch_jobs() {
@@ -38,13 +44,41 @@ class JobManager {
 	filter_eligible_jobs(jobs) {
 		this.logger.info(`Filtering ${jobs.length} jobs`);
 
-		const now = moment();
-		return _.filter(jobs, function(job) {
-			const last_schedule = moment(job.last_schedule);
-			const difference = now.diff(last_schedule, 'minutes');
+		return _.filter(jobs, this.should_job_execute.bind(this));
+	}
 
-			return difference >= job.schedule.minutes || !job.last_schedule;
-		});
+	should_job_execute(job) {
+		const current_scheduled_time = this.get_most_recent_schedule_time(job);
+		this.logger.debug(`Current Scheduled Execution Time: ${current_scheduled_time}`);
+
+		const last_scheduled_execution = moment(job.last_schedule);
+		this.logger.debug(`Last Scheduled Execution Time: ${last_scheduled_execution}`);
+
+		return !last_scheduled_execution.isValid() || current_scheduled_time.isAfter(last_scheduled_execution);
+	}
+
+	get_most_recent_schedule_time(job) {
+		if (job.schedule.name === 'quarter_hour') {
+			/*
+				Jump to the beginning of the next hour, subtract 15 minutes until we are earlier than the current time.
+			*/
+			const now = moment();
+			let current = moment().add(1, 'hours').startOf('hour');
+
+			while (current.isSameOrAfter(now)) {
+				current = current.subtract(15, 'minutes');
+			}
+
+			return current;
+		} else if (job.schedule.name === 'hourly') {
+			return moment().startOf('hour');
+		} else if (job.schedule.name === 'daily') {
+			return moment().startOf('day');
+		} else if (job.schedule.name === 'weekly') {
+			return moment().startOf('week');
+		} else if (job.schedule.name === 'monthly') {
+			return moment().startOf('month');
+		}
 	}
 
 	async execute_jobs(jobs) {
@@ -72,21 +106,27 @@ class JobManager {
 
 	async execute_job(job) {
 		this.logger.info(`  ${job.id} - Executing.`);
-		const now = new Date();
+		const start_date_time = new Date();
+
+		const schedule_date_time = this.get_most_recent_schedule_time(job);
 
 		//update last execution on job
 		this.logger.info(`  ${job.id} - Updating job last execution.`);
-		await job.update({last_execution: now});
+		await job.update({last_execution: start_date_time, last_schedule: schedule_date_time});
 		this.logger.info(`  ${job.id} - Job Updated.`);
 
-        const port = this.get_random_port();
+        const port = JobManager.get_random_port();
 
 		this.logger.info(`  ${job.id} - Creating Job History entry.`);
+
+		
+
 		//create job history record
 		const job_history = await this.db.jobs_repository.create_job_history({
 			job_id: job.id,
-	        start_date_time: now,
-	        end_date_time: null,
+	        start_date_time: start_date_time,
+			end_date_time: null,
+			schedule_date_time: schedule_date_time,
 	        result: 0,
 	        source_message: null,
 	        target_message: null,
@@ -99,34 +139,33 @@ class JobManager {
 			throw new Error('Failed to create job history entry.');
 		}
 
-		this.logger.info(`  ${job.id} | ${job_history.id} - Job history entry created.`);
-
         const time_stamp = moment().utc();
 		const snapshot_name = time_stamp.format("YYYYMMDDHHmm");
 
 		try {
 			//build snapshot
-            let result = await this.agentApi.zfs_create_snapshot(job, job_history, snapshot_name, true);
-            const snapshot = {
+            //let result = await this.agentApi.zfs_create_snapshot(job, job_history, snapshot_name, true);
+            const snapshot_data = {
             	name: snapshot_name,
-				host_id: job_history.source_host_id,
+				host_id: job.source_host_id,
 				snapshot_date_time: time_stamp
 			};
 
             //add snapshot to snapshots table
-			const snapshot = await this.db._snapshotsRepository.createSnapshotEntry(snapshot);
+			const snapshot = await this.db.snapshots_repository.createSnapshotEntry(job_history, snapshot_data);
 
 			if (!snapshot) {
 				throw new Error('Failed to create snapshot');
 			}
 		} catch (err) {
 			this.logger.error(`  ${job.id} | ${job_history.id} - Create snapshot step failed.`);
+			await job_history.update({target_message: '', source_result: 3, result: 3});
 			throw err;
 		}
 
 		try {
 			//request zfs receive
-			await this.agentApi.zfs_receive(job, job_history, port, true);
+			//await this.agentApi.zfs_receive(job, job_history, port, true);
 
 			//update job history record
 			this.logger.info(`  ${job.id} | ${job_history.id} - Updating job history entry.`);
@@ -134,12 +173,13 @@ class JobManager {
 			this.logger.info(`  ${job.id} | ${job_history.id} - Job history entry updated.`);
 		} catch (err) {
 			this.logger.error(`  ${job.id} | ${job_history.id} - ZFS Receive step failed.`);
+			await job_history.update({target_message: '', target_result: 3, result: 3});
 			throw err;
 		}
 
 		try {
 			//request zfs send
-			await this.agentApi.zfs_send(job, job_history, snapshot_name, port, true, true, snapshot_name);
+			//await this.agentApi.zfs_send(job, job_history, snapshot_name, port, true, true, snapshot_name);
 
 			//update job history record
 			this.logger.info(`  ${job.id} | ${job_history.id} - Updating job history entry.`);
@@ -147,8 +187,12 @@ class JobManager {
 			this.logger.info(`  ${job.id} | ${job_history.id} - Job history entry updated.`);
 		} catch(err) {
 			this.logger.error(`  ${job.id} | ${job_history.id} - ZFS Send step failed.`);
+			await job_history.update({source_message: '', source_result: 3, result: 3});
 			throw err;
 		}
+
+		const end_date_time = new Date();
+		await job_history.update({end_date_time: end_date_time});
 	}
 }
 

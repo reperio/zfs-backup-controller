@@ -5,16 +5,16 @@ class SnapshotsRepository {
 
     async getAllSnapshotsByHostId(hostId) {
         this.data_model.logger.info(`Fetching all snapshots with host_id: ${hostId}`);
-        const snapshots = await this.data_model.db.snapshots.findAll({
+        const snapshots = await this.data_model._db.snapshots.findAll({
             where: { host_id: hostId}
         });
         return snapshots;
     }
 
-    async createSnapshotEntry(snapshot) {
-        this.data_model.logger.info('Creating snapshot entry');
+    async createSnapshotEntry(job_history, snapshot) {
+        this.data_model.logger.info(`${job_history.job_id} | ${job_history.id} - Creating snapshot entry`);
         try {
-            const snapshot_entry = await this.data_model.snapshots.create(snapshot);
+            const snapshot_entry = await this.data_model._db.snapshots.create(snapshot);
 
             return snapshot_entry;
         } catch (err) {
@@ -26,7 +26,7 @@ class SnapshotsRepository {
     async deleteSnapshotEntryById(snapshotId) {
         this.data_model.logger.info(`Deleting snapshot entry with id: ${snapshotId}`);
         try {
-            await this.data_model.snapshots.destroy({
+            await this.data_model._db.snapshots.destroy({
                 where: { id: snapshotId }
             });
 
@@ -37,3 +37,5 @@ class SnapshotsRepository {
         }
     }
 }
+
+module.exports = SnapshotsRepository;

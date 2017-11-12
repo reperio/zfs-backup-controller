@@ -56,7 +56,7 @@ const trace_file_transport = new (winston.transports.DailyRotateFile)({
 
 const console_transport = new (winston.transports.Console)({
     prepend: true,
-    level: Config.log_level,
+    level: Config.stdout_log_level,
     humanReadableUnhandledException: true,
     handleExceptions: true,
     json: false,
