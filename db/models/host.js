@@ -1,5 +1,5 @@
 'use strict';
-const uuid = require('uuid/v4');
+
 module.exports = function(sequelize, DataTypes) {
     const Host = sequelize.define('hosts', {
         id: {

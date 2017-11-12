@@ -141,7 +141,9 @@ server.start(err => {
     console.log('Server running at:', server.info.uri);
 });
 
-const job_manager = new JobManager(server.app.logger, server.app.db, Config.job_interval, AgentApi);
+const agent_api = new AgentApi(Config, server.app.logger);
+
+const job_manager = new JobManager(server.app.logger, server.app.db, Config.job_interval, agent_api);
 job_manager.start();
 
 module.exports = server;

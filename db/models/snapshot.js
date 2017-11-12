@@ -9,7 +9,7 @@ module.exports = function(sequelize, DataTypes) {
         },
 
         name: {type: DataTypes.STRING, allowNull: false},
-        host_id: {type: DataTypes.INTEGER, allowNull: false},
+        host_id: {type: DataTypes.UUID, allowNull: true},
         snapshot_date_time: {type: DataTypes.DATE, allowNull: false}
     }, {
         tableName: "snapshots",
@@ -19,7 +19,7 @@ module.exports = function(sequelize, DataTypes) {
     });
 
     Snapshot.associate = function(models) {
-
+        Snapshot.belongsTo(models.hosts, {as: 'host', foreignKey: 'host_id'});
     };
 
     return Snapshot;

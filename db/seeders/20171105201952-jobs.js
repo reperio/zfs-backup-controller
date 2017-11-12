@@ -7,9 +7,9 @@ module.exports = {
         try {
             const host_0_id = uuid();
             const host_1_id = uuid();
-            const hostInsertQuery = await queryInterface.bulkInsert("hosts", [
-                {id: host_0_id, sdc_id: '', ip_address: '', createdAt: new Date(),updatedAt: new Date()},
-                {id: host_1_id, sdc_id: '', ip_address: '', createdAt: new Date(),updatedAt: new Date()}
+            const hostInsertQuery = await queryInterface.bulkInsert('hosts', [
+                {id: host_0_id, sdc_id: '', ip_address: '192.168.156.161', port: 3000, createdAt: new Date(), updatedAt: new Date()},
+                {id: host_1_id, sdc_id: '', ip_address: '192.168.156.162', port: 3000, createdAt: new Date(), updatedAt: new Date()}
             ], {
                 returning: true,
                 transaction: transaction

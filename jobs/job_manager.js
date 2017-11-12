@@ -141,7 +141,7 @@ class JobManager {
 
         try {
             //build snapshot
-            //let result = await this.agentApi.zfs_create_snapshot(job, job_history, snapshot_name, true);
+            await this.agentApi.zfs_create_snapshot(job, job_history, snapshot_name, true);
             const snapshot_data = {
                 name: snapshot_name,
                 host_id: job.source_host_id,
@@ -162,7 +162,7 @@ class JobManager {
 
         try {
             //request zfs receive
-            //await this.agentApi.zfs_receive(job, job_history, port, true);
+            await this.agentApi.zfs_receive(job, job_history, port, true);
 
             //update job history record
             this.logger.info(`  ${job.id} | ${job_history.id} - Updating job history entry.`);
@@ -176,7 +176,7 @@ class JobManager {
 
         try {
             //request zfs send
-            //await this.agentApi.zfs_send(job, job_history, snapshot_name, port, true, true, snapshot_name);
+            await this.agentApi.zfs_send(job, job_history, snapshot_name, port, true, true, snapshot_name);
 
             //update job history record
             this.logger.info(`  ${job.id} | ${job_history.id} - Updating job history entry.`);
