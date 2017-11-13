@@ -37,7 +37,7 @@ class JobsRepository {
     async get_job_history_by_id(job_history_id) {
         this.data_model.logger.info(`Fetching job history entry with id: ${job_history_id}`);
         try {
-            const job_history = await this.data_model._db.job_history.findAll({
+            const job_history = await this.data_model._db.job_history.findOne({
                 where: {id: job_history_id}
             });
 

@@ -34,11 +34,11 @@ async function send_complete(request, reply) {
         const job_history = await db.jobs_repository.get_job_history_by_id(job_history_id);
         logger.info(`${job_history.id} - Updating job history entry.`);
 
-        const result = code === '0' ? 2 : 3;
+        const result = code === 0 ? 2 : 3;
 
         job_history.update({ source_message: code, source_result: result});
         logger.info(`${job_history_id} - Finished updating job history entry.`);
-        
+
         return reply({status: 'success'});
     } catch (err) {
         logger.error(`${job_history_id} - Processing send_complete failed.`);
@@ -76,7 +76,7 @@ async function receive_complete(request, reply) {
         const job_history = await db.jobs_repository.get_job_history_by_id(job_history_id);
         logger.info(`${job_history_id} - Updating job history entry.`);
 
-        const result = code === '0' ? 2 : 3;
+        const result = code === 0 ? 2 : 3;
 
         job_history.update({ target_message: code, target_result: result});
         logger.info(`${job_history_id} - Finished updating job history entry.`);
