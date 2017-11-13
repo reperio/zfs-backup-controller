@@ -36,7 +36,13 @@ async function send_complete(request, reply) {
 
         const result = code === 0 ? 2 : 3;
 
-        job_history.update({ source_message: code, source_result: result});
+        const job_history_changes = { source_message: code, source_result: result};
+
+        if (result === 3) {
+            job_history_changes.result = 3;
+        }
+
+        job_history.update(job_history_changes);
         logger.info(`${job_history_id} - Finished updating job history entry.`);
 
         return reply({status: 'success'});
@@ -78,7 +84,13 @@ async function receive_complete(request, reply) {
 
         const result = code === 0 ? 2 : 3;
 
-        job_history.update({ target_message: code, target_result: result});
+        const job_history_changes = { target_message: code, target_result: result};
+        
+        if (result === 3) {
+            job_history_changes.result = 3;
+        }
+
+        job_history.update(job_history_changes);
         logger.info(`${job_history_id} - Finished updating job history entry.`);
 
         return reply({status: 'success'});
