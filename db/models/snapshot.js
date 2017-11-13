@@ -1,7 +1,7 @@
 'use strict';
-const uuid = require('uuid/v4');
-module.exports = function(sequelize, DataTypes) {
-    const Snapshot = sequelize.define("snapshots", {
+
+module.exports = function (sequelize, DataTypes) {
+    const Snapshot = sequelize.define('snapshots', {
         id: {
             type: DataTypes.UUID,
             defaultValue: DataTypes.UUIDV4,
@@ -10,16 +10,18 @@ module.exports = function(sequelize, DataTypes) {
 
         name: {type: DataTypes.STRING, allowNull: false},
         host_id: {type: DataTypes.UUID, allowNull: true},
-        snapshot_date_time: {type: DataTypes.DATE, allowNull: false}
+        snapshot_date_time: {type: DataTypes.DATE, allowNull: false},
+        job_history_id: {type: DataTypes.UUID, allowNull: true}
     }, {
-        tableName: "snapshots",
+        tableName: 'snapshots',
         timestamps: true,
         deletedAt: false,
         freezeTableName: true
     });
 
-    Snapshot.associate = function(models) {
+    Snapshot.associate = function (models) {
         Snapshot.belongsTo(models.hosts, {as: 'host', foreignKey: 'host_id'});
+        Snapshot.belongsTo(models.job_history, {as: 'job_history', foreignKey: 'job_history_id'});
     };
 
     return Snapshot;

@@ -1,6 +1,6 @@
 'use strict';
-const uuid = require('uuid/v4');
-module.exports = function(sequelize, DataTypes) {
+
+module.exports = function (sequelize, DataTypes) {
     const JobHistory = sequelize.define('job_history', {
         id: {
             type: DataTypes.UUID,
@@ -19,14 +19,15 @@ module.exports = function(sequelize, DataTypes) {
         target_result: {type: DataTypes.INTEGER, allowNull: false},
         port: {type: DataTypes.INTEGER, allowNull: false}
     }, {
-        tableName: "job_history",
+        tableName: 'job_history',
         timestamps: true,
         deletedAt: false,
         freezeTableName: true
     });
 
-    JobHistory.associate = function(models) {
-        JobHistory.belongsTo(models.jobs, {as: 'job', foreignKey: 'job_id'})
+    JobHistory.associate = function (models) {
+        JobHistory.belongsTo(models.jobs, {as: 'job', foreignKey: 'job_id'});
+        JobHistory.hasMany(models.snapshots, { foreignKey: 'job_history_id', as: 'snapshots' });
     };
 
     return JobHistory;

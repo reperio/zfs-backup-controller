@@ -47,6 +47,35 @@ class JobsRepository {
             return null;
         }
     }
+
+    async get_most_recent_successful_job_history(job_id) {
+        this.data_model.logger.info(`Fetching last successful job history entry for job: ${job_id}`);
+
+        try {
+            const job_history = await this.data_model._db.job_history.findAll({
+                where: {
+                    job_id: job_id,
+                    source_result: 2,
+                    target_result: 2
+                    //TODO add result: 2 once we find out how to reliably set it
+                },
+                include: [{
+                    model: this.data_model._db.snapshots,
+                    as: 'snapshots'
+                }],
+                order: ['end_date_time', 'DESC']
+            });
+
+            if (job_history.length > 0) {
+                return job_history[0];
+            }
+
+            return null;
+        } catch (err) {
+            this.data_model.logger.error(err);
+            return null;
+        }
+    }
 }
 
 module.exports = JobsRepository;

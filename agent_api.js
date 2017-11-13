@@ -84,11 +84,17 @@ class AgentApi {
     }
 
     /* eslint max-params: 0 */
-    async zfs_send(job, job_history, snapshot_name, port, incremental, include_properties, source_snapshot_name) {
+    async zfs_send(job, job_history, snapshot_name, port, incremental_snapshot_name, include_properties, source_snapshot_name) {
         this.logger.info(`  ${job.id} | ${job_history.id} - Sending ZFS Send command to source ${job.source_host.ip_address}.`);
 
         const url = `http://${job.source_host.ip_address}:${job.source_host.port}${this.urls.zfs_send}`;
         this.logger.info(`  ${job.id} | ${job_history.id} - Send command sending to url: ${url}`);
+
+        let incremental = false;
+
+        if (incremental_snapshot_name) {
+            incremental = true;
+        }
 
         const payload = {
             snapshot_name: snapshot_name,
@@ -96,7 +102,7 @@ class AgentApi {
             port: port,
             incremental: incremental,
             include_properties: include_properties,
-            source_snapshot_name: source_snapshot_name,
+            source_snapshot_name: incremental_snapshot_name,
             mbuffer_size: this.config.mbuffer_size,
             mbuffer_rate: this.config.mbuffer_rate,
             job_history_id: job_history.id

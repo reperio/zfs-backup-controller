@@ -145,7 +145,8 @@ class JobManager {
             const snapshot_data = {
                 name: snapshot_name,
                 host_id: job.source_host_id,
-                snapshot_date_time: time_stamp
+                snapshot_date_time: time_stamp,
+                job_history_id: job_history.id
             };
 
             //add snapshot to snapshots table
@@ -176,7 +177,15 @@ class JobManager {
 
         try {
             //request zfs send
-            await this.agentApi.zfs_send(job, job_history, snapshot_name, port, false, true, snapshot_name);
+            let last_snapshot_name = null;
+
+            const most_recent_successful = await this.db.jobs_repository.get_most_recent_successful_job_history(job.id);
+
+            if (most_recent_successful) {
+                last_snapshot_name = most_recent_successful.snapshots[0].name;
+            }
+
+            await this.agentApi.zfs_send(job, job_history, snapshot_name, port, last_snapshot_name, true, snapshot_name);
 
             //update job history record
             this.logger.info(`  ${job.id} | ${job_history.id} - Updating job history entry.`);
