@@ -20,16 +20,17 @@ class AgentApi {
 
         const payload = {
             snapshot_name: snapshot_name,
-            recursive: recursive
+            recursive: recursive,
+            job_history_id: job_history.id
         };
 
-        this.logger.info(`  ${job.id} | ${job_history.id} - Sending ZFS Create Snapshot command sending with payload: ${payload}`);
+        this.logger.info(`  ${job.id} | ${job_history.id} - Sending ZFS Create Snapshot command sending with payload: ${JSON.stringify(payload)}`);
 
         const http_options = {
             uri: url,
             method: 'POST',
             headers: {
-                'Content-Type': 'application / json'
+                'Content-Type': 'application/json'
             },
             json: payload
         };
@@ -54,16 +55,17 @@ class AgentApi {
         this.logger.info(`  ${job.id} | ${job_history.id} - Sending ZFS Destroy Snapshot command to url ${url}.`);
 
         const payload = {
-            snapshot_name: snapshot_name
+            snapshot_name: snapshot_name,
+            job_history_id: job_history.id
         };
 
-        this.logger.info(`  ${job.id} | ${job_history.id} - Sending ZFS Destroy Snapshot command sending with payload: ${payload}`);
+        this.logger.info(`  ${job.id} | ${job_history.id} - Sending ZFS Destroy Snapshot command sending with payload: ${JSON.stringify(payload)}`);
 
         const http_options = {
             uri: url,
             method: 'POST',
             headers: {
-                'Content-Type': 'application / json'
+                'Content-Type': 'application/json'
             },
             json: payload
         };
@@ -81,6 +83,7 @@ class AgentApi {
         }
     }
 
+    /* eslint max-params: 0 */
     async zfs_send(job, job_history, snapshot_name, port, incremental, include_properties, source_snapshot_name) {
         this.logger.info(`  ${job.id} | ${job_history.id} - Sending ZFS Send command to source ${job.source_host.ip_address}.`);
 
@@ -103,12 +106,12 @@ class AgentApi {
             uri: url,
             method: 'POST',
             headers: {
-                'Content-Type': 'application / json'
+                'Content-Type': 'application/json'
             },
             json: payload
         };
 
-        this.logger.info(`  ${job.id} | ${job_history.id} - Send command sending with payload: ${payload}`);
+        this.logger.info(`  ${job.id} | ${job_history.id} - Send command sending with payload: ${JSON.stringify(payload)}`);
 
         try {
             const result = await request(http_options);
@@ -126,22 +129,22 @@ class AgentApi {
     async zfs_receive(job, job_history, port, force_rollback) {
         this.logger.info(`  ${job.id} | ${job_history.id} - Sending ZFS Receive command to target ${job.target_host.ip_address}.`);
 
-        const url = `http://${job.source_host.ip_address}:${job.source_host.port}${this.urls.zfs_receive}`;
+        const url = `http://${job.target_host.ip_address}:${job.target_host.port}${this.urls.zfs_receive}`;
         this.logger.info(`  ${job.id} | ${job_history.id} - Receive command sending to url: ${url}`);
 
         const payload = {
-            target: job.target_host.ip_address,
+            target: job.target_location,
             port: port,
             force_rollback: force_rollback,
             job_history_id: job_history.id
         };
-        this.logger.info(`  ${job.id} | ${job_history.id} - Receive command sending with payload: ${payload}`);
+        this.logger.info(`  ${job.id} | ${job_history.id} - Receive command sending with payload: ${JSON.stringify(payload)}`);
 
         const http_options = {
             uri: url,
             method: 'POST',
             headers: {
-                'Content-Type': 'application / json'
+                'Content-Type': 'application/json'
             },
             json: payload
         };

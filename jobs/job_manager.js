@@ -137,7 +137,7 @@ class JobManager {
         }
 
         const time_stamp = moment().utc();
-        const snapshot_name = time_stamp.format('YYYYMMDDHHmm');
+        const snapshot_name = `${job.source_location}@${time_stamp.format('YYYYMMDDHHmm')}`;
 
         try {
             //build snapshot
@@ -176,7 +176,7 @@ class JobManager {
 
         try {
             //request zfs send
-            await this.agentApi.zfs_send(job, job_history, snapshot_name, port, true, true, snapshot_name);
+            await this.agentApi.zfs_send(job, job_history, snapshot_name, port, false, true, snapshot_name);
 
             //update job history record
             this.logger.info(`  ${job.id} | ${job_history.id} - Updating job history entry.`);
