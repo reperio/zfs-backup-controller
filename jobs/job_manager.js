@@ -26,10 +26,43 @@ class JobManager {
             const filtered_jobs = this.filter_eligible_jobs(jobs);
             await this.execute_jobs(filtered_jobs);
         } catch(err) {
+            this.logger.error('Job manager execution failed.');
             this.logger.error(err);
         }
 
+        try {
+            await this.cleanup_finished_jobs();
+        } catch (err) {
+            this.logger.error('Finished job cleanup failed.');
+            this.logger.error(err);
+        }
+        
         this.logger.info('Job Manager execution finished.');
+    }
+
+    async cleanup_finished_jobs() {
+        this.logger.info('Fetching unfinished jobs to clean up');
+        const jobs = await this.db.jobs_repository.getUnfinishedJobs();
+
+        for (let job of jobs) {
+            try {
+                this.logger.info(`${job.job_id} | ${job.id} Checking job.`);
+                if (job.source_result === 3 || job.target_result === 3) {
+                    this.logger.info(`${job.job_id} | ${job.id} Setting job to failed.`);
+                    job.result = 3;
+                }
+
+                if (job.source_result === 2 && job.target_result === 2) {
+                    this.logger.info(`${job.job_id} | ${job.id} Setting job to successful.`);
+                    job.result = 2;
+                }
+
+                await job.save();
+            } catch(err) {
+                this.logger.error(`${job.job_id} | ${job.id} Checking job failed.`);
+                this.logger.error(err);
+            }
+        }
     }
 
     async fetch_jobs() {
@@ -185,7 +218,7 @@ class JobManager {
                 last_snapshot_name = most_recent_successful.snapshots[0].name;
             }
 
-            await this.agentApi.zfs_send(job, job_history, snapshot_name, port, last_snapshot_name, true, snapshot_name);
+            await this.agentApi.zfs_send(job, job_history, snapshot_name, port, last_snapshot_name, true);
 
             //update job history record
             this.logger.info(`  ${job.id} | ${job_history.id} - Updating job history entry.`);

@@ -20,6 +20,19 @@ class JobsRepository {
         return jobs;
     }
 
+    async getUnfinishedJobs() {
+        this.data_model.logger.info('Fetching unfinished jobs');
+        const jobs = await this.data_model._db.job_history.findAll({
+            where: {
+                result: {
+                    in: [0, 1]
+                }
+            }
+        });
+
+        return jobs;
+    }
+
     async create_job_history(job_history) {
         this.data_model.logger.info(`  ${job_history.job_id} - Creating job history.`);
         try {
@@ -63,7 +76,7 @@ class JobsRepository {
                     model: this.data_model._db.snapshots,
                     as: 'snapshots'
                 }],
-                order: ['end_date_time', 'DESC']
+                order: [['end_date_time', 'DESC']]
             });
 
             if (job_history.length > 0) {
