@@ -27,7 +27,7 @@ module.exports = function (sequelize, DataTypes) {
 
     JobHistory.associate = function (models) {
         JobHistory.belongsTo(models.jobs, {as: 'job', foreignKey: 'job_id'});
-        JobHistory.hasMany(models.snapshots, { foreignKey: 'job_history_id', as: 'snapshots' });
+        JobHistory.hasOne(models.snapshots, { foreignKey: 'job_history_id', as: 'snapshot' });
     };
 
     return JobHistory;

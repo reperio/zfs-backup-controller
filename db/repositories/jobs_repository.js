@@ -51,7 +51,11 @@ class JobsRepository {
         this.data_model.logger.info(`Fetching job history entry with id: ${job_history_id}`);
         try {
             const job_history = await this.data_model._db.job_history.findOne({
-                where: {id: job_history_id}
+                where: {id: job_history_id},
+                include: [{
+                    model: this.data_model._db.snapshots,
+                    as: 'snapshot'
+                }]
             });
 
             return job_history;
@@ -70,11 +74,10 @@ class JobsRepository {
                     job_id: job_id,
                     source_result: 2,
                     target_result: 2
-                    //TODO add result: 2 once we find out how to reliably set it
                 },
                 include: [{
                     model: this.data_model._db.snapshots,
-                    as: 'snapshots'
+                    as: 'snapshot'
                 }],
                 order: [['end_date_time', 'DESC']]
             });

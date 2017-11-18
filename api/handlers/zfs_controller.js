@@ -93,6 +93,10 @@ async function receive_complete(request, reply) {
         job_history.update(job_history_changes);
         logger.info(`${job_history_id} - Finished updating job history entry.`);
 
+        this.logger.info(`  ${job_history.job_id} | ${job_history.id} - Updating job snapshot.`);
+        await job_history.snapshot.update({target_host_status: 1});
+        this.logger.info(`  ${job_history.job_id} | ${job_history.id} - Job snapshot updated.`);
+
         return reply({status: 'success'});
     } catch (err) {
         logger.error(`${job_history_id} - Processing receive_complete failed.`);

@@ -172,18 +172,23 @@ class JobManager {
         const time_stamp = moment().utc();
         const snapshot_name = `${job.source_location}@${time_stamp.format('YYYYMMDDHHmm')}`;
 
+        let snapshot = null;
+
         try {
             //build snapshot
             await this.agentApi.zfs_create_snapshot(job, job_history, snapshot_name, true);
             const snapshot_data = {
                 name: snapshot_name,
-                host_id: job.source_host_id,
+                source_host_id: job.source_host_id,
+                source_host_status: 1,
+                target_host_id: job.target_host_id,
+                target_host_status: 0,
                 snapshot_date_time: time_stamp,
                 job_history_id: job_history.id
             };
 
             //add snapshot to snapshots table
-            const snapshot = await this.db.snapshots_repository.createSnapshotEntry(job_history, snapshot_data);
+            snapshot = await this.db.snapshots_repository.createSnapshotEntry(job_history, snapshot_data);
 
             if (!snapshot) {
                 throw new Error('Failed to create snapshot');
