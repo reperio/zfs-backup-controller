@@ -6,6 +6,9 @@ class JobsRepository {
     async getAllJobs() {
         this.data_model.logger.info('Fetching all jobs');
         const jobs = await this.data_model._db.jobs.findAll({
+            where: {
+                enabled: true
+            },
             include: [{
                 model: this.data_model._db.hosts,
                 as: 'source_host'

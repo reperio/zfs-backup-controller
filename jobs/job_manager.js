@@ -2,10 +2,11 @@ const _ = require('lodash');
 const moment = require('moment');
 
 class JobManager {
-    constructor(logger, db, interval, agentApi) {
+    constructor(logger, db, interval, agentApi, retention_manager) {
         this.logger = logger;
         this.db = db;
         this.agentApi = agentApi;
+        this.retention_manager = retention_manager;
 
         this.interval_id = null;
         this.interval = interval;
@@ -38,6 +39,91 @@ class JobManager {
         }
         
         this.logger.info('Job Manager execution finished.');
+    }
+
+    async apply_retention_schedules() {
+        this.logger.info('Applying Retention Schedules.');
+        const jobs = await this.fetch_jobs();
+
+        for (let job of jobs) {
+            try {
+                await this.apply_retention_schedule_for_job(job);
+            } catch (err) {
+                this.logger.error(`${job.id} - Applying retention schedule failed`);
+                this.logger.error(err);
+            }
+        }
+    }
+
+    async apply_retention_schedule_for_job(job) {
+        this.logger.info(`${job.id} - Applying retention schedule.`);
+
+        const source_retention_policy = JSON.parse(job.source_retention);
+        const target_retention_policy = JSON.parse(job.target_retention);
+
+        const snapshots = await this.db.snapshots_repository.get_active_snapshots_for_job(job.id);
+
+        let source_success = true;
+
+        //process source retention
+        try {
+            this.logger.info(`${job.id} - Processing source retention`);
+            const snapshots_to_delete = this.retention_manager.get_snapshots_to_delete(snapshots, source_retention_policy);
+            
+            this.logger.info(`${job.id} - Deleting ${snapshots_to_delete.length} snapshots`);
+            for (let source_snapshot of snapshots) {
+                if (source_snapshot.source_host_status !== 1) {
+                    continue;
+                }
+
+                try {
+                    this.logger.info(`${job.id} - Deleting snapshot ${source_snapshot.name} from source ${source_snapshot.source_host.ip_address}`);
+                    await this.agentApi.zfs_destroy_snapshot(source_snapshot);
+                    await source_snapshot.update({source_host_status: 2});
+                } catch (err) {
+                    source_success = false;
+                    this.logger.error(`${job.id} - Deleting snapshot ${source_snapshot.name} from source ${source_snapshot.source_host.ip_address} failed.`);
+                    this.logger.error(err);
+                    await source_snapshot.update({source_host_status: 3});
+                }
+            }
+            this.logger.info(`${job.id} - Finished applying source retention schedule`);
+        } catch (err) {
+            this.logger.error(`${job.id} - Applying source retention schedule failed`);
+            this.logger.error(err);
+        }
+
+        if (!source_success) {
+            return;
+        }
+
+        //process target retention
+        try {
+            this.logger.info(`${job.id} - Processing target retention`);
+            const snapshots_to_delete = this.retention_manager.get_snapshots_to_delete(snapshots, target_retention_policy);
+            
+            this.logger.info(`${job.id} - Deleting ${snapshots_to_delete.length} snapshots`);
+            for (let target_snapshot of snapshots) {
+                if (target_snapshot.target_host_status !== 1) {
+                    continue;
+                }
+
+                //delete snapshot at host
+                try {
+                    this.logger.info(`${job.id} - Deleting snapshot ${target_snapshot.name} from target ${target_snapshot.target_host.ip_address}`);
+                    await this.agentApi.zfs_destroy_snapshot(target_snapshot);
+                    await target_snapshot.update({target_host_status: 2});
+                } catch (err) {
+                    this.logger.error(`${job.id} - Deleting snapshot ${target_snapshot.name} from target ${target_snapshot.target_host.ip_address} failed.`);
+                    this.logger.error(err);
+                    await target_snapshot.update({target_host_status: 3});
+                }
+            }
+            this.logger.info(`${job.id} - Finished applying target retention schedule`);
+        } catch (err) {
+            this.logger.error(`${job.id} - Applying target retention schedule failed`);
+            this.logger.error(err);
+        }
     }
 
     async cleanup_finished_jobs() {
@@ -220,7 +306,7 @@ class JobManager {
             const most_recent_successful = await this.db.jobs_repository.get_most_recent_successful_job_history(job.id);
 
             if (most_recent_successful) {
-                last_snapshot_name = most_recent_successful.snapshots[0].name;
+                last_snapshot_name = most_recent_successful.snapshot.name;
             }
 
             await this.agentApi.zfs_send(job, job_history, snapshot_name, port, last_snapshot_name, true);

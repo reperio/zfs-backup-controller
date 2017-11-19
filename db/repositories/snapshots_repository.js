@@ -11,6 +11,39 @@ class SnapshotsRepository {
         return snapshots;
     }
 
+    async get_active_snapshots_for_job(job_id) {
+        this.data_model.logger.info(`Fetching all active snapshots with host_id: ${job_id}`);
+
+        const snapshots = await this.data_model._db.snapshots.findAll({
+            where: {
+                or: [{
+                    source_host_status: {
+                        in: [0, 1]
+                    }
+                }, {
+                    target_host_status: {
+                        in: [0, 1]
+                    }
+                }]
+            },
+            include: [{
+                model: this.data_model._db.hosts,
+                as: 'source_host'
+            }, {
+                model: this.data_model._db.hosts,
+                as: 'target_host'
+            }, {
+                model: this.data_model._db.job_history,
+                as: 'job_history'
+            }, {
+                model: this.data_model._db.jobs,
+                as: 'job'
+            }]
+        });
+
+        return snapshots;
+    }
+
     async createSnapshotEntry(job_history, snapshot) {
         this.data_model.logger.info(`${job_history.job_id} | ${job_history.id} - Creating snapshot entry`);
         try {

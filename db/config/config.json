@@ -15,9 +15,9 @@
   },
   "production": {
     "username": "reperio",
-    "password": "reperio",
-    "database": "reperio_backups_dev",
-    "host": "10.2.3.31",
+    "password": "mlQMLA6wbLMJwdCO",
+    "database": "zfs-backup",
+    "host": "localhost",
     "dialect": "mysql"
   }
 }

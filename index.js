@@ -7,6 +7,7 @@ const winston = require('winston');
 require('winston-daily-rotate-file');
 
 const JobManager = require('./jobs/job_manager');
+const RetentionManager = require('./retention/retention_manager');
 const DataModel = require('./db');
 const AgentApi = require('./agent_api');
 
@@ -100,7 +101,6 @@ server.on('request-error', (request, response) => {
     request.server.app.logger.error(response);
 });
 
-
 server.ext({
     type: 'onPreResponse',
     method: async (request, reply) => {
@@ -141,8 +141,9 @@ server.start(err => {
 });
 
 const agent_api = new AgentApi(Config, server.app.logger);
+const retention_manager = new RetentionManager();
 
-const job_manager = new JobManager(server.app.logger, server.app.db, Config.job_interval, agent_api);
+const job_manager = new JobManager(server.app.logger, server.app.db, Config.job_interval, agent_api, retention_manager);
 job_manager.start();
 
 module.exports = server;

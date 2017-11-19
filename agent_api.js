@@ -48,18 +48,18 @@ class AgentApi {
         }
     }
 
-    async zfs_destroy_snapshot(job, job_history, snapshot_name) {
-        this.logger.info(`  ${job.id} | ${job_history.id} - Sending ZFS Destroy Snapshot command to source ${job.source_host.ip_address}.`);
+    async zfs_destroy_snapshot(snapshot, host) {
+        this.logger.info(`  ${snapshot.job_id} | ${snapshot.job_history_id} - Sending ZFS Destroy Snapshot command to source ${host.ip_address}.`);
 
-        const url = `http://${job.source_host.ip_address}:${job.source_host.port}${this.urls.zfs_destroy_snapshot}`;
-        this.logger.info(`  ${job.id} | ${job_history.id} - Sending ZFS Destroy Snapshot command to url ${url}.`);
+        const url = `http://${host.ip_address}:${host.port}${this.urls.zfs_destroy_snapshot}`;
+        this.logger.info(`  ${snapshot.job_id} | ${snapshot.job_history_id} - Sending ZFS Destroy Snapshot command to url ${url}.`);
 
         const payload = {
-            snapshot_name: snapshot_name,
-            job_history_id: job_history.id
+            snapshot_name: snapshot.name,
+            job_history_id: snapshot.job_history_id
         };
 
-        this.logger.info(`  ${job.id} | ${job_history.id} - Sending ZFS Destroy Snapshot command sending with payload: ${JSON.stringify(payload)}`);
+        this.logger.info(`  ${snapshot.job_id} | ${snapshot.job_history_id} - Sending ZFS Destroy Snapshot command sending with payload: ${JSON.stringify(payload)}`);
 
         const http_options = {
             uri: url,
@@ -71,12 +71,12 @@ class AgentApi {
         };
 
         try {
-            const result = await request(http_options);
-            this.logger.info(`  ${job.id} | ${job_history.id} - ZFS Destroy Snapshot command sent.`);
+            await request(http_options);
+            this.logger.info(`  ${snapshot.job_id} | ${snapshot.job_history_id} - Snapshot ${snapshot.name} destroyed on host ${host.ip_address}.`);
 
             return true;
         } catch (err) {
-            this.logger.error(`  ${job.id} | ${job_history.id} - Failed to start zfs destroy snapshot on source`);
+            this.logger.error(`  ${snapshot.job_id} | ${snapshot.job_history_id} - Failed to destroy snapshot on host ${host.ip_address}`);
             this.logger.error(err);
 
             throw err;
