@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha test"
   },
   "repository": {
     "type": "git",
@@ -31,6 +31,7 @@
   },
   "homepage": "https://github.com/reperio/zfs-backup-controller#readme",
   "devDependencies": {
+    "mocha": "^4.0.1",
     "sequelize-cli": "^3.0.0"
   }
 }

@@ -1,3 +1,4 @@
+/* eslint no-use-before-define: 0*/
 'use strict';
 
 const Boom = require('boom');
@@ -105,6 +106,5 @@ async function receive_complete(request, reply) {
         return reply(Boom.badImplementation('Snapshot receive_complete failed.'));
     }
 }
-
 
 module.exports = routes;
