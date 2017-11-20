@@ -571,4 +571,32 @@ describe('Retention Tests', async function() {
             assert.equal(snapshots_to_delete.length, 9986);
         });
     });
+
+    describe('Retention tests with offset', () => {
+        let snapshots = [];
+
+        beforeEach(() => {
+            snapshots = [{
+                "job_history_id": "23bbe480-ce20-4eec-b46b-deaaf8e4ff2f",
+                "name": "201709010000",
+                "host_id": 0,
+                "snapshot_date_time": "2017-11-21T00:00:00.000Z"
+            }, {
+                "job_history_id": "0887f6a5-fcfa-41cf-9185-526d5b9f87f6",
+                "name": "201709010015",
+                "host_id": 0,
+                "snapshot_date_time": "2017-11-21T00:15:00.000Z"
+            }, {
+                "job_history_id": "7089472f-5bc0-489f-b462-96c7beebaab0",
+                "name": "201709010030",
+                "host_id": 0,
+                "snapshot_date_time": "2017-11-21T00:30:00.000Z"
+            }, {
+                "job_history_id": "cc705b49-3311-47a8-a4c4-17a9814e68ce",
+                "name": "201709010045",
+                "host_id": 0,
+                "snapshot_date_time": "2017-11-21T00:45:00.000Z"
+            }];
+        });
+    });
 });

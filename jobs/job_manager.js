@@ -78,14 +78,14 @@ class JobManager {
             const snapshots_to_delete = this.retention_manager.get_snapshots_to_delete(snapshots, source_retention_policy);
             
             this.logger.info(`${job.id} - Deleting ${snapshots_to_delete.length} snapshots`);
-            for (let source_snapshot of snapshots) {
+            for (let source_snapshot of snapshots_to_delete) {
                 if (source_snapshot.source_host_status !== 1) {
                     continue;
                 }
 
                 try {
                     this.logger.info(`${job.id} - Deleting snapshot ${source_snapshot.name} from source ${source_snapshot.source_host.ip_address}`);
-                    await this.agentApi.zfs_destroy_snapshot(source_snapshot);
+                    await this.agentApi.zfs_destroy_snapshot(source_snapshot, job.source_host);
                     await source_snapshot.update({source_host_status: 2});
                 } catch (err) {
                     source_success = false;
@@ -110,7 +110,7 @@ class JobManager {
             const snapshots_to_delete = this.retention_manager.get_snapshots_to_delete(snapshots, target_retention_policy);
             
             this.logger.info(`${job.id} - Deleting ${snapshots_to_delete.length} snapshots`);
-            for (let target_snapshot of snapshots) {
+            for (let target_snapshot of snapshots_to_delete) {
                 if (target_snapshot.target_host_status !== 1) {
                     continue;
                 }
@@ -118,7 +118,7 @@ class JobManager {
                 //delete snapshot at host
                 try {
                     this.logger.info(`${job.id} - Deleting snapshot ${target_snapshot.name} from target ${target_snapshot.target_host.ip_address}`);
-                    await this.agentApi.zfs_destroy_snapshot(target_snapshot);
+                    await this.agentApi.zfs_destroy_snapshot(target_snapshot, job.target_host);
                     await target_snapshot.update({target_host_status: 2});
                 } catch (err) {
                     this.logger.error(`${job.id} - Deleting snapshot ${target_snapshot.name} from target ${target_snapshot.target_host.ip_address} failed.`);
