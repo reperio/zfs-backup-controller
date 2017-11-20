@@ -22,7 +22,7 @@ module.exports = function(sequelize, DataTypes) {
         last_schedule: {type: DataTypes.DATE, allowNull: true},
         enabled: {type: DataTypes.BOOLEAN, allowNull: false}
     }, {
-        tableName: "jobs",
+        tableName: 'jobs',
         timestamps: true,
         deletedAt: false,
         freezeTableName: true
@@ -32,7 +32,7 @@ module.exports = function(sequelize, DataTypes) {
         Job.belongsTo(models.hosts, {as: 'source_host', foreignKey: 'source_host_id'});
         Job.belongsTo(models.hosts, {as: 'target_host', foreignKey: 'target_host_id'});
 
-        Job.belongsTo(models.schedules, {as: 'schedule', foreignKey: 'schedule_id'})
+        Job.belongsTo(models.schedules, {as: 'schedule', foreignKey: 'schedule_id'});
     };
 
     return Job;

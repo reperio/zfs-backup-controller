@@ -12,7 +12,7 @@ module.exports = function(sequelize, DataTypes) {
         ip_address: {type: DataTypes.STRING, allowNull: false},
         port: {type: DataTypes.INTEGER, allowNull: false}
     }, {
-        tableName: "hosts",
+        tableName: 'hosts',
         timestamps: true,
         deletedAt: false,
         freezeTableName: true

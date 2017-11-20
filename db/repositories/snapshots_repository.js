@@ -17,13 +17,9 @@ class SnapshotsRepository {
         const snapshots = await this.data_model._db.snapshots.findAll({
             where: {
                 or: [{
-                    source_host_status: {
-                        in: [0, 1]
-                    }
+                    source_host_status: 1
                 }, {
-                    target_host_status: {
-                        in: [0, 1]
-                    }
+                    target_host_status: 1
                 }]
             },
             include: [{

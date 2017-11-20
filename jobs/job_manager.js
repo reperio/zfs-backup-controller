@@ -37,6 +37,13 @@ class JobManager {
             this.logger.error('Finished job cleanup failed.');
             this.logger.error(err);
         }
+
+        try {
+            await this.apply_retention_schedules();
+        } catch (err) {
+            this.logger.error('Applying retention schedules failed.');
+            this.logger.error(err);
+        }
         
         this.logger.info('Job Manager execution finished.');
     }
