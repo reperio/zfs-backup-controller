@@ -7,8 +7,8 @@ module.exports = function(sequelize, DataTypes) {
             defaultValue: DataTypes.UUIDV4,
             primaryKey: true
         },
-
-        sdc_id: {type: DataTypes.STRING, allowNull: false},
+        name: {type: DataTypes.STRING, allowNull: false},
+        sdc_id: {type: DataTypes.STRING, allowNull: true},
         ip_address: {type: DataTypes.STRING, allowNull: false},
         port: {type: DataTypes.INTEGER, allowNull: false}
     }, {
