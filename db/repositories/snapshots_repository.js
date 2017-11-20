@@ -13,10 +13,11 @@ class SnapshotsRepository {
 
     async get_active_snapshots_for_job(job_id) {
         this.data_model.logger.info(`Fetching all active snapshots with host_id: ${job_id}`);
+        //const Op = this.data_model._db.Sequelize.Op;
 
         const snapshots = await this.data_model._db.snapshots.findAll({
             where: {
-                or: [{
+                $or: [{
                     source_host_status: 1
                 }, {
                     target_host_status: 1
