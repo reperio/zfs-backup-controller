@@ -51,7 +51,7 @@ async function send_complete(request, reply) {
         logger.error(`${job_history_id} - Processing send_complete failed.`);
         logger.error(err);
 
-        return reply(Boom.badImplementation('Snapshot send_complete failed.'));
+        return reply(Boom.badImplementation('send_complete failed.'));
     }
 }
 
@@ -103,7 +103,7 @@ async function receive_complete(request, reply) {
         logger.error(`${job_history_id} - Processing receive_complete failed.`);
         logger.error(err);
 
-        return reply(Boom.badImplementation('Snapshot receive_complete failed.'));
+        return reply(Boom.badImplementation('receive_complete failed.'));
     }
 }
 
