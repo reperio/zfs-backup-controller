@@ -141,7 +141,9 @@ class AgentApi {
             target: job.target_location,
             port: port,
             force_rollback: force_rollback,
-            job_history_id: job_history.id
+            job_history_id: job_history.id,
+            mbuffer_size: this.config.mbuffer_size,
+            mbuffer_rate: this.config.mbuffer_rate
         };
         this.logger.info(`  ${job.id} | ${job_history.id} - Receive command sending with payload: ${JSON.stringify(payload)}`);
 
