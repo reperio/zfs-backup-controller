@@ -277,7 +277,8 @@ class JobManager {
                 target_host_id: job.target_host_id,
                 target_host_status: 0,
                 snapshot_date_time: time_stamp,
-                job_history_id: job_history.id
+                job_history_id: job_history.id,
+                job_id: job_history.job_id
             };
 
             //add snapshot to snapshots table
