@@ -8,8 +8,8 @@ module.exports = {
             const host_0_id = uuid();
             const host_1_id = uuid();
             const hostInsertQuery = await queryInterface.bulkInsert('hosts', [
-                {id: host_0_id, sdc_id: '', ip_address: '192.168.156.161', port: 3000, createdAt: new Date(), updatedAt: new Date()},
-                {id: host_1_id, sdc_id: '', ip_address: '192.168.156.162', port: 3000, createdAt: new Date(), updatedAt: new Date()}
+                {id: host_0_id, sdc_id: '', name: 'agent-1', ip_address: '192.168.156.161', port: 3000, createdAt: new Date(), updatedAt: new Date()},
+                {id: host_1_id, sdc_id: '', name: 'agent-2', ip_address: '192.168.156.162', port: 3000, createdAt: new Date(), updatedAt: new Date()}
             ], {
                 returning: true,
                 transaction: transaction
@@ -17,14 +17,14 @@ module.exports = {
 
             const schedule_quarter_hourly_id = uuid();
             const schedule_hourly_id = uuid();
-            const schedule_dialy_id = uuid();
+            const schedule_daily_id = uuid();
             const schedule_weekly_id = uuid();
             const schedule_monthly_id = uuid();
 
             const scheduleInsertQuery = await queryInterface.bulkInsert("schedules", [
                 {id: schedule_quarter_hourly_id, name: 'quarter_hour', display_name: 'Every 15 minutes', createdAt: new Date(),updatedAt: new Date()},
                 {id: schedule_hourly_id, name: 'hourly', display_name: 'Hourly', createdAt: new Date(),updatedAt: new Date()},
-                {id: schedule_dialy_id, name: 'daily', display_name: 'Daily', createdAt: new Date(),updatedAt: new Date()},
+                {id: schedule_daily_id, name: 'daily', display_name: 'Daily', createdAt: new Date(),updatedAt: new Date()},
                 {id: schedule_weekly_id, name: 'weekly', display_name: 'Weekly', createdAt: new Date(),updatedAt: new Date()},
                 {id: schedule_monthly_id, name: 'monthly', display_name: 'Monthly', createdAt: new Date(),updatedAt: new Date()}
             ], {

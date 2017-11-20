@@ -27,29 +27,31 @@ class RetentionManager {
         return moment(date).startOf('month').subtract(iteration, 'months');
     }
 
-    find_retention_target_date (interval, iteration, initial_date) {
+    find_retention_target_date (interval, iteration, initial_date, offset) {
         const now = moment(initial_date);
         switch (interval) {
             case 'quarter_hourly':
-                return this.getStartOfQuarterHour(now, iteration);
+                return this.getStartOfQuarterHour(now, iteration).add(offset, 'minutes');
             case 'hourly':
-                return this.getStartOfHour(now, iteration);
+                return this.getStartOfHour(now, iteration).add(offset, 'minutes');
             case 'daily':
-                return this.getStartOfDay(now, iteration);
+                return this.getStartOfDay(now, iteration).add(offset, 'minutes');
             case 'weekly':
-                return this.getStartOfWeek(now, iteration);
+                return this.getStartOfWeek(now, iteration).add(offset, 'minutes');
             case 'monthly':
-                return this.getStartOfMonth(now, iteration);
+                return this.getStartOfMonth(now, iteration).add(offset, 'minutes');
             default:
                 throw new Error(`Invalid retention interval: ${interval}`);
         }
     }
 
-    get_snapshots_to_delete (snapshots, retention_policy, start_date) {
+    get_snapshots_to_delete (snapshots, retention_policy, start_date, job_offset) {
+        const offset = job_offset || 0;
+
         let initial_date = start_date || moment();
         for(let retention of retention_policy.retentions) {
             for(let iteration = 0; iteration <= retention.retention; iteration++) {
-                let target_date = this.find_retention_target_date(retention.interval, iteration, initial_date);
+                let target_date = this.find_retention_target_date(retention.interval, iteration, initial_date, offset);
 
                 const policySnapshot = this.getFirstSnapshotAfterDate(snapshots, target_date);
                 
@@ -97,23 +99,23 @@ module.exports = RetentionManager;
  * {
     retentions: [
         {
-            interval: quater_hourly,
+            interval: 'quater_hourly',
             retention: 1
         },
         {
-            interval: hourly,
+            interval: 'hourly',
             retention: 1
         },
         {
-            interval: daily,
+            interval: 'daily',
             retention: 1
         },
         {
-            interval: weekly,
+            interval: 'weekly',
             retention: 1
         },
         {
-            interval: monthly,
+            interval: 'monthly',
             retention: 1
         }
     ]

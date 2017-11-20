@@ -186,7 +186,7 @@ class JobManager {
                 Jump to the beginning of the next hour, subtract 15 minutes until we are earlier than the current time.
             */
             const now = moment();
-            let current = moment().add(1, 'hours').startOf('hour');
+            let current = moment().add(1, 'hours').startOf('hour').add(job.offset, 'minutes');
 
             while (current.isSameOrAfter(now)) {
                 current = current.subtract(15, 'minutes');
@@ -194,13 +194,13 @@ class JobManager {
 
             return current;
         } else if (job.schedule.name === 'hourly') {
-            return moment().startOf('hour');
+            return moment().startOf('hour').add(job.offset, 'minutes');
         } else if (job.schedule.name === 'daily') {
-            return moment().startOf('day');
+            return moment().startOf('day').add(job.offset, 'minutes');
         } else if (job.schedule.name === 'weekly') {
-            return moment().startOf('week');
+            return moment().startOf('week').add(job.offset, 'minutes');
         } else if (job.schedule.name === 'monthly') {
-            return moment().startOf('month');
+            return moment().startOf('month').add(job.offset, 'minutes');
         }
 
         throw new Error('Job has invalid schedule');
