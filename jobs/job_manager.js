@@ -269,7 +269,7 @@ class JobManager {
 
         try {
             //build snapshot
-            await this.agentApi.zfs_create_snapshot(job, job_history, snapshot_name, true);
+            await this.agentApi.zfs_create_snapshot(job, job_history, snapshot_name, false);
             const snapshot_data = {
                 name: snapshot_name,
                 source_host_id: job.source_host_id,
