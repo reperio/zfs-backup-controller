@@ -21,7 +21,8 @@ class SnapshotsRepository {
                     source_host_status: 1
                 }, {
                     target_host_status: 1
-                }]
+                }],
+                job_id: job_id
             },
             include: [{
                 model: this.data_model._db.hosts,
