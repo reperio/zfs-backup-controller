@@ -66,7 +66,9 @@ class RetentionManager {
                 this.logger.info(`Target date: ${target_date}`);
                 this.logger.info();
 
-                const policySnapshot = this.getFirstSnapshotAfterDate(snapshots, target_date);
+                const sorted_snapshots = this.sortSnapshots(snapshots);
+
+                const policySnapshot = this.getFirstSnapshotAfterDate(sorted_snapshots, target_date);
                 
                 if (policySnapshot) {
                     //console.log(`KEEPING ${policySnapshot.job_history_id}`);
@@ -98,7 +100,7 @@ class RetentionManager {
 
     getFirstSnapshotAfterDate (snapshots, date) {
         for (let i = 0; i < snapshots.length; i++) {
-            if (moment(snapshots[i].snapshot_date_time).isSameOrAfter(date)) {
+            if (moment.utc(snapshots[i].snapshot_date_time).isSameOrAfter(date)) {
                 return snapshots[i];
             }
         }
@@ -107,7 +109,7 @@ class RetentionManager {
     }
     sortSnapshots(snapshots) {
         return _.orderBy(snapshots, function(snapshot) {
-            return moment(snapshot.snapshot_date_time).valueOf();
+            return moment.utc(snapshot.snapshot_date_time).valueOf();
         }, ['asc']);
     }
 }
