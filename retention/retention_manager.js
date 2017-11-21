@@ -99,7 +99,7 @@ module.exports = RetentionManager;
  * {
     retentions: [
         {
-            interval: 'quater_hourly',
+            interval: 'quarter_hourly',
             retention: 1
         },
         {

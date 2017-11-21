@@ -42,37 +42,41 @@ module.exports = function(sequelize, DataTypes) {
 
 
 // INSERT INTO jobs (id, 
-//     schedule_id, 
-//     source_retention, 
-//     target_retention, 
-//     sdc_vm_id, 
-//     source_location, 
-//     target_location, 
-//     zfs_type, 
-//     zfs_size, 
-//     source_host_id, 
-//     target_host_id, 
-//     last_execution, 
-//     last_schedule, 
-//     enabled, 
-//     createdAt, 
-//     updatedAt)
-//     VALUES
-//     ('31ec47f2-ce13-11e7-8edf-9779b1343835'
-//     , '1f457bce-3f69-4e5f-8036-dae0fd5ec1b3'
-//     , '{"retentions":[{"interval":"daily","retention":0}]}'
-//     , '{"retentions":[{"interval":"daily","retention":7},{"interval":"weekly","retention":4},{"interval":"monthly","retention":12}]}'
-//     , 'def34304-65f2-4f44-af0a-fe0544816f67'
-//     , 'zones/def34304-65f2-4f44-af0a-fe0544816f67'
-//     , 'zones/def34304-65f2-4f44-af0a-fe0544816f67'
-//     , 'filesystem'
-//     , '25G'
-//     , '074ea651-4f3e-4aeb-9366-a2436f043bff'
-//     , 'fb458c8f-ab41-4368-8f8d-1bbf14466ae9'
-//     , ''
-//     , ''
-//     , 1
-//     , '2017-11-20 16:41:02'
-//     , '2017-11-20 16:41:02');
+// name, 
+// offset, 
+// schedule_id, 
+// source_retention, 
+// target_retention, 
+// sdc_vm_id, 
+// source_location, 
+// target_location, 
+// zfs_type, 
+// zfs_size, 
+// source_host_id, 
+// target_host_id, 
+// last_execution, 
+// last_schedule, 
+// enabled, 
+// createdAt, 
+// updatedAt)
+// VALUES
+// ('b7773c38-ce54-11e7-957f-3b303616282e'
+// , 'manatee0/data/manatee'
+// , 0
+// , 'ea11d617-434d-457f-b28d-63bda70ce4b1'
+// , '{"retentions":[{"interval":"quater_hourly","retention":0}]}'
+// , '{"retentions":[{"interval":"quater_hourly","retention":4},{"interval":"hourly","retention":24},{"interval":"daily","retention":7},{"interval":"weekly","retention":4},{"interval":"monthly","retention":12}]}'
+// , '439c0ffa-20e5-4cab-80a0-880afa863aba'
+// , 'zones/439c0ffa-20e5-4cab-80a0-880afa863aba/data/manatee'
+// , 'zones/439c0ffa-20e5-4cab-80a0-880afa863aba/data/manatee'
+// , 1
+// , 1
+// , '23b07664-24fc-4345-815d-bf343271c059'
+// , '66fa38f1-118e-4e5c-a90b-157160b22def'
+// , NULL
+// , NULL
+// , 1
+// , '2017-11-20 20:25:13'
+// , '2017-11-20 20:25:13');
 
-//source = headnode, target = zfs-backup-01 schedule = daily, offset = 3
+//source = headnode, target = zfs-backup-01 schedule = quarter_hour, offset = 7
