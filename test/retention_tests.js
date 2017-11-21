@@ -657,7 +657,7 @@ describe('Retention Tests', async function() {
         });
 
         it('Should delete none for retention policy 3 at 2017-11-21T02:57:04.000Z with offset 3', () => {
-            const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots_2, retention_policy_3, 3, moment.utc('2017-11-21T02:57:04.000Z'));
+            const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots_2, retention_policy_3, 3, moment.utc());
             //console.log(snapshots_to_delete);
             assert.equal(snapshots_to_delete.length, 0);
         });
