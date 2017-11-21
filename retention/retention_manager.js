@@ -3,12 +3,16 @@ const _ = require('lodash');
 
 class RetentionManager {
     getStartOfQuarterHour (date, iteration) {
-        const target = moment(date);
-        let current = moment().add(1, 'hours').startOf('hour');
+        const target = date.clone();
+        let current = date.clone().add(1, 'hours').startOf('hour');
+        //console.log(target);
+        //console.log(current);
 
         while (current.isAfter(target)) {
             current = current.subtract(15, 'minutes');
         }
+
+        //console.log(current);
 
         current = current.subtract(iteration * 15, 'minutes');
         
@@ -28,18 +32,17 @@ class RetentionManager {
     }
 
     find_retention_target_date (interval, iteration, initial_date, offset) {
-        const now = moment(initial_date);
         switch (interval) {
             case 'quarter_hourly':
-                return this.getStartOfQuarterHour(now, iteration).add(offset, 'minutes');
+                return this.getStartOfQuarterHour(initial_date, iteration).add(offset, 'minutes');
             case 'hourly':
-                return this.getStartOfHour(now, iteration).add(offset, 'minutes');
+                return this.getStartOfHour(initial_date, iteration).add(offset, 'minutes');
             case 'daily':
-                return this.getStartOfDay(now, iteration).add(offset, 'minutes');
+                return this.getStartOfDay(initial_date, iteration).add(offset, 'minutes');
             case 'weekly':
-                return this.getStartOfWeek(now, iteration).add(offset, 'minutes');
+                return this.getStartOfWeek(initial_date, iteration).add(offset, 'minutes');
             case 'monthly':
-                return this.getStartOfMonth(now, iteration).add(offset, 'minutes');
+                return this.getStartOfMonth(initial_date, iteration).add(offset, 'minutes');
             default:
                 throw new Error(`Invalid retention interval: ${interval}`);
         }
@@ -48,7 +51,7 @@ class RetentionManager {
     get_snapshots_to_delete (snapshots, retention_policy, start_date, job_offset) {
         const offset = job_offset || 0;
 
-        let initial_date = start_date || moment();
+        let initial_date = moment.utc(start_date) || moment.utc();
         for(let retention of retention_policy.retentions) {
             for(let iteration = 0; iteration <= retention.retention; iteration++) {
                 let target_date = this.find_retention_target_date(retention.interval, iteration, initial_date, offset);

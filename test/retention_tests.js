@@ -565,10 +565,10 @@ describe('Retention Tests', async function() {
             assert.equal(snapshots_to_delete.length, 9987);
         });
 
-        it('Should keep 14 for retention policy 2 at 2017-11-21T03:40:00.000Z', () => {
+        it('Should keep 13 for retention policy 2 at 2017-11-21T03:40:00.000Z', () => {
             const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots, retention_policy_2, moment.utc('2017-11-21T03:40:00.000Z'));
             //console.log(snapshots_to_delete.length);
-            assert.equal(snapshots_to_delete.length, 9986);
+            assert.equal(snapshots_to_delete.length, 9987);
         });
     });
 
