@@ -75,7 +75,7 @@ class JobManager {
         //process source retention
         try {
             this.logger.info(`${job.id} - Processing source retention`);
-            const snapshots_to_delete = this.retention_manager.get_snapshots_to_delete(snapshots, source_retention_policy);
+            const snapshots_to_delete = this.retention_manager.get_snapshots_to_delete(snapshots, source_retention_policy, job.offset);
             
             this.logger.info(`${job.id} - Deleting ${snapshots_to_delete.length} snapshots`);
             for (let source_snapshot of snapshots_to_delete) {
@@ -108,7 +108,7 @@ class JobManager {
         //process target retention
         try {
             this.logger.info(`${job.id} - Processing target retention`);
-            const snapshots_to_delete = this.retention_manager.get_snapshots_to_delete(snapshots, target_retention_policy);
+            const snapshots_to_delete = this.retention_manager.get_snapshots_to_delete(snapshots, target_retention_policy, job.offset);
             
             this.logger.info(`${job.id} - Deleting ${snapshots_to_delete.length} snapshots`);
             for (let target_snapshot of snapshots_to_delete) {
