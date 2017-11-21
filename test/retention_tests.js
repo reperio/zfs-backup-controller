@@ -573,30 +573,54 @@ describe('Retention Tests', async function() {
     });
 
     describe('Retention tests with offset', () => {
+        const retention_policy_1 = {
+            retentions: [
+                {
+                    interval: 'quarter_hourly',
+                    retention: 3
+                }
+            ]
+        };
         let snapshots = [];
 
         beforeEach(() => {
             snapshots = [{
-                "job_history_id": "23bbe480-ce20-4eec-b46b-deaaf8e4ff2f",
-                "name": "201709010000",
-                "host_id": 0,
-                "snapshot_date_time": "2017-11-21T00:00:00.000Z"
+                job_history_id: '23bbe480-ce20-4eec-b46b-deaaf8e4ff2f',
+                name: '201709010000',
+                host_id: 0,
+                snapshot_date_time: '2017-11-21T05:50:00.000Z'
             }, {
-                "job_history_id": "0887f6a5-fcfa-41cf-9185-526d5b9f87f6",
-                "name": "201709010015",
-                "host_id": 0,
-                "snapshot_date_time": "2017-11-21T00:15:00.000Z"
+                job_history_id: '23bbe480-ce20-4eec-b46b-deaaf8e4ff2f',
+                name: '201709010000',
+                host_id: 0,
+                snapshot_date_time: '2017-11-21T05:35:00.000Z'
             }, {
-                "job_history_id": "7089472f-5bc0-489f-b462-96c7beebaab0",
-                "name": "201709010030",
-                "host_id": 0,
-                "snapshot_date_time": "2017-11-21T00:30:00.000Z"
+                job_history_id: '23bbe480-ce20-4eec-b46b-deaaf8e4ff2f',
+                name: '201709010000',
+                host_id: 0,
+                snapshot_date_time: '2017-11-21T06:05:00.000Z'
             }, {
-                "job_history_id": "cc705b49-3311-47a8-a4c4-17a9814e68ce",
-                "name": "201709010045",
-                "host_id": 0,
-                "snapshot_date_time": "2017-11-21T00:45:00.000Z"
+                job_history_id: '0887f6a5-fcfa-41cf-9185-526d5b9f87f6',
+                name: '201709010015',
+                host_id: 0,
+                snapshot_date_time: '2017-11-21T06:20:00.000Z'
+            }, {
+                job_history_id: '7089472f-5bc0-489f-b462-96c7beebaab0',
+                name: '201709010030',
+                host_id: 0,
+                snapshot_date_time: '2017-11-21T06:35:00.000Z'
+            }, {
+                job_history_id: 'cc705b49-3311-47a8-a4c4-17a9814e68ce',
+                name: '201709010045',
+                host_id: 0,
+                snapshot_date_time: '2017-11-21T06:50:00.000Z'
             }];
+        });
+
+        it('Should keep 4 for retention policy 1 at 2017-11-21T05:51:00.000Z with offset 5', () => {
+            const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots, retention_policy_1, moment.utc('2017-11-21T06:51:00.000Z'));
+            console.log(snapshots_to_delete);
+            assert.equal(snapshots_to_delete.length, 2);
         });
     });
 });
