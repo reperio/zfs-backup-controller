@@ -48,7 +48,7 @@ class RetentionManager {
         }
     }
 
-    get_snapshots_to_delete (snapshots, retention_policy, start_date, job_offset) {
+    get_snapshots_to_delete (snapshots, retention_policy, job_offset, start_date) {
         const offset = job_offset || 0;
 
         let initial_date = moment.utc(start_date) || moment.utc();
