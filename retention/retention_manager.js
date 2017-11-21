@@ -2,6 +2,10 @@ const moment = require('moment');
 const _ = require('lodash');
 
 class RetentionManager {
+    constructor(logger) {
+        this.logger = logger || {info: (message) => console.log(message || '')};
+    }
+
     getStartOfQuarterHour (date, iteration) {
         const target = date.clone();
         let current = date.clone().add(1, 'hours').startOf('hour');
@@ -56,6 +60,12 @@ class RetentionManager {
             for(let iteration = 0; iteration <= retention.retention; iteration++) {
                 let target_date = this.find_retention_target_date(retention.interval, iteration, initial_date, offset);
 
+                this.logger.info();
+                this.logger.info(`Interval: ${retention.interval}, iteration: ${iteration}, offset: ${offset}`);
+                this.logger.info(`Initial date: ${initial_date}`);
+                this.logger.info(`Target date: ${target_date}`);
+                this.logger.info();
+
                 const policySnapshot = this.getFirstSnapshotAfterDate(snapshots, target_date);
                 
                 if (policySnapshot) {
@@ -70,6 +80,12 @@ class RetentionManager {
         let snapshotsToDelete = _.filter(snapshots, function(snapshot) {
             return !snapshot.keep;
         });
+
+        this.logger.info();
+        this.logger.info(`Found ${snapshotsToDelete.length} snapshots to delete`);
+        for (let snap of snapshotsToDelete) {
+            this.logger.info(`Name: ${snap.name}, time: ${snap.snapshot_date_time}`);
+        }
 
         // let snapshotsToKeep = _.filter(snapshots, function(snapshot) {
         //     return snapshot.keep;

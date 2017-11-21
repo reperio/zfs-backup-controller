@@ -141,7 +141,7 @@ server.start(err => {
 });
 
 const agent_api = new AgentApi(Config, server.app.logger);
-const retention_manager = new RetentionManager();
+const retention_manager = new RetentionManager(server.app.logger);
 
 const job_manager = new JobManager(server.app.logger, server.app.db, Config.job_interval, agent_api, retention_manager);
 job_manager.start();
