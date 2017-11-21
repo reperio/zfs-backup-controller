@@ -54,39 +54,49 @@ class RetentionManager {
 
     get_snapshots_to_delete (snapshots, retention_policy, job_offset, start_date) {
         const offset = job_offset || 0;
+        const sorted_snapshots = this.sortSnapshots(snapshots);
+
+        const snapshots_to_keep = [];
 
         for(let retention of retention_policy.retentions) {
             for(let iteration = 0; iteration <= retention.retention; iteration++) {
                 let target_date = this.find_retention_target_date(retention.interval, iteration, start_date, offset);
 
-                this.logger.info();
-                this.logger.info(`Interval: ${retention.interval}, iteration: ${iteration}, offset: ${offset}`);
-                this.logger.info(`Initial date: ${start_date}`);
-                this.logger.info(`Target date: ${target_date}`);
-                this.logger.info();
-
-                const sorted_snapshots = this.sortSnapshots(snapshots);
+                // this.logger.info();
+                // this.logger.info(`Interval: ${retention.interval}, iteration: ${iteration}, offset: ${offset}`);
+                // this.logger.info(`Initial date: ${start_date}`);
+                // this.logger.info(`Target date: ${target_date}`);
+                // this.logger.info();
 
                 const policySnapshot = this.getFirstSnapshotAfterDate(sorted_snapshots, target_date);
                 
                 if (policySnapshot) {
                     //console.log(`KEEPING ${policySnapshot.job_history_id}`);
                     //console.log(policySnapshot);
-                    policySnapshot.keep = true;
-                    policySnapshot[`keep-${retention.interval}`] = true;
+                    policySnapshot.keep = true; //for testing only, sequelize won't allow this
+                    policySnapshot[`keep-${retention.interval}`] = true; //for testing only, sequelize won't allow this
+
+                    snapshots_to_keep.push(policySnapshot.job_history_id);
                 }
             }
         }
 
-        let snapshotsToDelete = _.filter(snapshots, function(snapshot) {
-            return !snapshot.keep;
-        });
+        const snapshots_to_delete = [];
+        
+        //console.log(snapshots_to_keep);
 
-        this.logger.info();
-        this.logger.info(`Found ${snapshotsToDelete.length} snapshots to delete`);
-        for (let snap of snapshotsToDelete) {
-            this.logger.info(`Name: ${snap.name}, time: ${snap.snapshot_date_time}`);
+        for (let snapshot of snapshots) {
+            //console.log(snapshot.job_history_id);
+            if (!_.includes(snapshots_to_keep, snapshot.job_history_id)) {
+                snapshots_to_delete.push(snapshot);
+            }
         }
+
+        // this.logger.info();
+        // this.logger.info(`Found ${snapshots_to_delete.length} snapshots to delete`);
+        // for (let snap of snapshots_to_delete) {
+        //     this.logger.info(`Name: ${snap.name}, time: ${snap.snapshot_date_time}`);
+        // }
 
         // let snapshotsToKeep = _.filter(snapshots, function(snapshot) {
         //     return snapshot.keep;
@@ -94,20 +104,20 @@ class RetentionManager {
 
         // console.log(snapshotsToKeep);
 
-        return snapshotsToDelete;
+        return snapshots_to_delete;
     }
 
     getFirstSnapshotAfterDate (snapshots, date) {
         
         for (let i = 0; i < snapshots.length; i++) {
             const snapshot_date_time = moment.utc(snapshots[i].snapshot_date_time);
-            this.logger.info(`Comparing snapshot date: ${snapshot_date_time} to target date: ${date}`)
+            //this.logger.info(`Comparing snapshot date: ${snapshot_date_time} to target date: ${date}`)
             if (snapshot_date_time.isSameOrAfter(date)) {
-                this.logger.info('MATCH');
+                //this.logger.info('MATCH');
                 return snapshots[i];
             }
             
-            this.logger.info('NO MATCH');
+            //this.logger.info('NO MATCH');
         }
 
         return null;

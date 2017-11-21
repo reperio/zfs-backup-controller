@@ -610,12 +610,12 @@ describe('Retention Tests', async function() {
                 host_id: 0,
                 snapshot_date_time: '2017-11-21T05:50:00.000Z'
             }, {
-                job_history_id: '23bbe480-ce20-4eec-b46b-deaaf8e4ff2f',
+                job_history_id: '23bbe480-ce20-4eec-b46b-deaaf8e4ff2z',
                 name: '201709010000',
                 host_id: 0,
                 snapshot_date_time: '2017-11-21T05:35:00.000Z'
             }, {
-                job_history_id: '23bbe480-ce20-4eec-b46b-deaaf8e4ff2f',
+                job_history_id: '23bbe480-ce20-4eec-b46b-deaaf8e4ff2g',
                 name: '201709010000',
                 host_id: 0,
                 snapshot_date_time: '2017-11-21T06:05:00.000Z'
