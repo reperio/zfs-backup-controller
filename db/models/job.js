@@ -64,8 +64,8 @@ module.exports = function(sequelize, DataTypes) {
 // , 'manatee0/data/manatee'
 // , 0
 // , 'ea11d617-434d-457f-b28d-63bda70ce4b1'
-// , '{"retentions":[{"interval":"quater_hourly","retention":0}]}'
-// , '{"retentions":[{"interval":"quater_hourly","retention":4},{"interval":"hourly","retention":24},{"interval":"daily","retention":7},{"interval":"weekly","retention":4},{"interval":"monthly","retention":12}]}'
+// , '{"retentions":[{"interval":"quarter_hourly","retention":0}]}'
+// , '{"retentions":[{"interval":"quarter_hourly","retention":4},{"interval":"hourly","retention":24},{"interval":"daily","retention":7},{"interval":"weekly","retention":4},{"interval":"monthly","retention":12}]}'
 // , '439c0ffa-20e5-4cab-80a0-880afa863aba'
 // , 'zones/439c0ffa-20e5-4cab-80a0-880afa863aba/data/manatee'
 // , 'zones/439c0ffa-20e5-4cab-80a0-880afa863aba/data/manatee'
