@@ -480,97 +480,97 @@ describe('Retention Tests', async function() {
         }
     });
 
-    // describe('Full Retention Tests', () => {
-    //     let snapshots = [];
+    describe('Full Retention Tests', () => {
+        let snapshots = [];
 
-    //     const retention_policy_1 = {
-    //         retentions: [
-    //             {
-    //                 interval: 'quarter_hourly',
-    //                 retention: 1
-    //             },
-    //             {
-    //                 interval: 'hourly',
-    //                 retention: 1
-    //             },
-    //             {
-    //                 interval: 'daily',
-    //                 retention: 1
-    //             },
-    //             {
-    //                 interval: 'weekly',
-    //                 retention: 1
-    //             },
-    //             {
-    //                 interval: 'monthly',
-    //                 retention: 1
-    //             }
-    //         ]
-    //     };
+        const retention_policy_1 = {
+            retentions: [
+                {
+                    interval: 'quarter_hourly',
+                    retention: 1
+                },
+                {
+                    interval: 'hourly',
+                    retention: 1
+                },
+                {
+                    interval: 'daily',
+                    retention: 1
+                },
+                {
+                    interval: 'weekly',
+                    retention: 1
+                },
+                {
+                    interval: 'monthly',
+                    retention: 1
+                }
+            ]
+        };
 
-    //     const retention_policy_2 = {
-    //         retentions: [
-    //             {
-    //                 interval: 'quarter_hourly',
-    //                 retention: 2
-    //             },
-    //             {
-    //                 interval: 'hourly',
-    //                 retention: 2
-    //             },
-    //             {
-    //                 interval: 'daily',
-    //                 retention: 2
-    //             },
-    //             {
-    //                 interval: 'weekly',
-    //                 retention: 2
-    //             },
-    //             {
-    //                 interval: 'monthly',
-    //                 retention: 2
-    //             }
-    //         ]
-    //     };
+        const retention_policy_2 = {
+            retentions: [
+                {
+                    interval: 'quarter_hourly',
+                    retention: 2
+                },
+                {
+                    interval: 'hourly',
+                    retention: 2
+                },
+                {
+                    interval: 'daily',
+                    retention: 2
+                },
+                {
+                    interval: 'weekly',
+                    retention: 2
+                },
+                {
+                    interval: 'monthly',
+                    retention: 2
+                }
+            ]
+        };
 
-    //     beforeEach(() => {
-    //         snapshots = _.cloneDeep(this.test_data);
-    //     });
+        beforeEach(() => {
+            snapshots = _.cloneDeep(this.test_data);
+        });
 
-    //     it('Should keep 8 for retention policy 1 at 2017-11-19T03:20:00.000Z', () => {
-    //         const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots, retention_policy_1, 0, moment.utc('2017-11-19T03:20:00.000Z'));
-    //         assert.equal(snapshots_to_delete.length, 9992);
-    //     });
+        it('Should keep 8 for retention policy 1 at 2017-11-19T03:20:00.000Z', () => {
+            const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots, retention_policy_1, 0, moment.utc('2017-11-19T03:20:00.000Z'));
+            assert.equal(snapshots_to_delete.length, 9992);
+        });
 
-    //     it('Should keep 9 for retention policy 1 at 2017-11-19T03:40:00.000Z', () => {
-    //         const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots, retention_policy_1, 0, moment.utc('2017-11-19T03:40:00.000Z'));
-    //         //console.log(snapshots_to_delete.length);
-    //         assert.equal(snapshots_to_delete.length, 9991);
-    //     });
+        it('Should keep 9 for retention policy 1 at 2017-11-19T03:40:00.000Z', () => {
+            const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots, retention_policy_1, 0, moment.utc('2017-11-19T03:40:00.000Z'));
+            //console.log(snapshots_to_delete.length);
+            assert.equal(snapshots_to_delete.length, 9991);
+        });
 
-    //     it('Should keep 10 for retention policy 1 at 2017-11-21T03:40:00.000Z', () => {
-    //         const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots, retention_policy_1, 0, moment.utc('2017-11-21T03:40:00.000Z'));
-    //         //console.log(snapshots_to_delete.length);
-    //         assert.equal(snapshots_to_delete.length, 9990);
-    //     });
+        it('Should keep 10 for retention policy 1 at 2017-11-21T03:40:00.000Z', () => {
+            const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots, retention_policy_1, 0, moment.utc('2017-11-21T03:40:00.000Z'));
+            //console.log(snapshots_to_delete.length);
+            assert.equal(snapshots_to_delete.length, 9990);
+        });
 
-    //     it('Should keep 13 for retention policy 2 at 2017-11-19T03:20:00.000Z', () => {
-    //         const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots, retention_policy_2, 0, moment.utc('2017-11-19T03:20:00.000Z'));
-    //         assert.equal(snapshots_to_delete.length, 9987);
-    //     });
+        it('Should keep 13 for retention policy 2 at 2017-11-19T03:20:00.000Z', () => {
+            const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots, retention_policy_2, 0, moment.utc('2017-11-19T03:20:00.000Z'));
+            assert.equal(snapshots_to_delete.length, 9987);
+        });
 
-    //     it('Should keep 13 for retention policy 2 at 2017-11-19T03:40:00.000Z', () => {
-    //         const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots, retention_policy_2, 0, moment.utc('2017-11-19T03:40:00.000Z'));
-    //         //console.log(snapshots_to_delete.length);
-    //         assert.equal(snapshots_to_delete.length, 9987);
-    //     });
+        it('Should keep 13 for retention policy 2 at 2017-11-19T03:40:00.000Z', () => {
+            const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots, retention_policy_2, 0, moment.utc('2017-11-19T03:40:00.000Z'));
+            //console.log(snapshots_to_delete.length);
+            assert.equal(snapshots_to_delete.length, 9987);
+        });
 
-    //     it('Should keep 13 for retention policy 2 at 2017-11-21T03:40:00.000Z', () => {
-    //         const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots, retention_policy_2, 0, moment.utc('2017-11-21T03:40:00.000Z'));
-    //         //console.log(snapshots_to_delete.length);
-    //         assert.equal(snapshots_to_delete.length, 9987);
-    //     });
-    // });
+        it('Should keep 13 for retention policy 2 at 2017-11-21T03:40:00.000Z', () => {
+            const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots, retention_policy_2, 0, moment.utc('2017-11-21T03:40:00.000Z'));
+            //console.log(snapshots_to_delete.length);
+            assert.equal(snapshots_to_delete.length, 9987);
+        });
+    });
 
     describe('Retention tests with offset', () => {
         const retention_policy_1 = {

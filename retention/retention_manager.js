@@ -62,11 +62,11 @@ class RetentionManager {
             for(let iteration = 0; iteration <= retention.retention; iteration++) {
                 let target_date = this.find_retention_target_date(retention.interval, iteration, start_date, offset);
 
-                this.logger.info();
-                this.logger.info(`Interval: ${retention.interval}, iteration: ${iteration}, offset: ${offset}`);
-                this.logger.info(`Initial date: ${start_date}`);
-                this.logger.info(`Target date: ${target_date}`);
-                this.logger.info();
+                // this.logger.info();
+                // this.logger.info(`Interval: ${retention.interval}, iteration: ${iteration}, offset: ${offset}`);
+                // this.logger.info(`Initial date: ${start_date}`);
+                // this.logger.info(`Target date: ${target_date}`);
+                // this.logger.info();
 
                 const policySnapshot = this.getFirstSnapshotAfterDate(sorted_snapshots, target_date);
                 
@@ -83,20 +83,20 @@ class RetentionManager {
 
         const snapshots_to_delete = [];
         
-        console.log(snapshots_to_keep);
+        //console.log(snapshots_to_keep);
 
         for (let snapshot of snapshots) {
-            console.log(snapshot.job_history_id);
+            //console.log(snapshot.job_history_id);
             if (!_.includes(snapshots_to_keep, snapshot.job_history_id)) {
                 snapshots_to_delete.push(snapshot);
             }
         }
 
-        this.logger.info();
-        this.logger.info(`Found ${snapshots_to_delete.length} snapshots to delete`);
-        for (let snap of snapshots_to_delete) {
-            this.logger.info(`Name: ${snap.name}, time: ${snap.snapshot_date_time}`);
-        }
+        //this.logger.info();
+        //this.logger.info(`Found ${snapshots_to_delete.length} snapshots to delete`);
+        // for (let snap of snapshots_to_delete) {
+        //     this.logger.info(`Name: ${snap.name}, time: ${snap.snapshot_date_time}`);
+        // }
 
         return snapshots_to_delete;
     }
@@ -105,13 +105,13 @@ class RetentionManager {
         
         for (let i = 0; i < snapshots.length; i++) {
             const snapshot_date_time = moment.utc(snapshots[i].snapshot_date_time);
-            this.logger.info(`Comparing snapshot date: ${snapshot_date_time} to target date: ${date}`)
+            //this.logger.info(`Comparing snapshot date: ${snapshot_date_time} to target date: ${date}`)
             if (snapshot_date_time.isSameOrAfter(date)) {
-                this.logger.info('MATCH');
+                //this.logger.info('MATCH');
                 return snapshots[i];
             }
             
-            this.logger.info('NO MATCH');
+            //this.logger.info('NO MATCH');
         }
 
         return null;
