@@ -51,7 +51,7 @@ class RetentionManager {
     get_snapshots_to_delete (snapshots, retention_policy, job_offset, start_date) {
         const offset = job_offset || 0;
 
-        let initial_date = moment.utc(start_date) || moment.utc();
+        let initial_date = start_date ? moment.utc(start_date) : moment.utc();
         for(let retention of retention_policy.retentions) {
             for(let iteration = 0; iteration <= retention.retention; iteration++) {
                 let target_date = this.find_retention_target_date(retention.interval, iteration, initial_date, offset);
