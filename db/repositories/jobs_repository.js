@@ -76,7 +76,8 @@ class JobsRepository {
                 where: {
                     job_id: job_id,
                     source_result: 2,
-                    target_result: 2
+                    target_result: 2,
+                    result: 2
                 },
                 include: [{
                     model: this.data_model._db.snapshots,

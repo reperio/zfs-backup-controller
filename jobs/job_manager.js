@@ -80,7 +80,12 @@ class JobManager {
             this.logger.info(`${job.id} - Deleting ${snapshots_to_delete.length} snapshots`);
             for (let source_snapshot of snapshots_to_delete) {
                 if (source_snapshot.source_host_status !== 1) {
-                    this.logger.info(`${job.id} - Skipping delete because source status != created`);
+                    this.logger.info(`${job.id} - Skipping delete because snapshot ${source_snapshot.name} hasn't been created on source.`);
+                    continue;
+                }
+
+                if (source_snapshot.target_host_status !== 1) {
+                    this.logger.info(`${job.id} - Skipping delete because snapshot ${source_snapshot.name} hasn't been created on target.`);
                     continue;
                 }
 
@@ -112,8 +117,13 @@ class JobManager {
             
             this.logger.info(`${job.id} - Deleting ${snapshots_to_delete.length} snapshots`);
             for (let target_snapshot of snapshots_to_delete) {
-                if (target_snapshot.target_host_status !== 1 || target_snapshot.source_host_status !== 2) {
-                    this.logger.info(`${job.id} - Skipping delete because target status != created or source status != deleted`);
+                if (target_snapshot.target_host_status !== 1) {
+                    this.logger.info(`${job.id} - Skipping delete because snapshot ${target_snapshot.name} hasn't been created on target.`);
+                    continue;
+                }
+
+                if (target_snapshot.source_host_status !== 2) {
+                    this.logger.info(`${job.id} - Skipping delete because snapshot ${target_snapshot.name} hasn't been deleted on source.`);
                     continue;
                 }
 
