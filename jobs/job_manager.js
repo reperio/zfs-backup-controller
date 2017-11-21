@@ -77,8 +77,10 @@ class JobManager {
             this.logger.info(`${job.id} - Processing source retention`);
             const snapshots_to_delete = this.retention_manager.get_snapshots_to_delete(snapshots, source_retention_policy, job.offset);
 
-            this.logger.info(snapshots_to_delete);
-            
+            for (let snap of snapshots_to_delete) {
+                this.logger.info(snap.get());
+            }
+
             this.logger.info(`${job.id} - Deleting ${snapshots_to_delete.length} snapshots`);
             for (let source_snapshot of snapshots_to_delete) {
                 if (source_snapshot.source_host_status !== 1) {
