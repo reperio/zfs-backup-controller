@@ -98,10 +98,16 @@ class RetentionManager {
     }
 
     getFirstSnapshotAfterDate (snapshots, date) {
+        
         for (let i = 0; i < snapshots.length; i++) {
-            if (moment.utc(snapshots[i].snapshot_date_time).isSameOrAfter(date)) {
+            const snapshot_date_time = moment.utc(snapshots[i].snapshot_date_time);
+            this.logger.info(`Comparing snapshot date: ${snapshot_date_time} to target date: ${date}`)
+            if (snapshot_date_time.isSameOrAfter(date)) {
+                this.logger.info('MATCH');
                 return snapshots[i];
             }
+            
+            this.logger.info('NO MATCH');
         }
 
         return null;
