@@ -24,3 +24,4 @@ INNER JOIN hosts as ht
 ON j.target_host_id = ht.id
 INNER JOIN schedules as s
 ON j.schedule_id = s.id
+ORDER by name ASC

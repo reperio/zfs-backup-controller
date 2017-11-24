@@ -1,0 +1,1 @@
+NODE_ENV=production pm2 start /opt/zfs-backup-agent/index.js -i 1 -n zfs-backup-agent -l /opt/zfs-backup-agent/logs/zfs-backup-agent.log -e /dev/null -o /dev/null

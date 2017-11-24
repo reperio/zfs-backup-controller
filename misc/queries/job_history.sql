@@ -21,4 +21,4 @@ INNER JOIN job_result AS jt
 ON jh.target_result = jt.id
 INNER JOIN jobs as j
 ON jh.job_id = j.id
-ORDER BY jh.job_id,jh.start_date_time ASC
+ORDER BY j.name,jh.start_date_time ASC
