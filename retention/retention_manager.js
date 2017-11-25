@@ -3,7 +3,7 @@ const _ = require('lodash');
 
 class RetentionManager {
     constructor(logger) {
-        this.logger = logger || {info: (message) => console.log(message || '')};
+        this.logger = logger;
     }
 
     getStartOfQuarterHour (date, iteration) {
@@ -68,8 +68,12 @@ class RetentionManager {
                 // this.logger.info(`Target date: ${target_date}`);
                 // this.logger.info();
 
-                const policySnapshot = this.getFirstSnapshotAfterDate(sorted_snapshots, target_date);
+                let policySnapshot = this.getFirstSnapshotAfterDate(sorted_snapshots, target_date);
                 
+                if (!policySnapshot) {
+                    policySnapshot = this.get_last_snapshot_after_date(sorted_snapshots, target_date);
+                }
+
                 if (policySnapshot) {
                     //console.log(`KEEPING ${policySnapshot.job_history_id}`);
                     // console.log(policySnapshot);
@@ -101,8 +105,7 @@ class RetentionManager {
     }
 
     getFirstSnapshotAfterDate (snapshots, date) {
-        
-        for (let i = 0; i < snapshots.length; i++) {
+        for (let i = 0; i < snapshots.length; ++i) {
             const snapshot_date_time = moment.utc(snapshots[i].snapshot_date_time);
             //this.logger.info(`Comparing snapshot date: ${snapshot_date_time} to target date: ${date}`)
             if (snapshot_date_time.isSameOrAfter(date)) {
@@ -115,6 +118,22 @@ class RetentionManager {
 
         return null;
     }
+
+    get_last_snapshot_after_date (snapshots, date) {
+        for (let i = snapshots.length - 1; i >= 0; --i) {
+            const snapshot_date_time = moment.utc(snapshots[i].snapshot_date_time);
+            //this.logger.info(`Comparing snapshot date: ${snapshot_date_time} to target date: ${date}`)
+            if (snapshot_date_time.isSameOrBefore(date)) {
+                //this.logger.info('MATCH');
+                return snapshots[i];
+            }
+            
+            //this.logger.info('NO MATCH');
+        }
+
+        return null;
+    }
+
     sortSnapshots(snapshots) {
         return _.orderBy(snapshots, function(snapshot) {
             return moment.utc(snapshot.snapshot_date_time).valueOf();

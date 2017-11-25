@@ -28,24 +28,28 @@ describe('Job Manager', () => {
     const job_manager = new JobManager(logger);
 
     describe('Job Selection', () => {
-        it('test', () => {
-            const time = moment('2017-11-25 00:30:00').valueOf();
-            sinon.useFakeTimers({now: time});
+        const time = moment('2017-11-25 00:30:00').valueOf();
+        let clock = null;
 
+        beforeEach(() => {
+            clock = sinon.useFakeTimers({now: time});
+        });
+
+        it('Should filter jobs correctly with offsets', () => {
             const jobs = [
                 {
                     schedule: {name: 'daily'},
-                    last_schedule: moment('2017-11-25 12:30:00').startOf('day').subtract(1, 'day'),
+                    last_schedule: moment().startOf('day').subtract(1, 'day'),
                     offset: 0
                 },
                 {
                     schedule: {name: 'daily'},
-                    last_schedule: moment('2017-11-25 12:30:00').startOf('day').subtract(1, 'day').add(49, 'minutes'),
+                    last_schedule: moment().startOf('day').subtract(1, 'day').add(49, 'minutes'),
                     offset: 49
                 },
                 {
                     schedule: {name: 'daily'},
-                    last_schedule: moment('2017-11-25 12:30:00').startOf('day').subtract(1, 'day').add(30, 'minutes'),
+                    last_schedule: moment().startOf('day').subtract(1, 'day').add(30, 'minutes'),
                     offset: 30
                 }
             ];
@@ -53,6 +57,10 @@ describe('Job Manager', () => {
             const filtered_jobs = job_manager.filter_eligible_jobs(jobs);
 
             assert.equal(filtered_jobs.length, 2);
+        });
+
+        afterEach(() => {
+            clock.restore();
         });
     });
 

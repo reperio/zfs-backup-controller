@@ -194,6 +194,7 @@ class JobManager {
     }
 
     get_most_recent_schedule_time(job) {
+        //quarter hour is special as moment doesn't support finding 15 minute increments
         if (job.schedule.name === 'quarter_hour') {
             /*
                 Jump to the beginning of the next hour, subtract 15 minutes until we are earlier than the current time.
@@ -206,45 +207,32 @@ class JobManager {
             }
 
             return current;
-        } else if (job.schedule.name === 'hourly') {
-            const now = moment();
-            const start_of_schedule_period = moment().startOf('hour');
+        }
+        
+        //mapping schedule names to moment intervals for all schedules other than quarter_hourly
+        const schedule_map = {
+            hourly: 'hour',
+            daily: 'day',
+            weekly: 'week',
+            monthly: 'month'
+        };
 
-            if (now.diff(start_of_schedule_period, 'minutes') < job.offset) {
-                start_of_schedule_period.subtract(1, 'hour')
-            }
-            
-            return start_of_schedule_period.add(job.offset, 'minutes');
-        } else if (job.schedule.name === 'daily') {
-            const now = moment();
-            const start_of_schedule_period = moment().startOf('day');
-
-            if (now.diff(start_of_schedule_period, 'minutes') < job.offset) {
-                start_of_schedule_period.subtract(1, 'day');
-            }
-
-            return start_of_schedule_period.add(job.offset, 'minutes');
-        } else if (job.schedule.name === 'weekly') {
-            const now = moment();
-            const start_of_schedule_period = moment().startOf('week');
-
-            if (now.diff(start_of_schedule_period, 'minutes') < job.offset) {
-                start_of_schedule_period.subtract(1, 'week');
-            }
-
-            return start_of_schedule_period.add(job.offset, 'minutes');
-        } else if (job.schedule.name === 'monthly') {
-            const now = moment();
-            const start_of_schedule_period = moment().startOf('month');
-
-            if (now.diff(start_of_schedule_period, 'minutes') < job.offset) {
-                start_of_schedule_period.subtract(1, 'month');
-            }
-
-            return start_of_schedule_period.add(job.offset, 'minutes');
+        if (!schedule_map[job.schedule.name]) {
+            throw new Error('Job has invalid schedule');
         }
 
-        throw new Error('Job has invalid schedule');
+        const schedule_interval = schedule_map[job.schedule.name];
+        
+        const now = moment();
+        const start_of_schedule_period = moment().startOf(schedule_interval);
+
+        //if we are in a new iteration but ~before~ the offset, we need to back up by 1 iteration
+        if (now.diff(start_of_schedule_period, 'minutes') < job.offset) {
+            start_of_schedule_period.subtract(1, schedule_interval);
+        }
+        
+        //apply the offset
+        return start_of_schedule_period.add(job.offset, 'minutes');
     }
 
     async execute_jobs(jobs) {

@@ -6,12 +6,26 @@ const fs = require('fs');
 const RetentionManager = require('../retention/retention_manager.js');
 const moment = require('moment');
 const _ = require('lodash');
+const sinon = require('sinon');
 
 describe('Retention Tests', async function() {
     //load the test data
     this.test_data = JSON.parse(fs.readFileSync('./test/testing_data/test_data_no_errors.json', 'utf8'));
 
-    const retentionTestClass = new RetentionManager();
+    const logging = false;
+
+    const logger = {
+        info: (message) => {
+            if (logging) {
+                console.log(message || '');
+            }
+        }, debug: (message) => {
+            if (logging) {
+                console.log(message || '');
+            }
+        }};
+
+    const retentionTestClass = new RetentionManager(logger);
 
     describe('Search Start Date Tests', () => {
         describe('15 Minute Intervals', () => {
@@ -657,21 +671,25 @@ describe('Retention Tests', async function() {
         });
 
         it('Should delete none for retention policy 3 at 2017-11-21T02:57:04.000Z with offset 3', () => {
-            const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots_2, retention_policy_3, 3, moment.utc());
+            const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots_2, retention_policy_3, 3, moment.utc('2017-11-21T02:57:04.000Z'));
+            //console.log(snapshots_to_delete);
+            assert.equal(snapshots_to_delete.length, 0);
+        });
+
+        it('Should delete none for retention policy 3 at 2017-11-22T02:57:04.000Z with offset 3', () => {
+            const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots_2, retention_policy_3, 3, moment.utc('2017-11-22T02:57:04.000Z'));
             //console.log(snapshots_to_delete);
             assert.equal(snapshots_to_delete.length, 0);
         });
 
 
-
-
         // 34ef89dd-b8cc-45c9-a099-d2aaabcb57f5 - Processing source retention
-        // Nov 21 03:22:40 info: 
+        // Nov 21 03:22:40 info:
         // Nov 21 03:22:40 info: Interval: daily, iteration: 0, offset: 3
         // Nov 21 03:22:40 info: Initial date: Tue Nov 21 2017 03:22:40 GMT+0000
         // Nov 21 03:22:40 info: Target date: Tue Nov 21 2017 00:03:00 GMT+0000
-        // Nov 21 03:22:40 info: 
-        // Nov 21 03:22:40 info: 
+        // Nov 21 03:22:40 info:
+        // Nov 21 03:22:40 info:
         // Nov 21 03:22:40 info: Found 1 snapshots to delete
         // Nov 21 03:22:40 info: Name: zones/def34304-65f2-4f44-af0a-fe0544816f67@201711210322, time: Tue Nov 21 2017 03:22:39 GMT+0000 (UTC)
     });
