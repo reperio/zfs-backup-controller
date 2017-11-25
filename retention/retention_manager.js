@@ -72,9 +72,8 @@ class RetentionManager {
                 
                 if (policySnapshot) {
                     //console.log(`KEEPING ${policySnapshot.job_history_id}`);
-                    //console.log(policySnapshot);
-                    policySnapshot.keep = true; //for testing only, sequelize won't allow this
-                    policySnapshot[`keep-${retention.interval}`] = true; //for testing only, sequelize won't allow this
+                    // console.log(policySnapshot);
+                    // console.log(`${retention.interval}`);
 
                     snapshots_to_keep.push(policySnapshot.job_history_id);
                 }

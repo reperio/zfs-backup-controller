@@ -207,13 +207,41 @@ class JobManager {
 
             return current;
         } else if (job.schedule.name === 'hourly') {
-            return moment().startOf('hour').add(job.offset, 'minutes');
+            const now = moment();
+            const start_of_schedule_period = moment().startOf('hour');
+
+            if (now.diff(start_of_schedule_period, 'minutes') < job.offset) {
+                start_of_schedule_period.subtract(1, 'hour')
+            }
+            
+            return start_of_schedule_period.add(job.offset, 'minutes');
         } else if (job.schedule.name === 'daily') {
-            return moment().startOf('day').add(job.offset, 'minutes');
+            const now = moment();
+            const start_of_schedule_period = moment().startOf('day');
+
+            if (now.diff(start_of_schedule_period, 'minutes') < job.offset) {
+                start_of_schedule_period.subtract(1, 'day');
+            }
+
+            return start_of_schedule_period.add(job.offset, 'minutes');
         } else if (job.schedule.name === 'weekly') {
-            return moment().startOf('week').add(job.offset, 'minutes');
+            const now = moment();
+            const start_of_schedule_period = moment().startOf('week');
+
+            if (now.diff(start_of_schedule_period, 'minutes') < job.offset) {
+                start_of_schedule_period.subtract(1, 'week');
+            }
+
+            return start_of_schedule_period.add(job.offset, 'minutes');
         } else if (job.schedule.name === 'monthly') {
-            return moment().startOf('month').add(job.offset, 'minutes');
+            const now = moment();
+            const start_of_schedule_period = moment().startOf('month');
+
+            if (now.diff(start_of_schedule_period, 'minutes') < job.offset) {
+                start_of_schedule_period.subtract(1, 'month');
+            }
+
+            return start_of_schedule_period.add(job.offset, 'minutes');
         }
 
         throw new Error('Job has invalid schedule');

@@ -539,36 +539,36 @@ describe('Retention Tests', async function() {
 
         it('Should keep 8 for retention policy 1 at 2017-11-19T03:20:00.000Z', () => {
             const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots, retention_policy_1, 0, moment.utc('2017-11-19T03:20:00.000Z'));
-            assert.equal(snapshots_to_delete.length, 9992);
+            assert.equal(snapshots_to_delete.length, 1492);
         });
 
         it('Should keep 9 for retention policy 1 at 2017-11-19T03:40:00.000Z', () => {
             const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots, retention_policy_1, 0, moment.utc('2017-11-19T03:40:00.000Z'));
             //console.log(snapshots_to_delete.length);
-            assert.equal(snapshots_to_delete.length, 9991);
+            assert.equal(snapshots_to_delete.length, 1491);
         });
 
         it('Should keep 10 for retention policy 1 at 2017-11-21T03:40:00.000Z', () => {
             const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots, retention_policy_1, 0, moment.utc('2017-11-21T03:40:00.000Z'));
             //console.log(snapshots_to_delete.length);
-            assert.equal(snapshots_to_delete.length, 9990);
+            assert.equal(snapshots_to_delete.length, 1490);
         });
 
-        it('Should keep 13 for retention policy 2 at 2017-11-19T03:20:00.000Z', () => {
+        it('Should keep 12 for retention policy 2 at 2017-11-19T03:20:00.000Z', () => {
             const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots, retention_policy_2, 0, moment.utc('2017-11-19T03:20:00.000Z'));
-            assert.equal(snapshots_to_delete.length, 9987);
+            assert.equal(snapshots_to_delete.length, 1488);
         });
 
-        it('Should keep 13 for retention policy 2 at 2017-11-19T03:40:00.000Z', () => {
+        it('Should keep 12 for retention policy 2 at 2017-11-19T03:40:00.000Z', () => {
             const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots, retention_policy_2, 0, moment.utc('2017-11-19T03:40:00.000Z'));
             //console.log(snapshots_to_delete.length);
-            assert.equal(snapshots_to_delete.length, 9987);
+            assert.equal(snapshots_to_delete.length, 1488);
         });
 
         it('Should keep 13 for retention policy 2 at 2017-11-21T03:40:00.000Z', () => {
             const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots, retention_policy_2, 0, moment.utc('2017-11-21T03:40:00.000Z'));
             //console.log(snapshots_to_delete.length);
-            assert.equal(snapshots_to_delete.length, 9987);
+            assert.equal(snapshots_to_delete.length, 1487);
         });
     });
 
