@@ -10,6 +10,7 @@ const JobManager = require('./jobs/job_manager');
 const RetentionManager = require('./retention/retention_manager');
 const UoW = require('./db');
 const AgentApi = require('./agent_api');
+const CnApi = require('./cn_api');
 
 // Create a server with a host and port
 const server = new Hapi.Server({});
@@ -130,12 +131,19 @@ server.ext({
     type: "onRequest",
     method: async (request, reply) => {
         request.app.uows = [];
+        request.app.cnapis = [];
 
         request.app.getNewUoW = async () => {
             const uow = new UoW(server.app.logger);
             request.app.uows.push(uow);
             return uow;
         };
+
+        request.app.getNewCnApi = async () => {
+            const cnapi = new CnApi(Config, server.app.logger);
+            request.app.cnapis.push(cnapi);
+            return cnapi;
+        }
 
         await reply.continue();
     }
