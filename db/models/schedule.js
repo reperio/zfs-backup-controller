@@ -1,24 +1,33 @@
-'use strict';
-const uuid = require('uuid/v4');
-module.exports = function(sequelize, DataTypes) {
-    const Schedule = sequelize.define('schedules', {
-        id: {
-            type: DataTypes.UUID,
-            defaultValue: DataTypes.UUIDV4,
-            primaryKey: true
-        },
-        name: {type: DataTypes.STRING, allowNull: false},
-        display_name: {type: DataTypes.STRING, allowNull: false}
-    }, {
-        tableName: "schedules",
-        timestamps: true,
-        deletedAt: false,
-        freezeTableName: true
-    });
+const Model = require('objection').Model;
 
-    Schedule.associate = function(models) {
+class Schedule extends Model {
+    static get tableName() { return "schedules"; }
 
-    };
+    static get jsonSchema() {
+        return {
+            type: "object",
+            properties: {
+                id: { type: "string" },
+                name: { type: "string" },
+                display_name: { type: "string" }
+            }
+        }
+    }
 
-    return Schedule;
-};
+    static get relationMappings() {
+        const Job = require('./job');
+
+        return {
+            schedule_job: {
+                relation: Model.HasOneRelation,
+                modelClass: Job,
+                join: {
+                    from: "schedule.id",
+                    to: "job.schedule_id"
+                }
+            }
+        }
+    }
+}
+
+module.exports = Schedule;

@@ -5,9 +5,9 @@ const assert = require('assert');
 const cp = require('child_process');
 const sinon = require('sinon');
 
-const UoW = require('../objection_db');
-const {knex, Model} = require('../objection_db/connect.js');
-const knex_config = require('../objection_db/knexfile').test;
+const UoW = require('../db');
+const {knex, Model} = require('../db/connect.js');
+const knex_config = require('../db/knexfile').test;
 
 const connection = knex.client.connectionSettings;
 
@@ -24,7 +24,7 @@ describe("DB Integration Tests",function () {
         cp.execSync(`mysql -u ${connection.user} -p${connection.password} -h ${connection.host} -e "CREATE DATABASE ${connection.database} CHARACTER SET utf8 COLLATE utf8_general_ci";`, {stdio: [0,0,0]});
         
         //give user rights to the new database
-        cp.execSync(`mysql -u ${connection.user} -p${connection.password} -h ${connection.host} -e "GRANT SELECT, INSERT, UPDATE ON ${connection.database}.* TO '${connection.user}'@'${connection.host}'";`, {stdio: [0,0,0]});
+        cp.execSync(`mysql -u ${connection.user} -p${connection.password} -h ${connection.host} -e "GRANT SELECT, INSERT, UPDATE ON ${connection.database}.* TO '${connection.user}'@'%'";`, {stdio: [0,0,0]});
         
         //run migrations
         await knex.migrate.latest(knex_config);

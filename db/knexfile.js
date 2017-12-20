@@ -2,13 +2,14 @@ module.exports = {
     development: {
         client: "mysql",
         connection: {
-            host: "127.0.0.1", 
+            host: "localhost", 
             user: "reperio", 
             password: "reperio", 
             database: "reperio_backups_dev"
         },
         migrations: {
-            tableName: "knex_migrations"
+            tableName: "knex_migrations",
+            directory: __dirname + "/migrations"
         }
     },
     test: {

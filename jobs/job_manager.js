@@ -2,9 +2,9 @@ const _ = require('lodash');
 const moment = require('moment');
 
 class JobManager {
-    constructor(logger, db, interval, agentApi, retention_manager) {
+    constructor(logger, uow, interval, agentApi, retention_manager) {
         this.logger = logger;
-        this.db = db;
+        this.uow = uow;
         this.agentApi = agentApi;
         this.retention_manager = retention_manager;
 
@@ -69,7 +69,7 @@ class JobManager {
         const source_retention_policy = JSON.parse(job.source_retention);
         const target_retention_policy = JSON.parse(job.target_retention);
 
-        const snapshots = await this.db.snapshots_repository.get_active_snapshots_for_job(job.id);
+        const snapshots = await this.uow.snapshots_repository.get_active_snapshots_for_job(job.id);
 
         let source_success = true;
 
@@ -148,7 +148,7 @@ class JobManager {
 
     async cleanup_finished_jobs() {
         this.logger.info('Fetching unfinished jobs to clean up');
-        const jobs = await this.db.jobs_repository.getUnfinishedJobs();
+        const jobs = await this.uow.jobs_repository.getUnfinishedJobs();
 
         for (let job of jobs) {
             try {
@@ -173,7 +173,7 @@ class JobManager {
 
     async fetch_jobs() {
         this.logger.info('Fetching jobs');
-        const jobs = await this.db.jobs_repository.getAllJobs();
+        const jobs = await this.uow.jobs_repository.getAllJobs();
         return jobs;
     }
 
@@ -274,7 +274,7 @@ class JobManager {
         this.logger.info(`  ${job.id} - Creating Job History entry.`);
 
         //create job history record
-        const job_history = await this.db.jobs_repository.create_job_history({
+        const job_history = await this.uow.jobs_repository.create_job_history({
             job_id: job.id,
             start_date_time: start_date_time,
             end_date_time: null,
@@ -311,7 +311,7 @@ class JobManager {
             };
 
             //add snapshot to snapshots table
-            snapshot = await this.db.snapshots_repository.createSnapshotEntry(job_history, snapshot_data);
+            snapshot = await this.uow.snapshots_repository.createSnapshotEntry(job_history, snapshot_data);
 
             if (!snapshot) {
                 throw new Error('Failed to create snapshot');
@@ -340,7 +340,7 @@ class JobManager {
             //request zfs send
             let last_snapshot_name = null;
 
-            const most_recent_successful = await this.db.jobs_repository.get_most_recent_successful_job_history(job.id);
+            const most_recent_successful = await this.uow.jobs_repository.get_most_recent_successful_job_history(job.id);
 
             if (most_recent_successful) {
                 last_snapshot_name = most_recent_successful.snapshot.name;
