@@ -8,6 +8,8 @@ class JobsRepository {
         const q = this.uow._models.Job
             .query(this.uow._transaction)
             .mergeEager("job_schedule")
+            .mergeEager("job_source_host")
+            .mergeEager("job_target_host")
             .where("enabled", true);
 
         const jobs = await q;

@@ -42,7 +42,7 @@ class Job extends Model {
                     to: "hosts.id"
                 }
             },
-            job_target_id: {
+            job_target_host: {
                 relation: Model.BelongsToOneRelation,
                 modelClass: Host,
                 join: {
