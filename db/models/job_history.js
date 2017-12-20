@@ -1,34 +1,50 @@
-'use strict';
+const Model = require('objection').Model;
 
-module.exports = function (sequelize, DataTypes) {
-    const JobHistory = sequelize.define('job_history', {
-        id: {
-            type: DataTypes.UUID,
-            defaultValue: DataTypes.UUIDV4,
-            primaryKey: true
-        },
+class JobHistory extends Model {
+    static get tableName() { return "job_history"; }
 
-        job_id: {type: DataTypes.UUID, allowNull: false},
-        start_date_time: {type: DataTypes.DATE, allowNull: false},
-        end_date_time: {type: DataTypes.DATE, allowNull: true},
-        schedule_date_time: {type: DataTypes.DATE, allowNull: true},
-        result: {type: DataTypes.INTEGER, allowNull: false},
-        source_message: {type: DataTypes.TEXT, allowNull: true},
-        target_message: {type: DataTypes.TEXT, allowNull: true},
-        source_result: {type: DataTypes.INTEGER, allowNull: false},
-        target_result: {type: DataTypes.INTEGER, allowNull: false},
-        port: {type: DataTypes.INTEGER, allowNull: false}
-    }, {
-        tableName: 'job_history',
-        timestamps: true,
-        deletedAt: false,
-        freezeTableName: true
-    });
+    static get jsonSchema() {
+        return {
+            type: "object",
+            properties: {
+                id: { type: "string" },
+                job_id: { type: "string" },
+                start_date_time: { type: ["object", "string"] },
+                end_date_time: { type: ["object", "string"] },
+                schedule_date_time: { type: ["object", "string"] },
+                result: { type: "integer" },
+                source_message: { type: "string" },
+                target_message: { type: "string" },
+                source_result: { type: "integer" },
+                target_result: { type: "integer" },
+                port: { type: "integer" }
+            }
+        }
+    }
 
-    JobHistory.associate = function (models) {
-        JobHistory.belongsTo(models.jobs, {as: 'job', foreignKey: 'job_id'});
-        JobHistory.hasOne(models.snapshots, { foreignKey: 'job_history_id', as: 'snapshot' });
-    };
+    static get relationMappings() {
+        const Job = require('./job');
+        const Snapshot = require('./snapshot');
 
-    return JobHistory;
-};
+        return {
+            job_history_job: {
+                relation: Model.BelongsToOneRelation,
+                modelClass: Job,
+                join: {
+                    from: "job_history.job_id",
+                    to: "jobs.id"
+                }
+            },
+            job_history_snapshot: {
+                relation: Model.HasOneRelation,
+                modelClass: Snapshot,
+                join: {
+                    from: "job_history.id",
+                    to: "snapshots.job_history_id"
+                }
+            }
+        } 
+    }
+}
+
+module.exports = JobHistory;

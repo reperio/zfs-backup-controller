@@ -1,41 +1,64 @@
-'use strict';
+const Model = require('objection').Model;
 
-module.exports = function (sequelize, DataTypes) {
-    const Snapshot = sequelize.define('snapshots', {
-        job_history_id: {
-            type: DataTypes.UUID,
-            primaryKey: true,
-            allowNull: false
-        },
+class Snapshot extends Model {
+    static get tableName() { return "snapshots"; }
 
-        name: {type: DataTypes.STRING, allowNull: false},
-        source_host_id: {type: DataTypes.UUID, allowNull: false},
-        source_host_status: {type: DataTypes.INTEGER, allowNull: false},
-        target_host_id: {type: DataTypes.UUID, allowNull: false},
-        target_host_status: {type: DataTypes.INTEGER, allowNull: false},
-        snapshot_date_time: {type: DataTypes.DATE, allowNull: false},
-        job_id: {type: DataTypes.UUID, allowNull: false}
-    }, {
-        tableName: 'snapshots',
-        timestamps: true,
-        deletedAt: false,
-        freezeTableName: true
-    });
+    static get jsonSchema() {
+        return {
+            type: "object",
+            properties: {
+                job_history_id: { type: "string" },
+                name: { type: "string" },
+                source_host_id: { type: "string" },
+                source_host_status: { type: "integer" },
+                target_host_id: { type: "string" },
+                source_host_status: { type: "integer" },
+                snapshot_date_time: { type: ["object", "string"] },
+                job_id: { type: "string" }
+            }
+        }
+    }
 
-    Snapshot.associate = function (models) {
-        Snapshot.belongsTo(models.hosts, {as: 'source_host', foreignKey: 'source_host_id'});
-        Snapshot.belongsTo(models.hosts, {as: 'target_host', foreignKey: 'target_host_id'});
-        Snapshot.belongsTo(models.job_history, {as: 'job_history', foreignKey: 'job_history_id', onDelete: ''});
-        Snapshot.belongsTo(models.jobs, {as: 'job', foreignKey: 'job_id'});
-    };
+    static get relationMappings() {
+        const Host = require('./host');
+        const JobHistory = require('./job_history');
+        const Job = require('./job');
 
-    return Snapshot;
-};
+        return {
+            snapshot_source_host: {
+                relation: Model.BelongsToOneRelation,
+                modelClass: Host,
+                join: {
+                    from: "snapshots.source_host_id",
+                    to: "hosts.id"
+                }
+            },
+            snapshot_target_host: {
+                relation: Model.BelongsToOneRelation,
+                modelClass: Host,
+                join: {
+                    from: "snapshots.target_host_id",
+                    to: "hosts.id"
+                }
+            },
+            snapshot_job_history: {
+                relation: Model.BelongsToOneRelation,
+                modelClass: JobHistory,
+                join: {
+                    from: "snapshots.job_history_id",
+                    to: "job_history.id"
+                }
+            },
+            snapshot_job: {
+                relation: Model.BelongsToOneRelation,
+                modelClass: Job,
+                join: {
+                    from: "snapshots.job_id",
+                    to: "jobs.id"
+                }
+            }
+        }
+    }
+}
 
-/**
- * Host statuses
- * 0 = pending (default)
- * 1 = created
- * 2 = deleted
- * 3 = failed
- */
+module.exports = Snapshot;

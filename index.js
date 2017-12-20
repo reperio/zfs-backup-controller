@@ -8,7 +8,7 @@ require('winston-daily-rotate-file');
 
 const JobManager = require('./jobs/job_manager');
 const RetentionManager = require('./retention/retention_manager');
-const DataModel = require('./db');
+const UoW = require('./db');
 const AgentApi = require('./agent_api');
 
 // Create a server with a host and port
@@ -81,8 +81,6 @@ const trace_logger = new (winston.Logger)({
 server.app.logger = app_logger;
 server.app.trace_logger = trace_logger;
 
-server.app.db = new DataModel(server.app.logger);
-
 server.register({
     register: require('./api')
 }, {
@@ -128,9 +126,24 @@ server.ext({
     }
 });
 
-if (!Config.db_logging) {
-    server.app.db._db.sequelize.options.logging = false;
-}
+server.ext({
+    type: "onRequest",
+    method: async (request, reply) => {
+        request.app.uows = [];
+
+        request.app.getNewUoW = async () => {
+            const uow = new UoW(server.app.logger);
+            request.app.uows.push(uow);
+            return uow;
+        };
+
+        await reply.continue();
+    }
+});
+
+// if (!Config.db_logging) {
+//     server.app.db._db.sequelize.options.logging = false;
+// }
 
 server.start(err => {
     if (err) {
@@ -143,7 +156,7 @@ server.start(err => {
 const agent_api = new AgentApi(Config, server.app.logger);
 const retention_manager = new RetentionManager(server.app.logger);
 
-const job_manager = new JobManager(server.app.logger, server.app.db, Config.job_interval, agent_api, retention_manager);
+const job_manager = new JobManager(server.app.logger, new UoW(server.app.logger), Config.job_interval, agent_api, retention_manager);
 job_manager.start();
 
 module.exports = server;

@@ -1,26 +1,20 @@
-'use strict';
+const Model = require('objection').Model;
 
-module.exports = function(sequelize, DataTypes) {
-    const Host = sequelize.define('hosts', {
-        id: {
-            type: DataTypes.UUID,
-            defaultValue: DataTypes.UUIDV4,
-            primaryKey: true
-        },
-        name: {type: DataTypes.STRING, allowNull: false},
-        sdc_id: {type: DataTypes.STRING, allowNull: true},
-        ip_address: {type: DataTypes.STRING, allowNull: false},
-        port: {type: DataTypes.INTEGER, allowNull: false}
-    }, {
-        tableName: 'hosts',
-        timestamps: true,
-        deletedAt: false,
-        freezeTableName: true
-    });
+class Host extends Model {
+    static get tableName() { return "hosts"; }
 
-    Host.associate = function(models) {
+    static get jsonSchema() {
+        return {
+            type: "Object",
+            properties: {
+                id: { type: "string" },
+                name: { type: "string" },
+                sdc_id: { type: "string" },
+                ip_address: { type: "string" },
+                port: { type: "integer" }
+            }
+        }
+    }
+}
 
-    };
-
-    return Host;
-};
+module.exports = Host;

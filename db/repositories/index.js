@@ -3,7 +3,7 @@ const path      = require('path');
 const basename  = path.basename(module.filename);
 
 
-const models = {};
+const repositories = {};
 
 fs
     .readdirSync(__dirname)
@@ -11,8 +11,8 @@ fs
         return (fileName.indexOf('.') !== 0) && (fileName !== basename) && (fileName.slice(-3) === '.js');
     })
     .forEach(function(fileName) {
-        const model = require(path.join(__dirname, fileName));
-        models[model.name] = model;
+        const repositoryName = fileName.slice(0, -3);
+        repositories[repositoryName] = require(path.join(__dirname, fileName));
     });
 
-module.exports = models;
+module.exports = repositories;

@@ -1,71 +1,87 @@
 class SnapshotsRepository {
-    constructor(data_model) {
-        this.data_model = data_model;
+    constructor (uow) {
+        this.uow = uow;
+    }
+
+    async getAllSnapshots() {
+        this.uow._logger.info('Fetching all snapshots');
+        const q = this.uow._models.Snapshot
+            .query(this.uow._transaction);
+        
+        const snapshots = await q;
+        return snapshots;
     }
 
     async getAllSnapshotsByHostId(hostId) {
-        this.data_model.logger.info(`Fetching all snapshots with host_id: ${hostId}`);
-        const snapshots = await this.data_model._db.snapshots.findAll({
-            where: { host_id: hostId}
-        });
+        this.uow._logger.info(`Fetching all snapshots with host_id: ${hostId}`);
+        const q = this.uow._models.Snapshot
+            .query(this.uow._transaction)
+            .where("source_host_id", hostId);
+
+        const snapshots = await q;
         return snapshots;
     }
 
     async get_active_snapshots_for_job(job_id) {
-        this.data_model.logger.info(`Fetching all active snapshots with host_id: ${job_id}`);
-        //const Op = this.data_model._db.Sequelize.Op;
+        this.uow._logger.info(`Fetching all active snapshots with host_id: ${job_id}`);
+        const q = this.uow._models.Snapshot
+            .query(this.uow._transaction)
+            .mergeEager("snapshot_source_host")
+            .mergeEager("snapshot_target_host")
+            .mergeEager("snapshot_job_history")
+            .mergeEager("snapshot_job")
+            .where("job_id", job_id)
+            .where("source_host_status", 1)
+            .orWhere("target_host_status", 1);
 
-        const snapshots = await this.data_model._db.snapshots.findAll({
-            where: {
-                $or: [{
-                    source_host_status: 1
-                }, {
-                    target_host_status: 1
-                }],
-                job_id: job_id
-            },
-            include: [{
-                model: this.data_model._db.hosts,
-                as: 'source_host'
-            }, {
-                model: this.data_model._db.hosts,
-                as: 'target_host'
-            }, {
-                model: this.data_model._db.job_history,
-                as: 'job_history'
-            }, {
-                model: this.data_model._db.jobs,
-                as: 'job'
-            }]
-        });
-
+        const snapshots = await q;
         return snapshots;
     }
 
     async createSnapshotEntry(job_history, snapshot) {
-        this.data_model.logger.info(`${job_history.job_id} | ${job_history.id} - Creating snapshot entry`);
+        this.uow._logger.info(`${job_history.job_id} | ${job_history.id} - Creating snapshot entry`);
         try {
-            const snapshot_entry = await this.data_model._db.snapshots.create(snapshot);
+            await this.uow._models.Snapshot
+                .query(this.uow._transaction)
+                .insert(snapshot);
 
-            return snapshot_entry;
+            const dbSnapshot = this.uow._models.Snapshot
+                .query(this.uow._transaction)
+                .where("job_history_id", snapshot.job_history_id);
+
+            return dbSnapshot;
         } catch (err) {
-            this.data_model.logger.error(err);
+            this.uow._logger.error(err);
+            console.log(err);
             return null;
         }
     }
 
+    async updateSnapshotEntry(snapshotId, snapshot){
+        const q = this.uow._models.Snapshot
+            .query(this.uow._transaction)
+            .where("job_history_id", snapshot.job_history_id)
+            .patch(snapshot)
+            .returning("*");
+
+        const newSnapshot = await q;
+        return newSnapshot;
+    }
+
     async deleteSnapshotEntryById(snapshotId) {
-        this.data_model.logger.info(`Deleting snapshot entry with id: ${snapshotId}`);
+        this.uow._logger.info(`Deleting snapshot entry with id: ${snapshotId}`);
         try {
-            await this.data_model._db.snapshots.destroy({
-                where: { id: snapshotId }
-            });
+            await this.uow._models.Snapshot
+                .query(this.uow._transaction)
+                .where("job_history_id", snapshotId)
+                .delete();
 
             return true;
         } catch (err) {
-            this.data_model.logger.error(err);
+            this.uow._logger.error(err);
             return null;
         }
+
     }
 }
 
