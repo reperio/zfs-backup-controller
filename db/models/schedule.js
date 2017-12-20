@@ -22,8 +22,8 @@ class Schedule extends Model {
                 relation: Model.HasOneRelation,
                 modelClass: Job,
                 join: {
-                    from: "schedule.id",
-                    to: "job.schedule_id"
+                    from: "schedules.id",
+                    to: "jobs.schedule_id"
                 }
             }
         }

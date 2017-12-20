@@ -3,6 +3,15 @@ class SnapshotsRepository {
         this.uow = uow;
     }
 
+    async getAllSnapshots() {
+        this.uow._logger.info('Fetching all snapshots');
+        const q = this.uow._models.Snapshot
+            .query(this.uow._transaction);
+        
+        const snapshots = await q;
+        return snapshots;
+    }
+
     async getAllSnapshotsByHostId(hostId) {
         this.uow._logger.info(`Fetching all snapshots with host_id: ${hostId}`);
         const q = this.uow._models.Snapshot

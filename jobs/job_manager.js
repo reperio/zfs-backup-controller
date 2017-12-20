@@ -93,12 +93,14 @@ class JobManager {
                 try {
                     this.logger.info(`${job.id} - Deleting snapshot ${source_snapshot.name} from source ${source_snapshot.source_host.ip_address}`);
                     await this.agentApi.zfs_destroy_snapshot(source_snapshot, job.source_host);
-                    await source_snapshot.update({source_host_status: 2});
+                    source_snapshot.source_host_status = 2;
+                    await this.uow.snapshots_repository.updateSnapshotEntry(source_snapshot.job_history_id, source_snapshot);
                 } catch (err) {
                     source_success = false;
                     this.logger.error(`${job.id} - Deleting snapshot ${source_snapshot.name} from source ${source_snapshot.source_host.ip_address} failed.`);
                     this.logger.error(err);
-                    await source_snapshot.update({source_host_status: 3});
+                    source_snapshot.source_host_status = 3;
+                    await this.uow.snapshots_repository.updateSnapshotEntry(source_snapshot.job_history_id, source_snapshot);
                 }
             }
             this.logger.info(`${job.id} - Finished applying source retention schedule`);
@@ -132,11 +134,13 @@ class JobManager {
                 try {
                     this.logger.info(`${job.id} - Deleting snapshot ${target_snapshot.name} from target ${target_snapshot.target_host.ip_address}`);
                     await this.agentApi.zfs_destroy_snapshot(target_snapshot, job.target_host);
-                    await target_snapshot.update({target_host_status: 2});
+                    target_snapshot.target_host_status = 2;
+                    await this.uow.snapshots_repository.updateSnapshotEntry(target_snapshot.job_history_id, target_snapshot);
                 } catch (err) {
                     this.logger.error(`${job.id} - Deleting snapshot ${target_snapshot.name} from target ${target_snapshot.target_host.ip_address} failed.`);
                     this.logger.error(err);
-                    await target_snapshot.update({target_host_status: 3});
+                    target_snapshot.target_host_status = 3;
+                    await this.uow.snapshots_repository.updateSnapshotEntry(target_snapshot.job_history_id, target_snapshot);
                 }
             }
             this.logger.info(`${job.id} - Finished applying target retention schedule`);
@@ -148,7 +152,7 @@ class JobManager {
 
     async cleanup_finished_jobs() {
         this.logger.info('Fetching unfinished jobs to clean up');
-        const jobs = await this.uow.jobs_repository.getUnfinishedJobs();
+        const jobs = await this.uow.job_history_repository.getUnfinishedJobs();
 
         for (let job of jobs) {
             try {
@@ -195,7 +199,7 @@ class JobManager {
 
     get_most_recent_schedule_time(job) {
         //quarter hour is special as moment doesn't support finding 15 minute increments
-        if (job.schedule.name === 'quarter_hour') {
+        if (job.job_schedule.name === 'quarter_hour') {
             /*
                 Jump to the beginning of the next hour, subtract 15 minutes until we are earlier than the current time.
             */
@@ -266,7 +270,9 @@ class JobManager {
 
         //update last execution on job
         this.logger.info(`  ${job.id} - Updating job last execution.`);
-        await job.update({last_execution: start_date_time, last_schedule: schedule_date_time});
+        //job.last_execution = start_date_time;
+        job.last_schedule = schedule_date_time;
+        await this.uow.jobs_repository.update_job_entry(job.id, job);
         this.logger.info(`  ${job.id} - Job Updated.`);
 
         const port = JobManager.get_random_port();
@@ -274,11 +280,11 @@ class JobManager {
         this.logger.info(`  ${job.id} - Creating Job History entry.`);
 
         //create job history record
-        const job_history = await this.uow.jobs_repository.create_job_history({
+        const job_history = await this.uow.job_history_repository.create_job_history({
             job_id: job.id,
             start_date_time: start_date_time,
             end_date_time: null,
-            schedule_date_time: schedule_date_time,
+            schedule_date_time: schedule_date_time.toDate(),
             result: 0,
             source_message: null,
             target_message: null,
@@ -318,7 +324,10 @@ class JobManager {
             }
         } catch (err) {
             this.logger.error(`  ${job.id} | ${job_history.id} - Create snapshot step failed.`);
-            await job_history.update({target_message: '', source_result: 3, result: 3});
+            job_history.target_message = '';
+            job_history.source_result = 3;
+            job_history.result = 3;
+            await this.uow.jobs_repository.update_job_history_entry(job_history_id, job_history);
             throw err;
         }
 
@@ -328,11 +337,16 @@ class JobManager {
 
             //update job history record
             this.logger.info(`  ${job.id} | ${job_history.id} - Updating job history entry.`);
-            await job_history.update({target_message: '', target_result: 1});
+            job_history.target_message = '';
+            job_history.target_result = 1;
+            await this.uow.jobs_repository.update_job_history_entry(job_history_id, job_history);
             this.logger.info(`  ${job.id} | ${job_history.id} - Job history entry updated.`);
         } catch (err) {
             this.logger.error(`  ${job.id} | ${job_history.id} - ZFS Receive step failed.`);
-            await job_history.update({target_message: '', target_result: 3, result: 3});
+            job_history.target_message = '';
+            job_history.target_result = 3;
+            job_history.result = 3;
+            await this.uow.jobs_repository.update_job_history_entry(job_history_id, job_history);
             throw err;
         }
 
@@ -350,16 +364,22 @@ class JobManager {
 
             //update job history record
             this.logger.info(`  ${job.id} | ${job_history.id} - Updating job history entry.`);
-            await job_history.update({source_message: '', source_result: 1, result: 1});
+            job_history.source_message = '';
+            job_history.source_result = 1;
+            await this.uow.jobs_repository.update_job_history_entry(job_history_id, job_history);
             this.logger.info(`  ${job.id} | ${job_history.id} - Job history entry updated.`);
         } catch(err) {
             this.logger.error(`  ${job.id} | ${job_history.id} - ZFS Send step failed.`);
-            await job_history.update({source_message: '', source_result: 3, result: 3});
+            job_history.source_message = '';
+            job_history.source_result = 3;
+            job_history.result = 3;
+            await this.uow.jobs_repository.update_job_history_entry(job_history_id, job_history);
             throw err;
         }
 
         const end_date_time = new Date();
-        await job_history.update({end_date_time: end_date_time});
+        job_history.end_date_time = end_date_time;
+        await this.uow.jobs_repository.update_job_history_entry(job_history_id, job_history);
     }
 }
 

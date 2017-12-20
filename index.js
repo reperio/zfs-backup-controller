@@ -132,7 +132,7 @@ server.ext({
         request.app.uows = [];
 
         request.app.getNewUoW = async () => {
-            const uow = new UoW(request.server.app.logger);
+            const uow = new UoW(server.app.logger);
             request.app.uows.push(uow);
             return uow;
         };

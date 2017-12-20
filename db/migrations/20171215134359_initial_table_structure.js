@@ -9,8 +9,8 @@ exports.up = async function(knex, Promise) {
         t.uuid('sdc_id');
         t.text('ip_address');
         t.integer('port');
-        t.timestamp('createdAt');
-        t.timestamp('updatedAt');
+        t.dateTime('createdAt');
+        t.dateTime('updatedAt');
     });
 
     await knex.schema.createTable("schedules", t => {
@@ -20,8 +20,8 @@ exports.up = async function(knex, Promise) {
             .primary();
         t.text('name');
         t.text('display_name');
-        t.timestamp('createdAt');
-        t.timestamp('updatedAt');
+        t.dateTime('createdAt');
+        t.dateTime('updatedAt');
     });
 
     await knex.schema.createTable("jobs", t => {
@@ -53,11 +53,11 @@ exports.up = async function(knex, Promise) {
             .references('id')
             .inTable('hosts')
             .onDelete('RESTRICT');
-        t.timestamp('last_execution');
-        t.timestamp('last_schedule');
+        t.dateTime('last_execution');
+        t.dateTime('last_schedule');
         t.boolean('enabled');
-        t.timestamp('createdAt');
-        t.timestamp('updatedAt');
+        t.dateTime('createdAt');
+        t.dateTime('updatedAt');
     });
 
     await knex.schema.createTable("job_history", t => {
@@ -70,17 +70,17 @@ exports.up = async function(knex, Promise) {
             .references('id')
             .inTable('jobs')
             .onDelete('RESTRICT');
-        t.timestamp('start_date_time');
-        t.timestamp('end_date_time');
-        t.timestamp('schedule_date_time');
+        t.dateTime('start_date_time');
+        t.dateTime('end_date_time');
+        t.dateTime('schedule_date_time');
         t.integer('result');
         t.text('source_message');
         t.text('target_message');
         t.integer('source_result');
         t.integer('target_result');
         t.integer('port');
-        t.timestamp('createdAt');
-        t.timestamp('updatedAt');
+        t.dateTime('createdAt');
+        t.dateTime('updatedAt');
     });
 
     await knex.schema.createTable("snapshots", t => {
@@ -103,14 +103,14 @@ exports.up = async function(knex, Promise) {
             .onDelete('RESTRICT');
         t.integer('source_host_status');
         t.integer('target_host_status');
-        t.timestamp('snapshot_date_time');
+        t.dateTime('snapshot_date_time');
         t.uuid('job_id')
             .notNullable()
             .references('id')
             .inTable('jobs')
             .onDelete('RESTRICT');
-        t.timestamp('createdAt');
-        t.timestamp('updatedAt');   
+        t.dateTime('createdAt');
+        t.dateTime('updatedAt');   
     });
 };
 

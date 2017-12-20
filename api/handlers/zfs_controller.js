@@ -37,13 +37,14 @@ async function send_complete(request, reply) {
 
         const result = code === 0 ? 2 : 3;
 
-        const job_history_changes = { source_message: code, source_result: result};
-
+        job_history.source_message = code;
+        job_history.source_result = result;
+        
         if (result === 3) {
-            job_history_changes.result = 3;
+            job_history.result = 3;
         }
 
-        job_history.update(job_history_changes);
+        await uow.jobs_repository.update_job_history_entry(job_history_id, job_history);
         logger.info(`${job_history_id} - Finished updating job history entry.`);
 
         return reply({status: 'success'});
