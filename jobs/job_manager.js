@@ -177,7 +177,7 @@ class JobManager {
 
     async fetch_jobs() {
         this.logger.info('Fetching jobs');
-        const jobs = await this.uow.jobs_repository.getAllJobs();
+        const jobs = await this.uow.jobs_repository.getAllEnabledJobs();
         return jobs;
     }
 

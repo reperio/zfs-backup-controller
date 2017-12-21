@@ -15,6 +15,19 @@ class JobsRepository {
         return jobs;
     }
 
+    async getAllEnabledJobs() {
+        this.uow._logger.info('Fetching all enabled jobs');
+        const q = this.uow._models.Job
+            .query(this.uow._transaction)
+            .mergeEager("job_schedule")
+            .mergeEager("job_source_host")
+            .mergeEager("job_target_host")
+            .where("enabled", true);
+
+        const jobs = await q;
+        return jobs;
+    }
+
     async update_job_entry(id, job) {
         this.uow._logger.debug("JOB: " + JSON.stringify(job));
         this.uow._logger.info(`  ${job.id} - Updating job record.`);
