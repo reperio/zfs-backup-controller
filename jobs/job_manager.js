@@ -2,19 +2,23 @@ const _ = require('lodash');
 const moment = require('moment');
 
 class JobManager {
-    constructor(logger, uow, interval, agentApi, retention_manager) {
+    constructor(logger, uow, job_interval, retention_interval, agentApi, retention_manager) { //eslint-disable-line max-params
         this.logger = logger;
         this.uow = uow;
         this.agentApi = agentApi;
         this.retention_manager = retention_manager;
 
-        this.interval_id = null;
-        this.interval = interval;
+        this.job_interval_id = null;
+        this.job_interval = job_interval;
+
+        this.retention_interval_id = null;
+        this.retention_interval = retention_interval;
     }
 
     //starts the execution loop
     start() {
-        this.interval_id = setInterval(() => this.execute(), this.interval);
+        this.job_interval_id = setInterval(() => this.execute(), this.job_interval);
+        this.retention_interval_id = setInterval(() => this.apply_retention_schedules(), this.retention_interval);
     }
 
     //main execution of the job manager, finds and executes jobs
@@ -35,13 +39,6 @@ class JobManager {
             await this.cleanup_finished_jobs();
         } catch (err) {
             this.logger.error('Finished job cleanup failed.');
-            this.logger.error(err);
-        }
-
-        try {
-            await this.apply_retention_schedules();
-        } catch (err) {
-            this.logger.error('Applying retention schedules failed.');
             this.logger.error(err);
         }
         
@@ -339,14 +336,14 @@ class JobManager {
             this.logger.info(`  ${job.id} | ${job_history.id} - Updating job history entry.`);
             job_history.target_message = '';
             job_history.target_result = 1;
-            await this.uow.jobs_repository.update_job_history_entry(job_history_id, job_history);
+            await this.uow.jobs_repository.update_job_history_entry(job_history.id, job_history);
             this.logger.info(`  ${job.id} | ${job_history.id} - Job history entry updated.`);
         } catch (err) {
             this.logger.error(`  ${job.id} | ${job_history.id} - ZFS Receive step failed.`);
             job_history.target_message = '';
             job_history.target_result = 3;
             job_history.result = 3;
-            await this.uow.jobs_repository.update_job_history_entry(job_history_id, job_history);
+            await this.uow.jobs_repository.update_job_history_entry(job_history.id, job_history);
             throw err;
         }
 
@@ -366,20 +363,20 @@ class JobManager {
             this.logger.info(`  ${job.id} | ${job_history.id} - Updating job history entry.`);
             job_history.source_message = '';
             job_history.source_result = 1;
-            await this.uow.jobs_repository.update_job_history_entry(job_history_id, job_history);
+            await this.uow.jobs_repository.update_job_history_entry(job_history.id, job_history);
             this.logger.info(`  ${job.id} | ${job_history.id} - Job history entry updated.`);
         } catch(err) {
             this.logger.error(`  ${job.id} | ${job_history.id} - ZFS Send step failed.`);
             job_history.source_message = '';
             job_history.source_result = 3;
             job_history.result = 3;
-            await this.uow.jobs_repository.update_job_history_entry(job_history_id, job_history);
+            await this.uow.jobs_repository.update_job_history_entry(job_history.id, job_history);
             throw err;
         }
 
         const end_date_time = new Date();
         job_history.end_date_time = end_date_time;
-        await this.uow.jobs_repository.update_job_history_entry(job_history_id, job_history);
+        await this.uow.jobs_repository.update_job_history_entry(job_history.id, job_history);
     }
 }
 
