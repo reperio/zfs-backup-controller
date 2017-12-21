@@ -1,8 +1,8 @@
 
 exports.up = async function(knex, Promise) {
+
     await knex.schema.createTable("hosts", t => {
         t.uuid('id')
-            //.defaultTo(knex.raw('uuid_generate_v4()'))
             .notNullable()
             .primary();
         t.text('name');
@@ -15,7 +15,6 @@ exports.up = async function(knex, Promise) {
 
     await knex.schema.createTable("schedules", t => {
         t.uuid('id')
-            //.defaultTo(knex.raw('uuid_generate_v4()'))
             .notNullable()
             .primary();
         t.text('name');
@@ -26,7 +25,6 @@ exports.up = async function(knex, Promise) {
 
     await knex.schema.createTable("jobs", t => {
         t.uuid('id')
-            //.defaultTo(knex.raw('uuid_generate_v4()'))
             .notNullable()
             .primary();
         t.text('name');
@@ -62,7 +60,6 @@ exports.up = async function(knex, Promise) {
 
     await knex.schema.createTable("job_history", t => {
         t.uuid('id')
-            //.defaultTo(knex.raw('uuid_generate_v4()'))
             .notNullable()
             .primary();
         t.uuid('job_id')

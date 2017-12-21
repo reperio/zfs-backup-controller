@@ -33,5 +33,20 @@ module.exports = {
         seeds: {
             directory: __dirname + "/seeds"
         }
+    },
+    production: {
+        client: "mysql",
+        connection: {
+            host: "localhost",
+            user: "reperio",
+            password: "mlQMLA6wbLMJwdCO",
+            database: "zfs-backup",
+            timezone: 'UTC',
+            dateStrings: true
+        },
+        migrations: {
+            tableName: "knex_migrations",
+            directory: __dirname + "/migrations"
+        }
     }
 };

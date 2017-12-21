@@ -1,6 +1,7 @@
 const Model = require('objection').Model;
+const guid = require('objection-guid')();
 
-class Job extends Model {
+class Job extends guid(Model) {
     static get tableName() { return "jobs"; }
 
     static get jsonSchema() { 
@@ -19,8 +20,8 @@ class Job extends Model {
                 zfs_size: { type: "integer" },
                 source_host_id: { type: "string" },
                 target_host_id: { type: "string" },
-                last_execution: { type: ["object", "string"] },
-                last_schedule: { type: ["object", "string"] },
+                last_execution: { type: "date" },
+                last_schedule: { type: "date" },
                 enabled: { type: "boolean" },
                 offset: { type: "integer" }
             }

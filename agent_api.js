@@ -13,9 +13,9 @@ class AgentApi {
     }
 
     async zfs_create_snapshot(job, job_history, snapshot_name, recursive) {
-        this.logger.info(`  ${job.id} | ${job_history.id} - Sending ZFS Create Snapshot command to source ${job.source_host.ip_address}.`);
+        this.logger.info(`  ${job.id} | ${job_history.id} - Sending ZFS Create Snapshot command to source ${job.job_source_host.ip_address}.`);
 
-        const url = `http://${job.source_host.ip_address}:${job.source_host.port}${this.urls.zfs_create_snapshot}`;
+        const url = `http://${job.job_source_host.ip_address}:${job.job_source_host.port}${this.urls.zfs_create_snapshot}`;
         this.logger.info(`  ${job.id} | ${job_history.id} - Sending ZFS Create Snapshot command to url ${url}.`);
 
         const payload = {
@@ -85,14 +85,14 @@ class AgentApi {
 
     /* eslint max-params: 0 */
     async zfs_send(job, job_history, snapshot_name, port, incremental_snapshot_name, include_properties) {
-        this.logger.info(`  ${job.id} | ${job_history.id} - Sending ZFS Send command to source ${job.source_host.ip_address}.`);
+        this.logger.info(`  ${job.id} | ${job_history.id} - Sending ZFS Send command to source ${job.job_source_host.ip_address}.`);
 
-        const url = `http://${job.source_host.ip_address}:${job.source_host.port}${this.urls.zfs_send}`;
+        const url = `http://${job.job_source_host.ip_address}:${job.job_source_host.port}${this.urls.zfs_send}`;
         this.logger.info(`  ${job.id} | ${job_history.id} - Send command sending to url: ${url}`);
 
         const payload = {
             snapshot_name: snapshot_name,
-            host: job.target_host.ip_address,
+            host: job.job_target_host.ip_address,
             port: port,
             include_properties: include_properties,
             mbuffer_size: this.config.mbuffer_size,
@@ -132,9 +132,9 @@ class AgentApi {
     }
 
     async zfs_receive(job, job_history, port, force_rollback) {
-        this.logger.info(`  ${job.id} | ${job_history.id} - Sending ZFS Receive command to target ${job.target_host.ip_address}.`);
+        this.logger.info(`  ${job.id} | ${job_history.id} - Sending ZFS Receive command to target ${job.job_target_host.ip_address}.`);
 
-        const url = `http://${job.target_host.ip_address}:${job.target_host.port}${this.urls.zfs_receive}`;
+        const url = `http://${job.job_target_host.ip_address}:${job.job_target_host.port}${this.urls.zfs_receive}`;
         this.logger.info(`  ${job.id} | ${job_history.id} - Receive command sending to url: ${url}`);
 
         const payload = {

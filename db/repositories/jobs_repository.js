@@ -17,13 +17,17 @@ class JobsRepository {
     }
 
     async update_job_entry(id, job) {
+        this.uow._logger.debug("JOB: " + JSON.stringify(job));
         this.uow._logger.info(`  ${job.id} - Updating job record.`);
+        
         try {
             const q = this.uow._models.Job 
                 .query(this.uow._transaction)
                 .where("id", id)
                 .patch(job)
                 .returning("*");
+
+            this.uow._logger.debug("JOB UPDATE QUERY: " + q.toSql());
 
             const newJob = await q;
             return newJob;

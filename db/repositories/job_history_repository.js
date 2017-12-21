@@ -6,7 +6,8 @@ class JobHistoryRepository {
     async getAllJobHistories() {
         this.uow._logger.info("Fetching all job histories");
         const q = this.uow._models.JobHistory
-            .query(this.uow._transaction);
+            .query(this.uow._transaction)
+            .mergeEager('job_history_job');
         
         const job_histories = await q;
         return job_histories;
@@ -24,11 +25,16 @@ class JobHistoryRepository {
 
     async create_job_history(job_history) {
         this.uow._logger.info(`  ${job_history.job_id} - Creating job history.`);
+        this.uow._logger.debug("Job History Entry: " + JSON.stringify(job_history));
 
         try {
-            const job_history = await this.uow._models.JobHistory
+            const q = this.uow._models.JobHistory
                 .query(this.uow._transaction)
                 .insertAndFetch(job_history);
+
+            this.uow._logger.debug("SQL Query: " + q.toSql());
+            const new_job_history = await q;
+            return new_job_history;
         } catch (err) {
             this.uow._logger.error(`  ${job_history.job_id} - Creating job history failed.`);
             this.uow._logger.error(err);
@@ -36,13 +42,13 @@ class JobHistoryRepository {
         }
     }
 
-    async update_job_history_entry(job_history_id, job_history) {
+    async update_job_history_entry(job_history) {
         //this.uow._logger.info(`${job_history.job_id} - Updating job history.`);
 
         try {
             const q = this.uow._models.JobHistory
                 .query(this.uow._transaction)
-                .where("id", job_history_id)
+                .where("id", job_history.id)
                 .patch(job_history)
                 .returning("*");
 

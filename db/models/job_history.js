@@ -1,6 +1,7 @@
 const Model = require('objection').Model;
+const guid = require('objection-guid')();
 
-class JobHistory extends Model {
+class JobHistory extends guid(Model) {
     static get tableName() { return "job_history"; }
 
     static get jsonSchema() {
@@ -9,12 +10,12 @@ class JobHistory extends Model {
             properties: {
                 id: { type: "string" },
                 job_id: { type: "string" },
-                start_date_time: { type: ["object", "string"] },
-                end_date_time: { type: ["object", "string"] },
-                schedule_date_time: { type: ["object", "string"] },
+                start_date_time: { type: "date" },
+                end_date_time: { type: "date" },
+                schedule_date_time: { type: "date" },
                 result: { type: "integer" },
-                source_message: { type: "string" },
-                target_message: { type: "string" },
+                source_message: { type: "text" },
+                target_message: { type: "text" },
                 source_result: { type: "integer" },
                 target_result: { type: "integer" },
                 port: { type: "integer" }

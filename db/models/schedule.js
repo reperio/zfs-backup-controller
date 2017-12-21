@@ -1,6 +1,7 @@
 const Model = require('objection').Model;
+const guid = require('objection-guid')();
 
-class Schedule extends Model {
+class Schedule extends guid(Model) {
     static get tableName() { return "schedules"; }
 
     static get jsonSchema() {

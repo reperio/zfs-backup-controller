@@ -41,14 +41,12 @@ class SnapshotsRepository {
     async createSnapshotEntry(job_history, snapshot) {
         this.uow._logger.info(`${job_history.job_id} | ${job_history.id} - Creating snapshot entry`);
         try {
-            await this.uow._models.Snapshot
+            const q = this.uow._models.Snapshot
                 .query(this.uow._transaction)
-                .insert(snapshot);
+                .insertAndFetch(snapshot);
 
-            const dbSnapshot = this.uow._models.Snapshot
-                .query(this.uow._transaction)
-                .where("job_history_id", snapshot.job_history_id);
-
+            this.uow._logger.debug("INSERT SNAPSHOT QUERY: " + q.toSql());
+            const dbSnapshot = await q;
             return dbSnapshot;
         } catch (err) {
             this.uow._logger.error(err);

@@ -166,8 +166,8 @@ class JobManager {
                     this.logger.info(`${job.job_id} | ${job.id} Setting job to successful.`);
                     job.result = 2;
                 }
-
-                await job.save();
+                
+                await this.uow.job_history_repository.update_job_history_entry(job);
             } catch(err) {
                 this.logger.error(`${job.job_id} | ${job.id} Checking job failed.`);
                 this.logger.error(err);
@@ -271,7 +271,7 @@ class JobManager {
         //update last execution on job
         this.logger.info(`  ${job.id} - Updating job last execution.`);
         //job.last_execution = start_date_time;
-        job.last_schedule = schedule_date_time;
+        job.last_schedule = schedule_date_time.toDate();
         await this.uow.jobs_repository.update_job_entry(job.id, job);
         this.logger.info(`  ${job.id} - Job Updated.`);
 
@@ -327,7 +327,7 @@ class JobManager {
             job_history.target_message = '';
             job_history.source_result = 3;
             job_history.result = 3;
-            await this.uow.jobs_repository.update_job_history_entry(job_history_id, job_history);
+            await this.uow.job_history_repository.update_job_history_entry(job_history.id, job_history);
             throw err;
         }
 
