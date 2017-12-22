@@ -3,14 +3,14 @@
 
 const assert = require('assert');
 const fs = require('fs');
-const JobManager = require('../jobs/job_manager');
+const JobManager = require('../../jobs/job_manager');
 const moment = require('moment');
 const _ = require('lodash');
 const sinon = require('sinon');
 
 describe('Job Manager', () => {
     //load the test data
-    this.test_data = JSON.parse(fs.readFileSync('./test/testing_data/test_data_no_errors.json', 'utf8'));
+    this.test_data = JSON.parse(fs.readFileSync('./test/unit/testing_data/test_data_no_errors.json', 'utf8'));
 
     const logging = false;
 
@@ -38,17 +38,17 @@ describe('Job Manager', () => {
         it('Should filter jobs correctly with offsets', () => {
             const jobs = [
                 {
-                    schedule: {name: 'daily'},
+                    job_schedule: {name: 'daily'},
                     last_schedule: moment().startOf('day').subtract(1, 'day'),
                     offset: 0
                 },
                 {
-                    schedule: {name: 'daily'},
+                    job_schedule: {name: 'daily'},
                     last_schedule: moment().startOf('day').subtract(1, 'day').add(49, 'minutes'),
                     offset: 49
                 },
                 {
-                    schedule: {name: 'daily'},
+                    job_schedule: {name: 'daily'},
                     last_schedule: moment().startOf('day').subtract(1, 'day').add(30, 'minutes'),
                     offset: 30
                 }
@@ -69,7 +69,7 @@ describe('Job Manager', () => {
             const last_schedule = moment().startOf('day');
 
             const test_job = {
-                schedule: {name: 'daily'},
+                job_schedule: {name: 'daily'},
                 last_schedule: last_schedule,
                 offset: 0
             };
@@ -81,7 +81,7 @@ describe('Job Manager', () => {
             const last_schedule = moment().startOf('day').subtract(1, 'day');
 
             const test_job = {
-                schedule: {name: 'daily'},
+                job_schedule: {name: 'daily'},
                 last_schedule: last_schedule,
                 offset: 0
             };
@@ -93,7 +93,7 @@ describe('Job Manager', () => {
             const last_schedule = moment().startOf('day').add(30, 'minutes');
 
             const test_job = {
-                schedule: {name: 'daily'},
+                job_schedule: {name: 'daily'},
                 last_schedule: last_schedule,
                 offset: 30
             };
@@ -105,7 +105,7 @@ describe('Job Manager', () => {
             const last_schedule = moment().startOf('day').add(10, 'minutes');
 
             const test_job = {
-                schedule: {name: 'daily'},
+                job_schedule: {name: 'daily'},
                 last_schedule: last_schedule,
                 offset: 30
             };

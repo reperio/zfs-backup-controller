@@ -3,14 +3,14 @@
 
 const assert = require('assert');
 const fs = require('fs');
-const RetentionManager = require('../retention/retention_manager.js');
+const RetentionManager = require('../../retention/retention_manager.js');
 const moment = require('moment');
 const _ = require('lodash');
 const sinon = require('sinon');
 
 describe('Retention Tests', async function() {
     //load the test data
-    this.test_data = JSON.parse(fs.readFileSync('./test/testing_data/test_data_no_errors.json', 'utf8'));
+    this.test_data = JSON.parse(fs.readFileSync('./test/unit/testing_data/test_data_no_errors.json', 'utf8'));
 
     const logging = false;
 

@@ -218,11 +218,11 @@ class JobManager {
             monthly: 'month'
         };
 
-        if (!schedule_map[job.schedule.name]) {
+        if (!schedule_map[job.job_schedule.name]) {
             throw new Error('Job has invalid schedule');
         }
 
-        const schedule_interval = schedule_map[job.schedule.name];
+        const schedule_interval = schedule_map[job.job_schedule.name];
         
         const now = moment();
         const start_of_schedule_period = moment().startOf(schedule_interval);
