@@ -5,6 +5,7 @@ const JobControllerHandlers = require('./handlers/job_controller');
 const JobHistoryControllerHandlers = require('./handlers/job_history_controller');
 const ScheduleControllerHandlers = require('./handlers/schedules_controller');
 const SnapshotsControllerHandlers = require('./handlers/snapshot_controller');
+const DashboardControllerHandlers = require('./handlers/dashboard_controller');
 
 exports.register = function (server, options, next) {
 
@@ -36,6 +37,7 @@ exports.register = function (server, options, next) {
     server.route(JobHistoryControllerHandlers);
     server.route(ScheduleControllerHandlers);
     server.route(SnapshotsControllerHandlers);
+    server.route(DashboardControllerHandlers);
     
     next();
 };
