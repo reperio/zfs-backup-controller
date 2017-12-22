@@ -37,6 +37,7 @@
   "devDependencies": {
     "mocha": "^4.0.1",
     "sequelize-cli": "^3.0.0",
+    "simple-ssh": "^1.0.0",
     "sinon": "^4.1.2"
   }
 }

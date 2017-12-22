@@ -58,6 +58,8 @@ class RetentionManager {
 
         const snapshots_to_keep = [];
 
+        //always keep the most recent 2 snapshots that are successful at the source
+
         for(let retention of retention_policy.retentions) {
             for(let iteration = 0; iteration <= retention.retention; iteration++) {
                 let target_date = this.find_retention_target_date(retention.interval, iteration, start_date, offset);
@@ -71,7 +73,7 @@ class RetentionManager {
                 let policySnapshot = this.getFirstSnapshotAfterDate(sorted_snapshots, target_date);
                 
                 if (!policySnapshot) {
-                    policySnapshot = this.get_last_snapshot_after_date(sorted_snapshots, target_date);
+                    policySnapshot = this.get_last_snapshot_before_date(sorted_snapshots, target_date);
                 }
 
                 if (policySnapshot) {
@@ -119,7 +121,7 @@ class RetentionManager {
         return null;
     }
 
-    get_last_snapshot_after_date (snapshots, date) {
+    get_last_snapshot_before_date (snapshots, date) {
         for (let i = snapshots.length - 1; i >= 0; --i) {
             const snapshot_date_time = moment.utc(snapshots[i].snapshot_date_time);
             //this.logger.info(`Comparing snapshot date: ${snapshot_date_time} to target date: ${date}`)

@@ -336,14 +336,14 @@ class JobManager {
             this.logger.info(`  ${job.id} | ${job_history.id} - Updating job history entry.`);
             job_history.target_message = '';
             job_history.target_result = 1;
-            await this.uow.jobs_repository.update_job_history_entry(job_history.id, job_history);
+            await this.uow.job_history_repository.update_job_history_entry(job_history.id, job_history);
             this.logger.info(`  ${job.id} | ${job_history.id} - Job history entry updated.`);
         } catch (err) {
             this.logger.error(`  ${job.id} | ${job_history.id} - ZFS Receive step failed.`);
             job_history.target_message = '';
             job_history.target_result = 3;
             job_history.result = 3;
-            await this.uow.jobs_repository.update_job_history_entry(job_history.id, job_history);
+            await this.uow.job_history_repository.update_job_history_entry(job_history.id, job_history);
             throw err;
         }
 
@@ -351,7 +351,7 @@ class JobManager {
             //request zfs send
             let last_snapshot_name = null;
 
-            const most_recent_successful = await this.uow.jobs_repository.get_most_recent_successful_job_history(job.id);
+            const most_recent_successful = await this.uow.job_history_repository.get_most_recent_successful_job_history(job.id);
 
             if (most_recent_successful) {
                 last_snapshot_name = most_recent_successful.snapshot.name;
@@ -363,20 +363,20 @@ class JobManager {
             this.logger.info(`  ${job.id} | ${job_history.id} - Updating job history entry.`);
             job_history.source_message = '';
             job_history.source_result = 1;
-            await this.uow.jobs_repository.update_job_history_entry(job_history.id, job_history);
+            await this.uow.job_history_repository.update_job_history_entry(job_history.id, job_history);
             this.logger.info(`  ${job.id} | ${job_history.id} - Job history entry updated.`);
         } catch(err) {
             this.logger.error(`  ${job.id} | ${job_history.id} - ZFS Send step failed.`);
             job_history.source_message = '';
             job_history.source_result = 3;
             job_history.result = 3;
-            await this.uow.jobs_repository.update_job_history_entry(job_history.id, job_history);
+            await this.uow.job_history_repository.update_job_history_entry(job_history.id, job_history);
             throw err;
         }
 
         const end_date_time = new Date();
         job_history.end_date_time = end_date_time;
-        await this.uow.jobs_repository.update_job_history_entry(job_history.id, job_history);
+        await this.uow.job_history_repository.update_job_history_entry(job_history.id, job_history);
     }
 }
 

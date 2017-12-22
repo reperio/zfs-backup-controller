@@ -1,36 +1,63 @@
+/* eslint-env  mocha */
+/* eslint max-nested-callbacks: 0 */
+
 process.env.NODE_ENV = 'test';
 
 const moment = require('moment');
 const assert = require('assert');
-const cp = require('child_process');
-const sinon = require('sinon');
 
 const UoW = require('../db');
-const {knex, Model} = require('../db/connect.js');
+const {knex} = require('../db/connect.js');
 const knex_config = require('../db/knexfile').test;
 
 const connection = knex.client.connectionSettings;
 
-describe("DB Integration Tests",function () {
+describe('DB Integration Tests', function () {
+    const logging = false;
+    
+    const logger = {
+        error: (message) => {
+            if (logging) {
+                console.log(message || '');
+            }
+        }, info: (message) => {
+            if (logging) {
+                console.log(message || '');
+            }
+        }, debug: (message) => {
+            if (logging) {
+                console.log(message || '');
+            }
+        }};
+
     //initialize uow
-    const _uow = new UoW();
+    const _uow = new UoW(logger);
 
     //set timeout
     this.timeout(15000);
 
-    //set up the database 
+    //set up the database
     before(async () => {
-        //create the database 
-        cp.execSync(`mysql -u ${connection.user} -p${connection.password} -h ${connection.host} -e "CREATE DATABASE ${connection.database} CHARACTER SET utf8 COLLATE utf8_general_ci";`, {stdio: [0,0,0]});
+        //create the database
+        const conn = {
+            host: connection.host,
+            user: connection.user,
+            password: connection.password
+        };
         
-        //give user rights to the new database
-        cp.execSync(`mysql -u ${connection.user} -p${connection.password} -h ${connection.host} -e "GRANT SELECT, INSERT, UPDATE ON ${connection.database}.* TO '${connection.user}'@'%'";`, {stdio: [0,0,0]});
+        // connect without database selected
+        const knex_tmp = require('knex')({ client: 'mysql', connection: conn});
         
-        //run migrations
+        await knex_tmp.raw(`CREATE DATABASE ${connection.database} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci;`);
+        
+        await knex_tmp.destroy();
+        // //run migrations
         await knex.migrate.latest(knex_config);
+        // console.log('migrate done');
         
-        //seed database
+        // //seed database
         await knex.seed.run(knex_config);
+        // console.log('seed done');
     });
 
     describe('Jobs Repository', () => {
@@ -40,19 +67,19 @@ describe("DB Integration Tests",function () {
         });
 
         it('Should return 0 unfinished jobs', async () => {
-            const job_histories = await _uow.jobs_repository.getUnfinishedJobs();
+            const job_histories = await _uow.job_history_repository.getUnfinishedJobs();
             assert.equal(job_histories.length, 0);
         });
 
         //create job_history entry
 
         it('Should return a job history', async() => {
-            const job_history = await _uow.jobs_repository.get_job_history_by_id('e714e0ed-9e83-4421-8058-1232024c7e50');
+            const job_history = await _uow.job_history_repository.get_job_history_by_id('e714e0ed-9e83-4421-8058-1232024c7e50');
             assert.notEqual(job_history, null);
         });
 
         it('Should return a successful job_history', async()=>{
-            const job_history = _uow.jobs_repository.get_most_recent_successful_job_history('b21d3b67-4e78-4b2c-8169-5891520048a8');
+            const job_history = await _uow.job_history_repository.get_most_recent_successful_job_history('b21d3b67-4e78-4b2c-8169-5891520048a8');
             assert.notEqual(job_history, null);
         });
     });
@@ -113,6 +140,17 @@ describe("DB Integration Tests",function () {
     
     //drop the database
     after(async () => {
-        cp.execSync(`mysql -u ${connection.user} -p${connection.password} -h ${connection.host} -e "DROP DATABASE ${connection.database}";`, {stdio: [0,0,0]});
+        const conn = {
+            host: connection.host,
+            user: connection.user,
+            password: connection.password
+        };
+        
+        // connect without database selected
+        const knex_tmp = require('knex')({ client: 'mysql', connection: conn});
+        
+        await knex_tmp.raw(`DROP DATABASE ${connection.database};`);
+        await knex_tmp.destroy();
+        await knex.destroy();
     });
 });

@@ -4,7 +4,7 @@ module.exports = {
     development: {
         client: "mysql",
         connection: {
-            host: "localhost", 
+            host: "10.2.3.31", 
             user: "reperio", 
             password: "reperio", 
             database: "reperio_backups_dev",
@@ -19,7 +19,7 @@ module.exports = {
     test: {
         client: "mysql",
         connection: {
-            host: "localhost",
+            host: "10.2.3.31",
             user: "reperio",
             password: "reperio",
             database: "reperio_backups_test" + "_" + (Math.floor(Math.random() * (10000 - 1 + 1) + 1)).toString(),

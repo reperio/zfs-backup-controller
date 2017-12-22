@@ -43,7 +43,8 @@ class SnapshotsRepository {
         try {
             const q = this.uow._models.Snapshot
                 .query(this.uow._transaction)
-                .insertAndFetch(snapshot);
+                .insert(snapshot)
+                .returning('*');
 
             this.uow._logger.debug("INSERT SNAPSHOT QUERY: " + q.toSql());
             const dbSnapshot = await q;

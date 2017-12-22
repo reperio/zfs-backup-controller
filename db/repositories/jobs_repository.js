@@ -1,5 +1,5 @@
 class JobsRepository {
-    constructor(uow){
+    constructor(uow) {
         this.uow = uow;
     }
 
@@ -43,7 +43,7 @@ class JobsRepository {
 
             const newJob = await q;
             return newJob;
-        } catch (err){
+        } catch (err) {
             this.uow._logger.error(`  ${job.id} - Failed to update job record`);
             this.uow._logger.error(err);
             return null;
