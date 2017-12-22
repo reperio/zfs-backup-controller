@@ -58,7 +58,13 @@ class RetentionManager {
 
         const snapshots_to_keep = [];
 
-        //always keep the most recent 2 snapshots that are successful at the source
+        //always keep the most recent fully successful snapshot
+        for (let snapshot of sorted_snapshots) {
+            if (snapshot.source_host_status === 1 && snapshot.target_host_status === 1) {
+                snapshots_to_keep.push(snapshot.job_history_id);
+                break;
+            }
+        }
 
         for(let retention of retention_policy.retentions) {
             for(let iteration = 0; iteration <= retention.retention; iteration++) {

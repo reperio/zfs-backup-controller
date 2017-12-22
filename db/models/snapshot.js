@@ -12,7 +12,7 @@ class Snapshot extends Model {
                 source_host_id: { type: "string" },
                 source_host_status: { type: "integer" },
                 target_host_id: { type: "string" },
-                source_host_status: { type: "integer" },
+                target_host_status: { type: "integer" },
                 snapshot_date_time: { type: "date" },
                 job_id: { type: "string" }
             }
