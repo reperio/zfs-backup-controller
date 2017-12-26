@@ -1,7 +1,7 @@
 const Model = require('objection').Model;
-const guid = require('objection-guid')();
+const BaseModel = require('./base_model');
 
-class Host extends guid(Model) {
+class Host extends BaseModel {
     static get tableName() { return "hosts"; }
 
     static get jsonSchema() {
@@ -15,14 +15,6 @@ class Host extends guid(Model) {
                 port: { type: "integer" }
             }
         }
-    }
-
-    $beforeInsert() {
-        this.createdAt = new Date().toISOString();
-    }
-
-    $beforeUpdate() {
-        this.updatedAt = new Date().toISOString();
     }
 }
 

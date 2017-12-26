@@ -1,7 +1,7 @@
 const Model = require('objection').Model;
-const guid = require('objection-guid')();
+const BaseModel = require('./base_model');
 
-class Schedule extends guid(Model) {
+class Schedule extends BaseModel {
     static get tableName() { return "schedules"; }
 
     static get jsonSchema() {
@@ -13,14 +13,6 @@ class Schedule extends guid(Model) {
                 display_name: { type: "string" }
             }
         }
-    }
-
-    $beforeInsert() {
-        this.createdAt = new Date().toISOString();
-    }
-
-    $beforeUpdate() {
-        this.updatedAt = new Date().toISOString();
     }
 
     static get relationMappings() {

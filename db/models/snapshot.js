@@ -1,6 +1,6 @@
 const Model = require('objection').Model;
 
-class Snapshot extends Model {
+class Snapshot extends Model { //don't extend base model as we don't want auto guid ids
     static get tableName() { return "snapshots"; }
 
     static get jsonSchema() {
@@ -17,14 +17,6 @@ class Snapshot extends Model {
                 job_id: { type: "string" }
             }
         }
-    }
-
-    $beforeInsert() {
-        this.createdAt = new Date().toISOString();
-    }
-
-    $beforeUpdate() {
-        this.updatedAt = new Date().toISOString();
     }
 
     static get relationMappings() {

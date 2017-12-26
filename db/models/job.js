@@ -1,7 +1,7 @@
 const Model = require('objection').Model;
-const guid = require('objection-guid')();
+const BaseModel = require('./base_model');
 
-class Job extends guid(Model) {
+class Job extends BaseModel {
     static get tableName() { return "jobs"; }
 
     static get jsonSchema() { 
@@ -26,14 +26,6 @@ class Job extends guid(Model) {
                 offset: { type: "integer" }
             }
         }
-    }
-
-    $beforeInsert() {
-        this.createdAt = new Date().toISOString();
-    }
-
-    $beforeUpdate() {
-        this.updatedAt = new Date().toISOString();
     }
 
     static get relationMappings() {
