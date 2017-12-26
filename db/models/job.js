@@ -28,6 +28,14 @@ class Job extends guid(Model) {
         }
     }
 
+    $beforeInsert() {
+        this.createdAt = new Date().toISOString();
+    }
+
+    $beforeUpdate() {
+        this.updatedAt = new Date().toISOString();
+    }
+
     static get relationMappings() {
         const Host = require('./host');
         const Schedule = require('./schedule');

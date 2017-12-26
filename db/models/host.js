@@ -16,6 +16,14 @@ class Host extends guid(Model) {
             }
         }
     }
+
+    $beforeInsert() {
+        this.createdAt = new Date().toISOString();
+    }
+
+    $beforeUpdate() {
+        this.updatedAt = new Date().toISOString();
+    }
 }
 
 module.exports = Host;

@@ -15,6 +15,14 @@ class Schedule extends guid(Model) {
         }
     }
 
+    $beforeInsert() {
+        this.createdAt = new Date().toISOString();
+    }
+
+    $beforeUpdate() {
+        this.updatedAt = new Date().toISOString();
+    }
+
     static get relationMappings() {
         const Job = require('./job');
 
