@@ -5,6 +5,7 @@ class BaseModel extends guid(Model) {
     $beforeInsert(context) {
         return super.$beforeInsert(context).then(() => {
             this.createdAt = new Date();
+            this.updatedAt = new Date();
         });
     }
 
