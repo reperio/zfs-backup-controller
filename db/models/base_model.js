@@ -8,7 +8,7 @@ class BaseModel extends guid(Model) {
         });
     }
 
-    $beforeUpdate() {
+    $beforeUpdate(context) {
         return super.$beforeInsert(context).then(() => {
             this.updatedAt = new Date();
         });
