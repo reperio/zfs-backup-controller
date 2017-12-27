@@ -8,6 +8,7 @@ require('winston-daily-rotate-file');
 
 const JobManager = require('./jobs/job_manager');
 const RetentionManager = require('./retention/retention_manager');
+const DatacenterApisManager = require('./datacenter_managers/index');
 const UoW = require('./db');
 const AgentApi = require('./agent_api');
 const CnApi = require('./cn_api');
@@ -163,8 +164,12 @@ server.start(err => {
 
 const agent_api = new AgentApi(Config, server.app.logger);
 const retention_manager = new RetentionManager(server.app.logger);
+const uow = new UoW(server.app.logger);
 
-const job_manager = new JobManager(server.app.logger, new UoW(server.app.logger), Config.job_interval, Config.retention_interval, agent_api, retention_manager);
+const job_manager = new JobManager(server.app.logger, uow, Config.job_interval, Config.retention_interval, agent_api, retention_manager);
 job_manager.start();
+
+const datacenter_manager = new DatacenterApisManager(uow, Config);
+datacenter_manager.start();
 
 module.exports = server;
