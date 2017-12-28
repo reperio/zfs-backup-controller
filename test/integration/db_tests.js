@@ -6,9 +6,9 @@ process.env.NODE_ENV = 'test';
 const moment = require('moment');
 const assert = require('assert');
 
-const UoW = require('../db');
-const {knex} = require('../db/connect.js');
-const knex_config = require('../db/knexfile').test;
+const UoW = require('../../db');
+const {knex} = require('../../db/connect.js');
+const knex_config = require('../../db/knexfile').test;
 
 const connection = knex.client.connectionSettings;
 
