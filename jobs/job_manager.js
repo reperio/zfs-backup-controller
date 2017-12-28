@@ -2,23 +2,18 @@ const _ = require('lodash');
 const moment = require('moment');
 
 class JobManager {
-    constructor(logger, uow, job_interval, retention_interval, agentApi, retention_manager) { //eslint-disable-line max-params
+    constructor(logger, uow, agentApi, job_interval) {
         this.logger = logger;
         this.uow = uow;
         this.agentApi = agentApi;
-        this.retention_manager = retention_manager;
 
         this.job_interval_id = null;
         this.job_interval = job_interval;
-
-        this.retention_interval_id = null;
-        this.retention_interval = retention_interval;
     }
 
     //starts the execution loop
     start() {
         this.job_interval_id = setInterval(() => this.execute(), this.job_interval);
-        this.retention_interval_id = setInterval(() => this.apply_retention_schedules(), this.retention_interval);
     }
 
     //main execution of the job manager, finds and executes jobs
@@ -27,7 +22,7 @@ class JobManager {
         this.logger.info('Job Manager execution started.');
 
         try {
-            const jobs = await this.fetch_jobs();
+            const jobs = await this.uow.jobs_repository.getAllEnabledJobs();
             const filtered_jobs = this.filter_eligible_jobs(jobs);
             await this.execute_jobs(filtered_jobs);
         } catch(err) {
@@ -43,108 +38,6 @@ class JobManager {
         }
         
         this.logger.info('Job Manager execution finished.');
-    }
-
-    async apply_retention_schedules() {
-        this.logger.info('Applying Retention Schedules.');
-        const jobs = await this.fetch_jobs();
-
-        for (let job of jobs) {
-            try {
-                await this.apply_retention_schedule_for_job(job);
-            } catch (err) {
-                this.logger.error(`${job.id} - Applying retention schedule failed`);
-                this.logger.error(err);
-            }
-        }
-    }
-
-    async apply_retention_schedule_for_job(job) {
-        this.logger.info(`${job.id} - Applying retention schedule.`);
-        const now = moment.utc();
-
-        const source_retention_policy = JSON.parse(job.source_retention);
-        const target_retention_policy = JSON.parse(job.target_retention);
-
-        const snapshots = await this.uow.snapshots_repository.get_active_snapshots_for_job(job.id);
-
-        let source_success = true;
-
-        //process source retention
-        try {
-            this.logger.info(`${job.id} - Processing source retention`);
-            const snapshots_to_delete = this.retention_manager.get_snapshots_to_delete(snapshots, source_retention_policy, job.offset, now);
-
-            this.logger.info(`${job.id} - Deleting ${snapshots_to_delete.length} snapshots`);
-            for (let source_snapshot of snapshots_to_delete) {
-                if (source_snapshot.source_host_status !== 1) {
-                    this.logger.info(`${job.id} - Skipping delete because snapshot ${source_snapshot.name} hasn't been created on source.`);
-                    continue;
-                }
-
-                if (source_snapshot.target_host_status !== 1) {
-                    this.logger.info(`${job.id} - Skipping delete because snapshot ${source_snapshot.name} hasn't been created on target.`);
-                    continue;
-                }
-
-                try {
-                    this.logger.info(`${job.id} - Deleting snapshot ${source_snapshot.name} from source ${source_snapshot.source_host.ip_address}`);
-                    await this.agentApi.zfs_destroy_snapshot(source_snapshot, job.source_host);
-                    source_snapshot.source_host_status = 2;
-                    await this.uow.snapshots_repository.updateSnapshotEntry(source_snapshot.job_history_id, source_snapshot);
-                } catch (err) {
-                    source_success = false;
-                    this.logger.error(`${job.id} - Deleting snapshot ${source_snapshot.name} from source ${source_snapshot.source_host.ip_address} failed.`);
-                    this.logger.error(err);
-                    source_snapshot.source_host_status = 3;
-                    await this.uow.snapshots_repository.updateSnapshotEntry(source_snapshot.job_history_id, source_snapshot);
-                }
-            }
-            this.logger.info(`${job.id} - Finished applying source retention schedule`);
-        } catch (err) {
-            this.logger.error(`${job.id} - Applying source retention schedule failed`);
-            this.logger.error(err);
-        }
-
-        if (!source_success) {
-            return;
-        }
-
-        //process target retention
-        try {
-            this.logger.info(`${job.id} - Processing target retention`);
-            const snapshots_to_delete = this.retention_manager.get_snapshots_to_delete(snapshots, target_retention_policy, job.offset, now);
-            
-            this.logger.info(`${job.id} - Deleting ${snapshots_to_delete.length} snapshots`);
-            for (let target_snapshot of snapshots_to_delete) {
-                if (target_snapshot.target_host_status !== 1) {
-                    this.logger.info(`${job.id} - Skipping delete because snapshot ${target_snapshot.name} hasn't been created on target.`);
-                    continue;
-                }
-
-                if (target_snapshot.source_host_status !== 2) {
-                    this.logger.info(`${job.id} - Skipping delete because snapshot ${target_snapshot.name} hasn't been deleted on source.`);
-                    continue;
-                }
-
-                //delete snapshot at host
-                try {
-                    this.logger.info(`${job.id} - Deleting snapshot ${target_snapshot.name} from target ${target_snapshot.target_host.ip_address}`);
-                    await this.agentApi.zfs_destroy_snapshot(target_snapshot, job.target_host);
-                    target_snapshot.target_host_status = 2;
-                    await this.uow.snapshots_repository.updateSnapshotEntry(target_snapshot.job_history_id, target_snapshot);
-                } catch (err) {
-                    this.logger.error(`${job.id} - Deleting snapshot ${target_snapshot.name} from target ${target_snapshot.target_host.ip_address} failed.`);
-                    this.logger.error(err);
-                    target_snapshot.target_host_status = 3;
-                    await this.uow.snapshots_repository.updateSnapshotEntry(target_snapshot.job_history_id, target_snapshot);
-                }
-            }
-            this.logger.info(`${job.id} - Finished applying target retention schedule`);
-        } catch (err) {
-            this.logger.error(`${job.id} - Applying target retention schedule failed`);
-            this.logger.error(err);
-        }
     }
 
     async cleanup_finished_jobs() {
@@ -170,12 +63,6 @@ class JobManager {
                 this.logger.error(err);
             }
         }
-    }
-
-    async fetch_jobs() {
-        this.logger.info('Fetching jobs');
-        const jobs = await this.uow.jobs_repository.getAllEnabledJobs();
-        return jobs;
     }
 
     filter_eligible_jobs(jobs) {

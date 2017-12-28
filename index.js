@@ -169,14 +169,20 @@ server.app.agent_api = agent_api;
 
 const uow = new UoW(server.app.logger);
 
-if (Config.run_job_manager) {
-    const retention_manager = new RetentionManager(server.app.logger);
-
-    const job_manager = new JobManager(server.app.logger, uow, Config.job_interval, Config.retention_interval, agent_api, retention_manager);
+if (Config.job_manager.enabeld) {
+    const job_manager = new JobManager(server.app.logger, uow, agent_api, Config.job_manager.interval);
     job_manager.start();
 }
 
-const datacenter_manager = new DatacenterApisManager(uow, Config);
-datacenter_manager.start();
+if (Config.retention_manager.enabeld) {
+    const retention_manager = new RetentionManager(server.app.logger, uow, agent_api, Config.retention_manager.interval);
+    retention_manager.start();
+}
+
+if (Config.data_manager.enabled) {
+    const datacenter_manager = new DatacenterApisManager(uow, Config);
+    datacenter_manager.start();
+}
+
 
 module.exports = server;

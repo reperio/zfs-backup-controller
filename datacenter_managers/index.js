@@ -19,7 +19,7 @@ class DataCenterApisManager {
         this.interval_id = setInterval(async () => {
             await host_manager.execute();
             await vm_manager.execute();
-        }, this.config.datacenter_apis_interval);
+        }, this.config.data_manager.interval);
 
         await host_manager.execute();
         await vm_manager.execute();
