@@ -13,5 +13,6 @@ module.exports = {
     mbuffer_size: '300k',
     mbuffer_rate: '200k',
     cnapi_ip_address: '172.20.33.22',
-    vmapi_ip_address: '172.20.33.27'
+    vmapi_ip_address: '172.20.33.27',
+    run_job_manager: false
 };

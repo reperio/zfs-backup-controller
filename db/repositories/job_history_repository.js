@@ -7,7 +7,10 @@ class JobHistoryRepository {
         this.uow._logger.info("Fetching all job histories");
         const q = this.uow._models.JobHistory
             .query(this.uow._transaction)
-            .mergeEager('job_history_job');
+            .mergeEager('job_history_job.job_source_host')
+            .mergeEager('job_history_job.job_target_host');
+
+        this.uow._logger.debug("JOB HISTORY QUERY: " + q.toSql());
         
         const job_histories = await q;
         return job_histories;

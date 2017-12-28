@@ -162,12 +162,19 @@ server.start(err => {
     app_logger.info('Server running at:', server.info.uri);
 });
 
+
 const agent_api = new AgentApi(Config, server.app.logger);
-const retention_manager = new RetentionManager(server.app.logger);
+
+server.app.agent_api = agent_api;
+
 const uow = new UoW(server.app.logger);
 
-const job_manager = new JobManager(server.app.logger, uow, Config.job_interval, Config.retention_interval, agent_api, retention_manager);
-job_manager.start();
+if (Config.run_job_manager) {
+    const retention_manager = new RetentionManager(server.app.logger);
+
+    const job_manager = new JobManager(server.app.logger, uow, Config.job_interval, Config.retention_interval, agent_api, retention_manager);
+    job_manager.start();
+}
 
 const datacenter_manager = new DatacenterApisManager(uow, Config);
 datacenter_manager.start();
