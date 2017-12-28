@@ -24,13 +24,14 @@ exports.up = async function(knex, Promise) {
 
     await knex.raw('CREATE INDEX hosts_sdc_id_foreign ON hosts (sdc_id);');
 
+    //TODO add this back to a later migration after we have data established
     //edit the jobs table to add a relationship to virtual machines
-    await knex.schema.alterTable('jobs', t => {
-        t.uuid('sdc_vm_id')
-            .references('sdc_id')
-            .inTable('virtual_machines')
-            .alter();
-    });
+    // await knex.schema.alterTable('jobs', t => {
+    //     t.uuid('sdc_vm_id')
+    //         .references('sdc_id')
+    //         .inTable('virtual_machines')
+    //         .alter();
+    // });
 };
 
 exports.down = async function(knex, Promise) {
