@@ -169,12 +169,12 @@ server.app.agent_api = agent_api;
 
 const uow = new UoW(server.app.logger);
 
-if (Config.job_manager.enabeld) {
+if (Config.job_manager.enabled) {
     const job_manager = new JobManager(server.app.logger, uow, agent_api, Config.job_manager.interval);
     job_manager.start();
 }
 
-if (Config.retention_manager.enabeld) {
+if (Config.retention_manager.enabled) {
     const retention_manager = new RetentionManager(server.app.logger, uow, agent_api, Config.retention_manager.interval);
     retention_manager.start();
 }
