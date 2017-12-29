@@ -24,11 +24,13 @@ async function getDashboardData(request, reply) {
     try {
         const servers = await cnapi.getAllServers();
 
-        let serverRecords = [];
+        let serverPromises = [];
 
         for(let i = 0; i < servers.length; i++) {
-            serverRecords.push(await cnapi.getServerRecord(servers[i].uuid));
+            serverPromises.push(cnapi.getServerRecord(servers[i].uuid));
         }
+
+        let serverRecords = await Promise.all(serverPromises);
 
         return reply(serverRecords);
     } catch (err) {
@@ -38,5 +40,6 @@ async function getDashboardData(request, reply) {
         return reply(Boom.badImplementation('Failed to retrieve dashboard data'));
     }
 }
+
 
 module.exports = routes;
