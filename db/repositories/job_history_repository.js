@@ -8,7 +8,8 @@ class JobHistoryRepository {
         const q = this.uow._models.JobHistory
             .query(this.uow._transaction)
             .mergeEager('job_history_job.job_source_host')
-            .mergeEager('job_history_job.job_target_host');
+            .mergeEager('job_history_job.job_target_host')
+            .mergeEager('job_history_job.job_virtual_machine');
 
         this.uow._logger.debug("JOB HISTORY QUERY: " + q.toSql());
         
