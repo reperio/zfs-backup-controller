@@ -8,7 +8,6 @@ module.exports = {
             user: "reperio", 
             password: "reperio", 
             database: "reperio_backups_dev",
-            timezone: 'UTC',
             dateStrings: true
         },
         migrations: {
