@@ -195,7 +195,7 @@ class JobManager {
                 source_host_status: 1,
                 target_host_id: job.target_host_id,
                 target_host_status: 0,
-                snapshot_date_time: time_stamp,
+                snapshot_date_time: time_stamp.toDate(),
                 job_history_id: job_history.id,
                 job_id: job_history.job_id
             };

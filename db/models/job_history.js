@@ -4,6 +4,10 @@ const BaseModel = require('./base_model');
 class JobHistory extends BaseModel {
     static get tableName() { return 'job_history'; }
 
+    auto_generated_id() {
+        return 'id';
+    }
+
     static get jsonSchema() {
         return {
             type: 'object',

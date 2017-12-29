@@ -1,6 +1,7 @@
 const Model = require('objection').Model;
+const BaseModel = require('./base_model');
 
-class Snapshot extends Model { //don't extend base model as we don't want auto guid ids
+class Snapshot extends BaseModel { //don't extend base model as we don't want auto guid ids
     static get tableName() { return "snapshots"; }
 
     static get jsonSchema() {

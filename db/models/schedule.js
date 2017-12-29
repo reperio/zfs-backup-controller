@@ -4,6 +4,10 @@ const BaseModel = require('./base_model');
 class Schedule extends BaseModel {
     static get tableName() { return "schedules"; }
 
+    auto_generated_id() {
+        return 'id';
+    }
+
     static get jsonSchema() {
         return {
             type: "object",

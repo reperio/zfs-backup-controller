@@ -1,18 +1,28 @@
 const Model = require('objection').Model;
-const guid = require('objection-guid')();
+const uuid = require('uuid');
 
-class BaseModel extends guid(Model) {
+class BaseModel extends Model {
     $beforeInsert(context) {
-        return super.$beforeInsert(context).then(() => {
-            this.createdAt = new Date();
-            this.updatedAt = new Date();
-        });
+        const parent = super.$beforeInsert(context);
+
+        return Promise.resolve(parent)
+            .then(() => {
+                this.createdAt = new Date();
+                this.updatedAt = new Date();
+
+                if (this.auto_generated_id) {
+                    this[this.auto_generated_id()] = uuid.v4();
+                }
+            });
     }
 
     $beforeUpdate(context) {
-        return super.$beforeUpdate(context).then(() => {
-            this.updatedAt = new Date();
-        });
+        const parent = super.$beforeUpdate(context);
+
+        return Promise.resolve(parent)
+            .then(() => {
+                this.updatedAt = new Date();
+            });
     }
 }
 

@@ -1,9 +1,13 @@
 const Model = require('objection').Model;
-const guid = require('objection-guid')();
+const BaseModel = require('./base_model');
 
-class VirtualMachine extends guid(Model) {
+class VirtualMachine extends BaseModel {
     static get tableName() {
         return 'virtual_machines';
+    }
+
+    auto_generated_id() {
+        return 'id';
     }
 
     static get jsonSchema() {

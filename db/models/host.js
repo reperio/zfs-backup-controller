@@ -6,6 +6,10 @@ class Host extends BaseModel {
         return 'hosts';
     }
 
+    auto_generated_id() {
+        return 'id';
+    }
+
     static get jsonSchema() {
         return {
             type: 'Object',

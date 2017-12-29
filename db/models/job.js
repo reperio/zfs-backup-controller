@@ -6,6 +6,10 @@ class Job extends BaseModel {
         return 'jobs';
     }
 
+    auto_generated_id() {
+        return 'id';
+    }
+
     static get jsonSchema() { 
         return {
             type: 'object',
