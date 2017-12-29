@@ -24,7 +24,7 @@ module.exports = {
     },
 
     data_manager: {
-        enabled: false,
+        enabled: true,
         interval: 30000
     }
 };

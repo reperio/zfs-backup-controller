@@ -24,7 +24,7 @@ class JobHistory extends BaseModel {
                 target_result: { type: 'integer' },
                 port: { type: 'integer' }
             }
-        }
+        };
     }
 
     static get relationMappings() {
@@ -48,7 +48,7 @@ class JobHistory extends BaseModel {
                     to: 'snapshots.job_history_id'
                 }
             }
-        } 
+        };
     }
 }
 
