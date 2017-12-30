@@ -25,10 +25,6 @@ module.exports = {
 
     data_manager: {
         enabled: false,
-<<<<<<< HEAD
         interval: 1000 * 60 * 60 * 24
-=======
-        interval: 30000
->>>>>>> REP-35 Add job list create, update, delete
     }
 };
