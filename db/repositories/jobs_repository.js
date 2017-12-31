@@ -111,8 +111,6 @@ class JobsRepository {
                 schedule_id: job.schedule_id,
                 source_retention: job.source_retention,
                 target_retention: job.target_retention,
-                zfs_type: job.zfs_type,
-                zfs_size: job.zfs_size,
                 last_execution: job.last_execution, //moment().utc(job.last_execution).format('YYYY-MM-DD hh:mm:ss'),
                 last_schedule: job.last_schedule, //moment().utc(job.last_schedule).toDate(),
                 enabled: job.enabled,
