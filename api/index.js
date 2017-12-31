@@ -6,7 +6,8 @@ const JobHistoryControllerHandlers = require('./handlers/job_history_controller'
 const ScheduleControllerHandlers = require('./handlers/schedules_controller');
 const SnapshotsControllerHandlers = require('./handlers/snapshot_controller');
 const DashboardControllerHandlers = require('./handlers/dashboard_controller');
-const VirtualMachineControllerHandlers = require('./handlers/virtual_machine_controller');
+
+const VirtualMachinesControllerHandlers = require('./handlers/virtual_machines_controller');
 
 exports.register = function (server, options, next) {
 
@@ -23,7 +24,7 @@ exports.register = function (server, options, next) {
         path: '/{p*}',
         config: {
             handler: function(request, reply) {
-                var response = reply();
+                const response = reply();
                 response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization';
                 response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
                 return response;
@@ -39,7 +40,7 @@ exports.register = function (server, options, next) {
     server.route(ScheduleControllerHandlers);
     server.route(SnapshotsControllerHandlers);
     server.route(DashboardControllerHandlers);
-    server.route(VirtualMachineControllerHandlers);
+    server.route(VirtualMachinesControllerHandlers);
     
     next();
 };

@@ -3,15 +3,20 @@ class VirtualMachinesRepository {
         this.uow = uow;
     }
 
-    async get_all_virtual_machines() {
+    async get_all_virtual_machines(host_id) {
         this.uow._logger.info('Fetching all virtual machines from database');
         try {
-            const q = this.uow._models.VirtualMachine
-                .query(this.uow._transaction);
+            let q = this.uow._models.VirtualMachine
+                .query(this.uow._transaction)
+
+            if (host_id) {
+                q = q.where('host_id', host_id);
+            }
 
             this.uow._logger.debug(q.toSql());
             const virtual_machines = await q;
 
+            //TODO this is gross and an extra list traversal, can objectionJS handle boolean <=> bit conversion?
             //convert the numeric boolean values to actual true/false values
             for (let i = 0; i< virtual_machines.length; i++) {
                 if (virtual_machines[i].enabled !== null) {
@@ -63,6 +68,7 @@ class VirtualMachinesRepository {
         this.uow._logger.info(`Creating new virtual machine "${virtual_machine.sdc_id}"`);
         try {
             const virtual_machine_model = this.uow._models.VirtualMachine.fromJson({
+                id: virtual_machine.sdc_id,
                 sdc_id: virtual_machine.sdc_id,
                 name: virtual_machine.name || '',
                 enabled: true,

@@ -24,6 +24,7 @@ class HostsRepository {
         this.uow._logger.info(`Creating new host entry "${host.sdc_id}"`);
         try {
             const host_model = this.uow._models.Host.fromJson({
+                id: host.sdc_id,
                 name: host.name,
                 sdc_id: host.sdc_id,
                 ip_address: host.ip_address,

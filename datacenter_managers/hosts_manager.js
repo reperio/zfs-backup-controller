@@ -17,7 +17,7 @@ class HostsManager {
             let converted_api_hosts = [];
             _(cn_api_hosts).each((api_host) => {
                 converted_api_hosts.push({
-                    id: null,
+                    id: api_host.uuid,
                     name: api_host.hostname,
                     sdc_id: api_host.uuid,
                     ip_address: '',

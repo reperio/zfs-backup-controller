@@ -10,7 +10,7 @@ class BaseModel extends Model {
                 this.createdAt = new Date();
                 this.updatedAt = new Date();
 
-                if (this.auto_generated_id) {
+                if (this.auto_generated_id && !this[this.auto_generated_id()]) {
                     this[this.auto_generated_id()] = uuid.v4();
                 }
             });

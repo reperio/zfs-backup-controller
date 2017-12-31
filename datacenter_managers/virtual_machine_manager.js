@@ -43,6 +43,7 @@ class VirtualMachineManager {
 
                 if (!is_in_database) {
                     const new_virtual_machine_to_create = {
+                        id: api_virtual_machine.sdc_id,
                         sdc_id: api_virtual_machine.sdc_id,
                         name: api_virtual_machine.name,
                         enabled: true,
