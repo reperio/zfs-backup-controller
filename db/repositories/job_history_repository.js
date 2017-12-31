@@ -4,7 +4,7 @@ class JobHistoryRepository {
     }
 
     async getAllJobHistories(host_id, virtual_machine_id) {
-        this.uow._logger.info('Fetching all job histories');
+        this.uow._logger.info(`Fetching all job histories: ${host_id} | ${virtual_machine_id}`);
         let q = this.uow._models.JobHistory
             .query(this.uow._transaction)
             .eagerAlgorithm(this.uow._models.JobHistory.JoinEagerAlgorithm)

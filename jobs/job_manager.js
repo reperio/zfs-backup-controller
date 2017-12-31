@@ -156,7 +156,7 @@ class JobManager {
         this.logger.info(`  ${job.id} - Updating job last execution.`);
         //job.last_execution = start_date_time;
         job.last_schedule = schedule_date_time.toDate();
-        await this.uow.jobs_repository.update_job_entry(job.id, job);
+        await this.uow.jobs_repository.update_job_entry(job);
         this.logger.info(`  ${job.id} - Job Updated.`);
 
         const port = JobManager.get_random_port();
