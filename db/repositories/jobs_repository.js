@@ -11,7 +11,8 @@ class JobsRepository {
             .query(this.uow._transaction)
             .mergeEager('job_schedule')
             .mergeEager('job_source_host')
-            .mergeEager('job_target_host');
+            .mergeEager('job_target_host')
+            .mergeEager('job_virtual_machine');
 
         if (node_id) {
             q.where('source_host_id', node_id);
@@ -69,16 +70,19 @@ class JobsRepository {
 
         try {
             const job_model = this.uow._models.Job.fromJson({
-                id: job.id,
                 name: job.name,
+                schedule_id: job.schedule_id,
+                source_location: job.source_location,
                 source_retention: job.source_retention,
                 target_location: job.target_location,
+                target_retention: job.target_retention,
                 zfs_type: job.zfs_type,
                 zfs_size: job.zfs_size,
                 source_host_id: job.source_host_id,
                 target_host_id: job.target_host_id,
                 last_execution: job.last_execution,
                 last_schedule: job.last_schedule,
+                sdc_vm_id: job.sdc_vm_id,
                 enabled: job.enabled,
                 offset: job.offset
             });
@@ -93,7 +97,7 @@ class JobsRepository {
             return new_job;
         } catch (err) {
             this.uow._logger.error('Failed to create job');
-            this.uow.logger.error(err);
+            this.uow._logger.error(err);
             return null;
         }
     }
@@ -104,12 +108,11 @@ class JobsRepository {
         try {
             const job_model = this.uow._models.Job.fromJson({
                 name: job.name,
+                schedule_id: job.schedule_id,
                 source_retention: job.source_retention,
-                target_location: job.target_location,
+                target_retention: job.target_retention,
                 zfs_type: job.zfs_type,
                 zfs_size: job.zfs_size,
-                source_host_id: job.source_host_id,
-                target_host_id: job.target_host_id,
                 last_execution: job.last_execution, //moment().utc(job.last_execution).format('YYYY-MM-DD hh:mm:ss'),
                 last_schedule: job.last_schedule, //moment().utc(job.last_schedule).toDate(),
                 enabled: job.enabled,

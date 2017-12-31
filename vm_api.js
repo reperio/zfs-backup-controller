@@ -74,6 +74,30 @@ class VmApi {
             throw err;
         }
     }
+
+    async get_full_vm_record_by_id(uuid) {
+        this.logger.info(`Fetching record for vm "${uuid}"`);
+        const url = 'http://' + this.config.vmapi_ip_address + '/vms/' + uuid;
+
+        const options = {
+            uri: url,
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            json: true
+        };
+
+        try {
+            const vm_record = await request(options);
+            this.logger.info(`Fetched record for vm "${vm_record.uuid}"`);
+            return vm_record;
+        } catch (err) {
+            this.logger.error(`Failed to fetch record for vm "${uuid}"`);
+            this.logger.error(err);
+            throw err;
+        }
+    }
 }
 
 module.exports = VmApi;

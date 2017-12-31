@@ -12,6 +12,7 @@ const DatacenterApisManager = require('./datacenter_managers/index');
 const UoW = require('./db');
 const AgentApi = require('./agent_api');
 const CnApi = require('./cn_api');
+const VmApi = require('./vm_api');
 
 // Create a server with a host and port
 const server = new Hapi.Server({});
@@ -133,6 +134,7 @@ server.ext({
     method: async (request, reply) => {
         request.app.uows = [];
         request.app.cnapis = [];
+        request.app.vmapis = [];
 
         request.app.getNewUoW = async () => {
             const uow = new UoW(server.app.logger);
@@ -144,6 +146,12 @@ server.ext({
             const cnapi = new CnApi(Config, server.app.logger);
             request.app.cnapis.push(cnapi);
             return cnapi;
+        }
+
+        request.app.getNewVmApi = async () => {
+            const vmapi = new VmApi(Config, server.app.logger);
+            request.app.vmapis.push(vmapi);
+            return vmapi;
         }
 
         await reply.continue();

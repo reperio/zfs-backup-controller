@@ -28,6 +28,32 @@ class VirtualMachinesRepository {
         }
     }
 
+    async get_all_virtual_machines_by_host_id(id) {
+        this.uow._logger.info(`Fetching all virtual machines from database with host_id ${id}`);
+        try {
+            const q = this.uow._models.VirtualMachine
+                .query(this.uow._transaction)
+                .where('host_id', id);
+
+            this.uow._logger.debug(q.toSql());
+            const virtual_machines = await q;
+
+            //convert the numeric boolean values to actual true/false values
+            for (let i = 0; i< virtual_machines.length; i++) {
+                if (virtual_machines[i].enabled !== null) {
+                    virtual_machines[i].enabled = virtual_machines[i].enabled === 1 ? true : false;
+                }
+            }
+
+            this.uow._logger.info('Fetched all virtual machines');
+            return virtual_machines;
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch all virtual machines from database with host_id ${id}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
     async create_new_virtual_machine(virtual_machine) {
         if (virtual_machine.state === 'failed') {
             this.uow._logger.info(`Skipping "${virtual_machine.sdc_id}" because vm is in a failed state`);

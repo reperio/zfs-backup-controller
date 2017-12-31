@@ -48,6 +48,7 @@ routes.push({
         validate: {
             payload: {
                 job: {
+                    id: Joi.string().guid().allow(null),
                     name: Joi.string(),
                     schedule_id: Joi.string().guid(),
                     source_retention: Joi.string(),
@@ -59,15 +60,16 @@ routes.push({
                     zfs_size: Joi.number(),
                     source_host_id: Joi.string().guid(),
                     target_host_id: Joi.string().guid(),
-                    last_execution: Joi.date(),
-                    last_schedule: Joi.date(),
+                    last_execution: Joi.date().allow(null),
+                    last_schedule: Joi.date().allow(null),
                     enabled: Joi.boolean(),
                     offset: Joi.number(),
-                    createdAt: Joi.date(),
-                    updatedAt: Joi.date(),
-                    job_source_host: Joi.object().unknown(),
-                    job_schedule: Joi.object().unknown(),
-                    job_target_host: Joi.object().unknown()
+                    createdAt: Joi.date().optional(),
+                    updatedAt: Joi.date().optional(),
+                    job_source_host: Joi.object().optional(),
+                    job_schedule: Joi.object().optional(),
+                    job_target_host: Joi.object().optional(),
+                    job_virtual_machine: Joi.object().optional()
                 }
             }
         }
@@ -98,27 +100,28 @@ routes.push({
         validate: {
             payload: {
                 job: {
-                    id: Joi.string().guid(),
+                    id: Joi.string().guid().allow(null),
                     name: Joi.string(),
                     schedule_id: Joi.string().guid(),
                     source_retention: Joi.string(),
                     target_retention: Joi.string(),
-                    sdc_vm_id: Joi.string().guid(), //failing because sdc_vm_id needs to be a guid
+                    sdc_vm_id: Joi.string().guid(),
                     source_location: Joi.string(),
                     target_location: Joi.string(),
                     zfs_type: Joi.number(),
                     zfs_size: Joi.number(),
                     source_host_id: Joi.string().guid(),
                     target_host_id: Joi.string().guid(),
-                    last_execution: Joi.date(),
-                    last_schedule: Joi.date(),
+                    last_execution: Joi.date().allow(null),
+                    last_schedule: Joi.date().allow(null),
                     enabled: Joi.boolean(),
                     offset: Joi.number(),
                     createdAt: Joi.date(),
                     updatedAt: Joi.date(),
-                    job_source_host: Joi.object().unknown(),
-                    job_schedule: Joi.object().unknown(),
-                    job_target_host: Joi.object().unknown()
+                    job_source_host: Joi.object().optional(),
+                    job_schedule: Joi.object().optional(),
+                    job_target_host: Joi.object().optional(),
+                    job_virtual_machine: Joi.object().optional()
                 }
             },
             params: {
