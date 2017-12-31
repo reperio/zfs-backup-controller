@@ -8,7 +8,15 @@ module.exports = {
             user: "reperio", 
             password: "reperio", 
             database: "reperio_backups_dev",
-            dateStrings: true
+            dateStrings: true,
+            typeCast: (field, next) => {
+                //console.log('TypeCasting', field.type, field.length);
+                if (field.type === 'TINY' && field.length === 1) {
+                    let value = field.string();
+                    return value ? (value === '1') : null;
+                }
+                return next();
+            }
         },
         migrations: {
             tableName: "knex_migrations",
@@ -23,7 +31,15 @@ module.exports = {
             password: "reperio",
             database: "reperio_backups_test" + "_" + (Math.floor(Math.random() * (10000 - 1 + 1) + 1)).toString(),
             timezone: 'UTC',
-            dateStrings: true
+            dateStrings: true,
+            typeCast: (field, next) => {
+                //console.log('TypeCasting', field.type, field.length);
+                if (field.type === 'TINY' && field.length === 1) {
+                    let value = field.string();
+                    return value ? (value === '1') : null;
+                }
+                return next();
+            }
         },
         migrations: {
             tableName: "knex_migrations",
@@ -41,7 +57,15 @@ module.exports = {
             password: "mlQMLA6wbLMJwdCO",
             database: "zfs-backup",
             timezone: 'UTC',
-            dateStrings: true
+            dateStrings: true,
+            typeCast: (field, next) => {
+                //console.log('TypeCasting', field.type, field.length);
+                if (field.type === 'TINY' && field.length === 1) {
+                    let value = field.string();
+                    return value ? (value === '1') : null;
+                }
+                return next();
+            }
         },
         migrations: {
             tableName: "knex_migrations",
