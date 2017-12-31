@@ -87,7 +87,7 @@ class Job extends BaseModel {
                 modelClass: VirtualMachine,
                 join: {
                     from: 'jobs.sdc_vm_id',
-                    to: 'virtual_machines.id'
+                    to: 'virtual_machines.sdc_id'
                 }
             }
         }
