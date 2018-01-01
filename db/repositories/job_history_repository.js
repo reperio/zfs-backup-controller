@@ -82,6 +82,8 @@ class JobHistoryRepository {
                 .mergeEager('job_history_snapshot')
                 .where('id', job_history_id);
 
+            this.uow._logger.debug(q.toSql());
+
             const job_history = await q;
             return job_history;
         } catch (err) {

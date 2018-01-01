@@ -13,7 +13,8 @@ routes.push({
         cors: true,
         validate: {
             query: {
-                host_id: Joi.string().optional()
+                host_id: Joi.string().optional(),
+                filter: Joi.string().optional()
             }
         }
     }
@@ -25,7 +26,7 @@ async function get_all_virtual_machines(request, reply) {
     uow._logger.info(`Fetching virtual machines: ${JSON.stringify(request.query)}`);
 
     try {
-        const virtual_machines = await uow.virtual_machines_repository.get_all_virtual_machines(request.query.host_id);
+        const virtual_machines = await uow.virtual_machines_repository.get_all_virtual_machines(request.query.host_id, request.query.filter);
 
         return reply(virtual_machines);
     } catch (err) {

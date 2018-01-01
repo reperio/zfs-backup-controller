@@ -82,6 +82,8 @@ async function receive_complete(request, reply) {
         logger.info(`receive_complete called with payload: ${JSON.stringify(request.payload)}`);
 
         const job_history = await uow.job_history_repository.get_job_history_by_id(job_history_id);
+        logger.debug('found job history');
+        logger.debug(job_history);
         logger.info(`${job_history_id} - Updating job history entry.`);
 
         const result = code === 0 ? 2 : 3;

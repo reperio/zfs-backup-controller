@@ -3,7 +3,7 @@ class VirtualMachinesRepository {
         this.uow = uow;
     }
 
-    async get_all_virtual_machines(host_id) {
+    async get_all_virtual_machines(host_id, filter) {
         this.uow._logger.info('Fetching all virtual machines from database');
         try {
             let q = this.uow._models.VirtualMachine
@@ -14,6 +14,10 @@ class VirtualMachinesRepository {
 
             if (host_id) {
                 q = q.where('host_id', host_id);
+            }
+
+            if (filter) {
+                q = q.where('virtual_machines.name', 'like', `%${filter}%`);
             }
 
             this.uow._logger.debug(q.toSql());
