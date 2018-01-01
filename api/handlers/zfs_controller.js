@@ -32,7 +32,7 @@ async function send_complete(request, reply) {
         logger.info(`send_complete called with payload: ${JSON.stringify(request.payload)}`);
 
         logger.info(`${job_history_id} - Fetching job history entry.`);
-        const job_history = await uow.jobs_repository.get_job_history_by_id(job_history_id);
+        const job_history = await uow.job_history_repository.get_job_history_by_id(job_history_id);
         logger.info(`${job_history.id} - Updating job history entry.`);
 
         const result = code === 0 ? 2 : 3;
@@ -44,7 +44,7 @@ async function send_complete(request, reply) {
             job_history.result = 3;
         }
 
-        await uow.jobs_repository.update_job_history_entry(job_history_id, job_history);
+        await uow.job_history_repository.update_job_history_entry(job_history_id, job_history);
         logger.info(`${job_history_id} - Finished updating job history entry.`);
 
         return reply({status: 'success'});
@@ -81,7 +81,7 @@ async function receive_complete(request, reply) {
     try {
         logger.info(`receive_complete called with payload: ${JSON.stringify(request.payload)}`);
 
-        const job_history = await uow.jobs_repository.get_job_history_by_id(job_history_id);
+        const job_history = await uow.job_history_repository.get_job_history_by_id(job_history_id);
         logger.info(`${job_history_id} - Updating job history entry.`);
 
         const result = code === 0 ? 2 : 3;
@@ -93,7 +93,7 @@ async function receive_complete(request, reply) {
             job_history.result = 3;
         }
 
-        await uow.jobs_repository.update_job_history_entry(job_history_id, job_history);
+        await uow.job_history_repository.update_job_history_entry(job_history_id, job_history);
         logger.info(`${job_history_id} - Finished updating job history entry.`);
 
         logger.info(`  ${job_history.job_id} | ${job_history.id} - Updating job snapshot.`);

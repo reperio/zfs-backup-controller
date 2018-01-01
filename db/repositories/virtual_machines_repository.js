@@ -7,7 +7,7 @@ class VirtualMachinesRepository {
         this.uow._logger.info('Fetching all virtual machines from database');
         try {
             let q = this.uow._models.VirtualMachine
-                .query(this.uow._transaction)
+                .query(this.uow._transaction);
 
             if (host_id) {
                 q = q.where('host_id', host_id);
