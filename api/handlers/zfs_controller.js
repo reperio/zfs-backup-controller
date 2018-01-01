@@ -44,7 +44,7 @@ async function send_complete(request, reply) {
             job_history.result = 3;
         }
 
-        await uow.job_history_repository.update_job_history_entry(job_history_id, job_history);
+        await uow.job_history_repository.update_job_history_entry(job_history);
         logger.info(`${job_history_id} - Finished updating job history entry.`);
 
         return reply({status: 'success'});
@@ -93,7 +93,7 @@ async function receive_complete(request, reply) {
             job_history.result = 3;
         }
 
-        await uow.job_history_repository.update_job_history_entry(job_history_id, job_history);
+        await uow.job_history_repository.update_job_history_entry(job_history);
         logger.info(`${job_history_id} - Finished updating job history entry.`);
 
         logger.info(`  ${job_history.job_id} | ${job_history.id} - Updating job snapshot.`);
