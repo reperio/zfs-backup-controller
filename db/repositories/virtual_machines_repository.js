@@ -81,7 +81,8 @@ class VirtualMachinesRepository {
                 enabled: true,
                 status: '',
                 host_id: virtual_machine.host_id === 'null' ? 'NULL' : virtual_machine.host_id,
-                state: virtual_machine.state
+                state: virtual_machine.state,
+                last_sync: virtual_machine.last_sync
             });
 
             const q = this.uow._models.VirtualMachine
@@ -128,7 +129,8 @@ class VirtualMachinesRepository {
                 enabled: virtual_machine.enabled,
                 status: virtual_machine.status,
                 host_id: virtual_machine.host_id,
-                state: virtual_machine.state
+                state: virtual_machine.state,
+                last_sync: virtual_machine.last_sync
             });
 
             const q = this.uow._models.VirtualMachine

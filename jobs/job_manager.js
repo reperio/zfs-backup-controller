@@ -154,8 +154,9 @@ class JobManager {
 
         //update last execution on job
         this.logger.info(`  ${job.id} - Updating job last execution.`);
-        //job.last_execution = start_date_time;
+        
         job.last_schedule = schedule_date_time.toDate();
+        job.last_execution = start_date_time;
         await this.uow.jobs_repository.update_job_entry(job);
         this.logger.info(`  ${job.id} - Job Updated.`);
 

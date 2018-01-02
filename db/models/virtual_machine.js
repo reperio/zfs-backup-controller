@@ -20,7 +20,8 @@ class VirtualMachine extends BaseModel {
                 status: { type: 'string' },
                 host_id: { type: 'string' },
                 state: { type: 'string' },
-                sdc_id: { type: 'string' }
+                sdc_id: { type: 'string' },
+                last_sync: {type: 'date'}
             }
         };
     }

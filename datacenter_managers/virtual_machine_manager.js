@@ -23,6 +23,8 @@ class VirtualMachineManager {
             let virtual_machines_to_create = [];
             let virtual_machines_to_edit = [];
 
+            const now = new Date();
+
             _(virtual_machines_from_api).each((api_virtual_machine) => {
                 let is_in_database = false;
                 _(virtual_machines_from_db).each((db_virtual_machine) => {
@@ -35,7 +37,8 @@ class VirtualMachineManager {
                             enabled: db_virtual_machine.enabled,
                             status: db_virtual_machine.status,
                             host_id: api_virtual_machine.host_id,
-                            state: api_virtual_machine.state
+                            state: api_virtual_machine.state,
+                            last_sync: now
                         };
                         virtual_machines_to_edit.push(new_virtual_machine_to_edit);
                     }
@@ -49,7 +52,8 @@ class VirtualMachineManager {
                         enabled: true,
                         status: '',
                         host_id: api_virtual_machine.host_id,
-                        state: api_virtual_machine.state
+                        state: api_virtual_machine.state,
+                        lasy_sync: now
                     };
                     virtual_machines_to_create.push(new_virtual_machine_to_create);
                 }
