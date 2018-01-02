@@ -51,12 +51,13 @@ class JobHistoryRepository {
         } catch (err) {
             this.uow._logger.error(`  ${job_history.job_id} - Creating job history failed.`);
             this.uow._logger.error(err);
-            return null;
+            throw err;
         }
     }
 
     async update_job_history_entry(job_history) {
-        //this.uow._logger.info(`${job_history.job_id} - Updating job history.`);
+        this.uow._logger.info(`${job_history.job_id} - Updating job history.`);
+        this.uow._logger.debug('Job History Entry: ' + JSON.stringify(job_history));
 
         try {
             const q = this.uow._models.JobHistory
@@ -65,11 +66,13 @@ class JobHistoryRepository {
                 .patch(job_history)
                 .returning('*');
 
+            this.uow._logger.debug('SQL Query: ' + q.toSql());
+
             const newJobHistory = await q;
             return newJobHistory;
         } catch (err) {
             this.uow._logger.error(err);
-            return null;
+            throw err;
         }
     }
 
@@ -79,16 +82,22 @@ class JobHistoryRepository {
         try {
             const q = this.uow._models.JobHistory
                 .query(this.uow._transaction)
+                //.eagerAlgorithm(this.uow._models.JobHistory.JoinEagerAlgorithm)
                 .mergeEager('job_history_snapshot')
                 .where('id', job_history_id);
 
-            this.uow._logger.debug(q.toSql());
+            this.uow._logger.debug(q.debug());
 
-            const job_history = await q;
-            return job_history;
+            const job_histories = await q;
+            
+            if (job_histories.length > 0) {
+                return job_histories[0];
+            }
+
+            return null;
         } catch (err) {
             this.uow._logger.error(err);
-            return null;
+            throw err;
         }
     }
 
@@ -113,7 +122,7 @@ class JobHistoryRepository {
             return null;
         } catch (err) {
             this.uow._logger.error(err);
-            return null;
+            throw err;
         }
     }
 }

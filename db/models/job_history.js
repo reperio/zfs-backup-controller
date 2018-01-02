@@ -41,7 +41,7 @@ class JobHistory extends BaseModel {
                 }
             },
             job_history_snapshot: {
-                relation: Model.HasOneRelation,
+                relation: Model.BelongsToOneRelation,
                 modelClass: Snapshot,
                 join: {
                     from: 'job_history.id',

@@ -46,18 +46,23 @@ class JobManager {
 
         for (let job of jobs) {
             try {
+                let updated = false;
                 this.logger.info(`${job.job_id} | ${job.id} Checking job.`);
                 if (job.source_result === 3 || job.target_result === 3) {
                     this.logger.info(`${job.job_id} | ${job.id} Setting job to failed.`);
                     job.result = 3;
+                    updated = true;
                 }
 
                 if (job.source_result === 2 && job.target_result === 2) {
                     this.logger.info(`${job.job_id} | ${job.id} Setting job to successful.`);
                     job.result = 2;
+                    updated = true;
                 }
                 
-                await this.uow.job_history_repository.update_job_history_entry(job);
+                if (updated) {
+                    await this.uow.job_history_repository.update_job_history_entry(job);
+                }
             } catch(err) {
                 this.logger.error(`${job.job_id} | ${job.id} Checking job failed.`);
                 this.logger.error(err);

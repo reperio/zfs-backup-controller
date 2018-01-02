@@ -56,7 +56,7 @@ class SnapshotsRepository {
         }
     }
 
-    async updateSnapshotEntry(snapshotId, snapshot){
+    async updateSnapshotEntry(snapshot) {
         const q = this.uow._models.Snapshot
             .query(this.uow._transaction)
             .where("job_history_id", snapshot.job_history_id)

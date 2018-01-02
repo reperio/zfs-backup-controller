@@ -83,7 +83,7 @@ async function receive_complete(request, reply) {
 
         const job_history = await uow.job_history_repository.get_job_history_by_id(job_history_id);
         logger.debug('found job history');
-        logger.debug(job_history);
+        logger.debug(JSON.stringify(job_history));
         logger.info(`${job_history_id} - Updating job history entry.`);
 
         const result = code === 0 ? 2 : 3;
@@ -99,9 +99,9 @@ async function receive_complete(request, reply) {
         logger.info(`${job_history_id} - Finished updating job history entry.`);
 
         logger.info(`  ${job_history.job_id} | ${job_history.id} - Updating job snapshot.`);
-        let snapshot = job_history.snapshot;
+        let snapshot = job_history.job_history_snapshot;
         snapshot.target_host_status = 1;
-        await uow.snapshots_repository.updateSnapshotEntry(job_history_id, snapshot);
+        await uow.snapshots_repository.updateSnapshotEntry(snapshot);
         logger.info(`  ${job_history.job_id} | ${job_history.id} - Job snapshot updated.`);
 
         return reply({status: 'success'});
