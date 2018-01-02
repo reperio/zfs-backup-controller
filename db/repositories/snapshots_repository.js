@@ -51,8 +51,7 @@ class SnapshotsRepository {
             return dbSnapshot;
         } catch (err) {
             this.uow._logger.error(err);
-            console.log(err);
-            return null;
+            throw err;
         }
     }
 
@@ -78,7 +77,7 @@ class SnapshotsRepository {
             return true;
         } catch (err) {
             this.uow._logger.error(err);
-            return null;
+            throw err;
         }
 
     }

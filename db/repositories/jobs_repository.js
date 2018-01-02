@@ -25,11 +25,6 @@ class JobsRepository {
         this.uow._logger.debug(q.toSql());
         const jobs = await q;
 
-        for (let i = 0; i < jobs.length; i++) {
-            jobs[i].enabled = jobs[i].enabled === 1 ? true : false;
-            //jobs[i].last_execution = moment().utc(jobs[i].last_execution);
-        }
-
         return jobs;
     }
 
@@ -61,7 +56,7 @@ class JobsRepository {
         } catch (err) {
             this.uow._logger.error(`Failed to fetch job "${id}"`);
             this.uow._logger.error(err);
-            throw(err);
+            throw err;
         }
     }
 
@@ -98,7 +93,7 @@ class JobsRepository {
         } catch (err) {
             this.uow._logger.error('Failed to create job');
             this.uow._logger.error(err);
-            return null;
+            throw err;
         }
     }
 
@@ -132,7 +127,7 @@ class JobsRepository {
         } catch (err) {
             this.uow._logger.error(`  ${job.id} - Failed to update job record`);
             this.uow._logger.error(err);
-            return null;
+            throw err;
         }
     }
 
