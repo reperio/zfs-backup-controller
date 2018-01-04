@@ -1,3 +1,5 @@
+const {knex} = require('../connect');
+
 class VirtualMachinesRepository {
     constructor (uow) {
         this.uow = uow;
@@ -164,6 +166,34 @@ class VirtualMachinesRepository {
             return updated_virtual_machines;
         } catch (err) {
             this.uow._logger.error('Failed batch update');
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async get_virtual_machine_status(sdc_id) {
+        this.uow._logger.info('Fetching statuses for virtual machines');
+        try {
+            const num_failures_sub = knex('job_history').sum(knex.raw('?? in (??) and `job_id`=??', ['result', [0, 1, 3], 'jobs.id']));
+            const num_successes_sub = knex('job_history').sum(knex.raw('??=?? and `job_id`=??', ['result', 2, 'jobs.id']));
+            const last_result_sub = knex.select('result').from('job_history').whereRaw('?? = ??', ['job_history.job_id', 'jobs.id']).orderBy('end_date_time', 'desc').limit(1);
+            const q = knex.column({id: 'virtual_machines.id'}, {sdc_id: 'virtual_machines.sdc_id'},
+                {name: 'virtual_machines.name'}, {host_id: "virtual_machines.host_id"}, {job_id: 'jobs.id'}, {job_name: 'jobs.name'},
+                {job_enabled: 'jobs.enabled'}, {job_last_execution: 'jobs.last_execution'},
+                {num_failures: num_failures_sub}, {num_successes: num_successes_sub}, 
+                {last_result: last_result_sub})
+                .from('virtual_machines')
+                .leftJoin('jobs', 'jobs.sdc_vm_id', 'virtual_machines.sdc_id');
+
+            if (sdc_id) {
+                q.where('virtual_machines.sdc_id', sdc_id);
+            }
+            this.uow._logger.debug(q.toSQL());
+
+            const result = await q;
+            return result;
+        } catch (err) {
+            this.uow._logger.error('Failed to fetch statuses for virtual machines');
             this.uow._logger.error(err);
             throw err;
         }
