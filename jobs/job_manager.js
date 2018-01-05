@@ -23,7 +23,7 @@ class JobManager {
 
         try {
             const jobs = await this.uow.jobs_repository.getAllEnabledJobs();
-            const filtered_jobs = this.filter_eligible_jobs(jobs);
+            const filtered_jobs = await this.filter_eligible_jobs(jobs);
             await this.execute_jobs(filtered_jobs);
         } catch(err) {
             this.logger.error('Job manager execution failed.');
@@ -70,10 +70,25 @@ class JobManager {
         }
     }
 
-    filter_eligible_jobs(jobs) {
+    async filter_eligible_jobs(jobs) {
         this.logger.info(`Filtering ${jobs.length} jobs`);
 
-        return _.filter(jobs, this.should_job_execute.bind(this));
+        const unfinished_job_history_entries = await this.uow.job_history_repository.getUnfinishedJobs();
+
+        const job_ids = unfinished_job_history_entries.map((job_history) => {
+            return job_history.job_id;
+        });
+
+        this.logger.info(job_ids);
+
+        const jobs_not_currently_executing = _.filter(jobs, (job) => {
+            return !_.includes(job_ids, job.id);
+        });
+
+        this.logger.info(`Filtering ${jobs_not_currently_executing.length} jobs not already executing`);
+
+
+        return _.filter(jobs_not_currently_executing, this.should_job_execute.bind(this));
     }
 
     should_job_execute(job) {
@@ -247,7 +262,7 @@ class JobManager {
             const most_recent_successful = await this.uow.job_history_repository.get_most_recent_successful_job_history(job.id);
 
             if (most_recent_successful) {
-                last_snapshot_name = most_recent_successful.snapshot.name;
+                last_snapshot_name = most_recent_successful.job_history_snapshot.name;
             }
 
             await this.agentApi.zfs_send(job, job_history, snapshot_name, port, last_snapshot_name, true);

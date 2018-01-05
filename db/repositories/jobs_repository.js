@@ -7,6 +7,7 @@ class JobsRepository {
 
     async getAllJobs(node_id, order_by, order_direction) {
         this.uow._logger.info('Fetching all jobs');
+
         const q = this.uow._models.Job
             .query(this.uow._transaction)
             .mergeEager('job_schedule')
