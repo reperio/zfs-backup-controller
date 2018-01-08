@@ -65,7 +65,7 @@ class RetentionManager {
 
                 try {
                     this.logger.info(`${job.id} - Deleting snapshot ${source_snapshot.name} from source ${source_snapshot.snapshot_source_host.ip_address}`);
-                    await this.agentApi.zfs_destroy_snapshot(source_snapshot, job.snapshot_source_host);
+                    await this.agentApi.zfs_destroy_snapshot(source_snapshot, source_snapshot.snapshot_source_host);
                     source_snapshot.source_host_status = 2;
                     await this.uow.snapshots_repository.updateSnapshotEntry(source_snapshot.job_history_id, source_snapshot);
                 } catch (err) {
