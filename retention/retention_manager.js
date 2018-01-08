@@ -67,13 +67,13 @@ class RetentionManager {
                     this.logger.info(`${job.id} - Deleting snapshot ${source_snapshot.name} from source ${source_snapshot.snapshot_source_host.ip_address}`);
                     await this.agentApi.zfs_destroy_snapshot(source_snapshot, source_snapshot.snapshot_source_host);
                     source_snapshot.source_host_status = 2;
-                    await this.uow.snapshots_repository.updateSnapshotEntry(source_snapshot.job_history_id, source_snapshot);
+                    await this.uow.snapshots_repository.updateSnapshotEntry(source_snapshot);
                 } catch (err) {
                     source_success = false;
                     this.logger.error(`${job.id} - Deleting snapshot ${source_snapshot.name} from source ${source_snapshot.snapshot_source_host.ip_address} failed.`);
                     this.logger.error(err);
                     source_snapshot.source_host_status = 3;
-                    await this.uow.snapshots_repository.updateSnapshotEntry(source_snapshot.job_history_id, source_snapshot);
+                    await this.uow.snapshots_repository.updateSnapshotEntry(source_snapshot);
                 }
             }
             this.logger.info(`${job.id} - Finished applying source retention schedule`);
@@ -108,12 +108,12 @@ class RetentionManager {
                     this.logger.info(`${job.id} - Deleting snapshot ${target_snapshot.name} from target ${target_snapshot.snapshot_target_host.ip_address}`);
                     await this.agentApi.zfs_destroy_snapshot(target_snapshot, job.snapshot_target_host);
                     target_snapshot.target_host_status = 2;
-                    await this.uow.snapshots_repository.updateSnapshotEntry(target_snapshot.job_history_id, target_snapshot);
+                    await this.uow.snapshots_repository.updateSnapshotEntry(target_snapshot);
                 } catch (err) {
                     this.logger.error(`${job.id} - Deleting snapshot ${target_snapshot.name} from target ${target_snapshot.snapshot_target_host.ip_address} failed.`);
                     this.logger.error(err);
                     target_snapshot.target_host_status = 3;
-                    await this.uow.snapshots_repository.updateSnapshotEntry(target_snapshot.job_history_id, target_snapshot);
+                    await this.uow.snapshots_repository.updateSnapshotEntry(target_snapshot);
                 }
             }
             this.logger.info(`${job.id} - Finished applying target retention schedule`);
