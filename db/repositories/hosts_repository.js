@@ -7,7 +7,8 @@ class HostsRepository {
         this.uow._logger.info('Fetching all hosts from database');
         try {
             const q = this.uow._models.Host
-                .query(this.uow._transaction);
+                .query(this.uow._transaction)
+                .orderBy('name', 'ASC');
 
             this.uow._logger.debug(q.toSql());
             const hosts = await q;
