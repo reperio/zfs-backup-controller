@@ -14,13 +14,13 @@ module.exports = {
     vmapi_ip_address: '172.20.33.27',
     
     job_manager: {
-        enabled: true,
+        enabled: false,
         interval: 5000
     },
 
     retention_manager: {
-        enabled: false,
-        interval: 10000
+        enabled: true,
+        interval: 5000
     },
 
     data_manager: {

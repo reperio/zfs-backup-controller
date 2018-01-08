@@ -8,10 +8,17 @@ class RetentionManager {
         this.agentApi = agentApi;
         this.retention_interval_id = null;
         this.retention_interval = retention_interval;
+        this.executing = false;
     }
 
     start() {
-        this.retention_interval_id = setInterval(() => this.apply_retention_schedules(), this.retention_interval);
+        this.retention_interval_id = setInterval(async () => {
+            if (!this.executing) {
+                this.executing = true;
+                await this.apply_retention_schedules();
+                this.executing = false;
+            }
+        }, this.retention_interval);
     }
 
     async apply_retention_schedules() {
@@ -57,13 +64,13 @@ class RetentionManager {
                 }
 
                 try {
-                    this.logger.info(`${job.id} - Deleting snapshot ${source_snapshot.name} from source ${source_snapshot.source_host.ip_address}`);
-                    await this.agentApi.zfs_destroy_snapshot(source_snapshot, job.source_host);
+                    this.logger.info(`${job.id} - Deleting snapshot ${source_snapshot.name} from source ${source_snapshot.snapshot_source_host.ip_address}`);
+                    await this.agentApi.zfs_destroy_snapshot(source_snapshot, job.snapshot_source_host);
                     source_snapshot.source_host_status = 2;
                     await this.uow.snapshots_repository.updateSnapshotEntry(source_snapshot.job_history_id, source_snapshot);
                 } catch (err) {
                     source_success = false;
-                    this.logger.error(`${job.id} - Deleting snapshot ${source_snapshot.name} from source ${source_snapshot.source_host.ip_address} failed.`);
+                    this.logger.error(`${job.id} - Deleting snapshot ${source_snapshot.name} from source ${source_snapshot.snapshot_source_host.ip_address} failed.`);
                     this.logger.error(err);
                     source_snapshot.source_host_status = 3;
                     await this.uow.snapshots_repository.updateSnapshotEntry(source_snapshot.job_history_id, source_snapshot);
@@ -98,12 +105,12 @@ class RetentionManager {
 
                 //delete snapshot at host
                 try {
-                    this.logger.info(`${job.id} - Deleting snapshot ${target_snapshot.name} from target ${target_snapshot.target_host.ip_address}`);
-                    await this.agentApi.zfs_destroy_snapshot(target_snapshot, job.target_host);
+                    this.logger.info(`${job.id} - Deleting snapshot ${target_snapshot.name} from target ${target_snapshot.snapshot_target_host.ip_address}`);
+                    await this.agentApi.zfs_destroy_snapshot(target_snapshot, job.snapshot_target_host);
                     target_snapshot.target_host_status = 2;
                     await this.uow.snapshots_repository.updateSnapshotEntry(target_snapshot.job_history_id, target_snapshot);
                 } catch (err) {
-                    this.logger.error(`${job.id} - Deleting snapshot ${target_snapshot.name} from target ${target_snapshot.target_host.ip_address} failed.`);
+                    this.logger.error(`${job.id} - Deleting snapshot ${target_snapshot.name} from target ${target_snapshot.snapshot_target_host.ip_address} failed.`);
                     this.logger.error(err);
                     target_snapshot.target_host_status = 3;
                     await this.uow.snapshots_repository.updateSnapshotEntry(target_snapshot.job_history_id, target_snapshot);

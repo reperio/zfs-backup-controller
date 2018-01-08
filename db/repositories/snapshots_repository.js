@@ -23,7 +23,7 @@ class SnapshotsRepository {
     }
 
     async get_active_snapshots_for_job(job_id) {
-        this.uow._logger.info(`Fetching all active snapshots with host_id: ${job_id}`);
+        this.uow._logger.info(`Fetching all active snapshots with job_id: ${job_id}`);
         const q = this.uow._models.Snapshot
             .query(this.uow._transaction)
             .mergeEager("snapshot_source_host")
@@ -34,7 +34,10 @@ class SnapshotsRepository {
             .where("source_host_status", 1)
             .orWhere("target_host_status", 1);
 
+        this.uow._logger.debug(q.debug());
+
         const snapshots = await q;
+
         return snapshots;
     }
 
