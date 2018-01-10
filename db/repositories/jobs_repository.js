@@ -48,7 +48,11 @@ class JobsRepository {
         try {
             const q = this.uow._models.Job
                 .query(this.uow._transaction)
-                .findById(id);
+                .findById(id)
+                .mergeEager('job_schedule')
+                .mergeEager('job_source_host')
+                .mergeEager('job_target_host')
+                .mergeEager('job_virtual_machine');
 
             this.uow._logger.debug(q.toSql());
             const job = await q;
