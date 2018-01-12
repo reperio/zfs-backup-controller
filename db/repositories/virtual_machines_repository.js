@@ -47,7 +47,9 @@ class VirtualMachinesRepository {
         try {
             const q = this.uow._models.VirtualMachine
                 .query(this.uow._transaction)
-                .where('host_id', id);
+                .where('host_id', id)
+                .where('state', '<>', 'destroyed')
+                .orderBy('name', 'asc');
 
             this.uow._logger.debug(q.toSql());
             const virtual_machines = await q;
