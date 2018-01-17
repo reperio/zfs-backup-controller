@@ -26,13 +26,14 @@ class SnapshotsRepository {
         this.uow._logger.info(`Fetching all active snapshots with job_id: ${job_id}`);
         const q = this.uow._models.Snapshot
             .query(this.uow._transaction)
-            .mergeEager("snapshot_source_host")
-            .mergeEager("snapshot_target_host")
-            .mergeEager("snapshot_job_history")
-            .mergeEager("snapshot_job")
-            .where("job_id", job_id)
-            .where("source_host_status", 1)
-            .orWhere("target_host_status", 1);
+            .mergeEager('snapshot_source_host')
+            .mergeEager('snapshot_target_host')
+            .mergeEager('snapshot_job_history')
+            .mergeEager('snapshot_job')
+            .where(function() {
+                this.where('source_host_status', 1).orWhere('target_host_status', 1);
+            })
+            .where('job_id', job_id);
 
         this.uow._logger.debug(q.debug());
 

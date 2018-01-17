@@ -586,6 +586,55 @@ describe('Retention Tests', async function() {
         });
     });
 
+    describe('Retention tests for new jobs', () => {
+        const source_retention = {
+            retentions: [
+                {
+                    interval: 'daily',
+                    retention: 1
+                }
+            ]
+        };
+
+        const target_retention = {
+            retentions: [
+                {
+                    interval: 'daily',
+                    retention: 7
+                }, {
+                    interval: 'weekly',
+                    retention: 4
+                }, {
+                    interval: 'monthly',
+                    retention: 12
+                }
+            ]
+        };
+
+        let snapshots = [];
+
+        beforeEach(() => {
+            snapshots = [{
+                job_history_id: 'a508fae5-3a40-487f-b59d-ced7e0f066c0',
+                job_id: 'b7773c38-ce54-11e7-957f-3b303616282e',
+                name: 'zones/439c0ffa-20e5-4cab-80a0-880afa863aba/data/manatee@201801161809',
+                source_host_id: '23b07664-24fc-4345-815d-bf343271c059',
+                target_host_id: '66fa38f1-118e-4e5c-a90b-157160b22def',
+                source_host_status: 1,
+                target_host_status: 1,
+                snapshot_date_time: '2018-01-16 18:09:45',
+                createdAt: '2018-01-16 18:09:45',
+                updatedAt: '2018-01-16 18:09:45'
+            }];
+        });
+
+        it('Should delete 0 snapshots for source_retention', () => {
+            const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots, source_retention, 0, moment.utc('2018-01-20T10:51:00.000Z'));
+            //console.log(snapshots_to_delete);
+            assert.equal(snapshots_to_delete.length, 0);
+        });
+    });
+
     describe('Retention tests with offset', () => {
         const retention_policy_1 = {
             retentions: [
