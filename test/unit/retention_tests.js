@@ -12,7 +12,7 @@ describe('Retention Tests', async function() {
     //load the test data
     this.test_data = JSON.parse(fs.readFileSync('./test/unit/testing_data/test_data_no_errors.json', 'utf8'));
 
-    const logging = false;
+    const logging = true;
 
     const logger = {
         info: (message) => {
@@ -629,9 +629,32 @@ describe('Retention Tests', async function() {
         });
 
         it('Should delete 0 snapshots for source_retention', () => {
-            const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots, source_retention, 0, moment.utc('2018-01-20T10:51:00.000Z'));
+            const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(snapshots, source_retention, 0, moment.utc('2018-01-20T10:50:00.000Z'));
             //console.log(snapshots_to_delete);
             assert.equal(snapshots_to_delete.length, 0);
+        });
+    });
+
+    describe('manatee0 tests', () => {
+        const test_data = JSON.parse(fs.readFileSync('./test/unit/testing_data/manatee0_test_data.json', 'utf8'));
+
+        const retention_policy = {
+            retentions: [
+                {
+                    interval: 'daily',
+                    retention: 1
+                }
+            ]
+        };
+
+        it('should keep 2 snapshots', () => {
+            const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(test_data, retention_policy, 0, moment.utc('2018-01-19T08:00:00.000Z'));
+            assert.equal(snapshots_to_delete.length, 2);
+        });
+
+        it('should always keep one snapshot', () => {
+            const snapshots_to_delete = retentionTestClass.get_snapshots_to_delete(test_data, retention_policy, 0, moment.utc('2018-02-19T08:00:00.000Z'));
+            assert.equal(snapshots_to_delete.length, 3);
         });
     });
 

@@ -44,6 +44,13 @@ class RetentionManager {
 
         const snapshots = await this.uow.snapshots_repository.get_active_snapshots_for_job(job.id);
 
+        //console.log(JSON.stringify(snapshots));
+
+        this.logger.info(`${job.id} - Found ${snapshots.length} active snapshots for job.`);
+        for (let snapshot of snapshots) {
+            this.logger.info(`${job.id} - ${snapshot.name}`);
+        }
+
         let source_success = true;
 
         //process source retention
@@ -51,13 +58,16 @@ class RetentionManager {
             this.logger.info(`${job.id} - Processing source retention`);
             const snapshots_to_delete = this.get_snapshots_to_delete(snapshots, source_retention_policy, job.offset, now);
 
-            this.logger.info(`${job.id} - Deleting ${snapshots_to_delete.length} snapshots`);
+            this.logger.info(`${job.id} - Deleting ${snapshots_to_delete.length} snapshots on source`);
+            
             for (let source_snapshot of snapshots_to_delete) {
+                this.logger.info(`${job.id} - Checking if ${source_snapshot.name} has been created on source`);
                 if (source_snapshot.source_host_status !== 1) {
                     this.logger.info(`${job.id} - Skipping delete because snapshot ${source_snapshot.name} hasn't been created on source.`);
                     continue;
                 }
 
+                this.logger.info(`${job.id} - Checking if ${source_snapshot.name} has been created on target`);
                 if (source_snapshot.target_host_status !== 1) {
                     this.logger.info(`${job.id} - Skipping delete because snapshot ${source_snapshot.name} hasn't been created on target.`);
                     continue;
@@ -91,13 +101,16 @@ class RetentionManager {
             this.logger.info(`${job.id} - Processing target retention`);
             const snapshots_to_delete = this.get_snapshots_to_delete(snapshots, target_retention_policy, job.offset, now);
             
-            this.logger.info(`${job.id} - Deleting ${snapshots_to_delete.length} snapshots`);
+            this.logger.info(`${job.id} - Deleting ${snapshots_to_delete.length} snapshots on target`);
+
             for (let target_snapshot of snapshots_to_delete) {
+                this.logger.info(`${job.id} - Checking if ${target_snapshot.name} has been created on target`);
                 if (target_snapshot.target_host_status !== 1) {
                     this.logger.info(`${job.id} - Skipping delete because snapshot ${target_snapshot.name} hasn't been created on target.`);
                     continue;
                 }
 
+                this.logger.info(`${job.id} - Checking if ${target_snapshot.name} has been deleted on source`);
                 if (target_snapshot.source_host_status !== 2) {
                     this.logger.info(`${job.id} - Skipping delete because snapshot ${target_snapshot.name} hasn't been deleted on source.`);
                     continue;
@@ -176,7 +189,8 @@ class RetentionManager {
         const snapshots_to_keep = [];
 
         //always keep the most recent fully successful snapshot
-        for (let snapshot of sorted_snapshots) {
+        for (let index = sorted_snapshots.length - 1 ; index >=0 ; --index) {
+            const snapshot = sorted_snapshots[index];
             if (snapshot.source_host_status === 1 && snapshot.target_host_status === 1) {
                 snapshots_to_keep.push(snapshot.job_history_id);
                 break;
