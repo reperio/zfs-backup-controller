@@ -37,7 +37,6 @@ class HostsRepository {
                 .insert(host_model)
                 .returning('*');
 
-            this.uow._logger.debug(q.toSql());
             const new_host = await q;
             return new_host;
         } catch (err) {
@@ -63,7 +62,6 @@ class HostsRepository {
                 .patch(host_model)
                 .returning('*');
 
-            this.uow._logger.debug(q.toSql());
             const updated_host = await q;
             return updated_host;
         } catch (err) {

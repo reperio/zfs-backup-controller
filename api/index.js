@@ -10,12 +10,11 @@ const DashboardControllerHandlers = require('./handlers/dashboard_controller');
 const VirtualMachinesControllerHandlers = require('./handlers/virtual_machines_controller');
 
 exports.register = function (server, options, next) {
-
     server.route({
         method: 'GET',
         path: '/',
         handler: function (request, reply) {
-            reply({message:'hello', status:'success'});
+            reply({message: 'hello', status: 'success'});
         }
     });
 

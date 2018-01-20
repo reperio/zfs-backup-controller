@@ -22,7 +22,6 @@ class VirtualMachinesRepository {
                 q = q.where('virtual_machines.name', 'like', `%${filter}%`);
             }
 
-            this.uow._logger.debug(q.toSql());
             const virtual_machines = await q;
 
             //TODO this is gross and an extra list traversal, can objectionJS handle boolean <=> bit conversion?
@@ -51,7 +50,6 @@ class VirtualMachinesRepository {
                 .where('state', '<>', 'destroyed')
                 .orderBy('name', 'asc');
 
-            this.uow._logger.debug(q.toSql());
             const virtual_machines = await q;
 
             //convert the numeric boolean values to actual true/false values
@@ -94,7 +92,6 @@ class VirtualMachinesRepository {
                 .insert(virtual_machine_model)
                 .returning('*');
 
-            this.uow._logger.debug(q.toSql());
             const new_virtual_machine = await q;
             return new_virtual_machine;
         } catch (err) {
@@ -143,7 +140,6 @@ class VirtualMachinesRepository {
                 .patch(virtual_machine_model)
                 .returning('*');
 
-            this.uow._logger.debug(q.toSql());
             const updated_virtual_machine = await q;
             return updated_virtual_machine;
         } catch (err) {
@@ -190,7 +186,6 @@ class VirtualMachinesRepository {
             if (sdc_id) {
                 q.where('virtual_machines.sdc_id', sdc_id);
             }
-            this.uow._logger.debug(q.toSQL());
 
             const result = await q;
             return result;

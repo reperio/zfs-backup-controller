@@ -1,7 +1,7 @@
 'use strict';
+/* eslint no-use-before-define: 0*/
 
 const Boom = require('boom');
-const Joi = require('joi');
 
 const routes = [];
 

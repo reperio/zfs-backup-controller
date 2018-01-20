@@ -10,7 +10,7 @@ class Job extends BaseModel {
         return 'id';
     }
 
-    static get jsonSchema() { 
+    static get jsonSchema() {
         return {
             type: 'object',
             properties: {
@@ -90,7 +90,7 @@ class Job extends BaseModel {
                     to: 'virtual_machines.sdc_id'
                 }
             }
-        }
+        };
     }
 }
 

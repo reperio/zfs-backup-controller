@@ -16,7 +16,7 @@ class SnapshotsRepository {
         this.uow._logger.info(`Fetching all snapshots with host_id: ${hostId}`);
         const q = this.uow._models.Snapshot
             .query(this.uow._transaction)
-            .where("source_host_id", hostId);
+            .where('source_host_id', hostId);
 
         const snapshots = await q;
         return snapshots;
@@ -35,7 +35,6 @@ class SnapshotsRepository {
             })
             .where('job_id', job_id);
 
-        this.uow._logger.debug(q.debug());
 
         const snapshots = await q;
 
@@ -50,7 +49,6 @@ class SnapshotsRepository {
                 .insert(snapshot)
                 .returning('*');
 
-            this.uow._logger.debug("INSERT SNAPSHOT QUERY: " + q.toSql());
             const dbSnapshot = await q;
             return dbSnapshot;
         } catch (err) {
@@ -62,9 +60,9 @@ class SnapshotsRepository {
     async updateSnapshotEntry(snapshot) {
         const q = this.uow._models.Snapshot
             .query(this.uow._transaction)
-            .where("job_history_id", snapshot.job_history_id)
+            .where('job_history_id', snapshot.job_history_id)
             .patch(snapshot)
-            .returning("*");
+            .returning('*');
 
         const newSnapshot = await q;
         return newSnapshot;
@@ -75,7 +73,7 @@ class SnapshotsRepository {
         try {
             await this.uow._models.Snapshot
                 .query(this.uow._transaction)
-                .where("job_history_id", snapshotId)
+                .where('job_history_id', snapshotId)
                 .delete();
 
             return true;
@@ -83,7 +81,6 @@ class SnapshotsRepository {
             this.uow._logger.error(err);
             throw err;
         }
-
     }
 }
 

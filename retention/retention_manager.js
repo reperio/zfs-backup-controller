@@ -82,7 +82,7 @@ class RetentionManager {
                     source_success = false;
                     this.logger.error(`${job.id} - Deleting snapshot ${source_snapshot.name} from source ${source_snapshot.snapshot_source_host.ip_address} failed.`);
                     this.logger.error(err);
-                    source_snapshot.source_host_status = 3;
+                    source_snapshot.source_host_status = 3; //TODO do we really want to set a failed status here?
                     await this.uow.snapshots_repository.updateSnapshotEntry(source_snapshot);
                 }
             }
@@ -125,7 +125,7 @@ class RetentionManager {
                 } catch (err) {
                     this.logger.error(`${job.id} - Deleting snapshot ${target_snapshot.name} from target ${target_snapshot.snapshot_target_host.ip_address} failed.`);
                     this.logger.error(err);
-                    target_snapshot.target_host_status = 3;
+                    target_snapshot.target_host_status = 3; //TODO do we really want to set a failed status here?
                     await this.uow.snapshots_repository.updateSnapshotEntry(target_snapshot);
                 }
             }

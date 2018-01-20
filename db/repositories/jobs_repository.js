@@ -1,5 +1,3 @@
-const moment = require('moment');
-
 class JobsRepository {
     constructor(uow) {
         this.uow = uow;
@@ -23,7 +21,6 @@ class JobsRepository {
             q.orderBy(order_by, order_direction);
         }
 
-        this.uow._logger.debug(q.toSql());
         const jobs = await q;
 
         return jobs;
@@ -54,7 +51,6 @@ class JobsRepository {
                 .mergeEager('job_target_host')
                 .mergeEager('job_virtual_machine');
 
-            this.uow._logger.debug(q.toSql());
             const job = await q;
             this.uow._logger.debug(JSON.stringify(job.last_execution));
             return job;
@@ -92,7 +88,6 @@ class JobsRepository {
                 .insert(job_model)
                 .returning('*');
 
-            this.uow._logger.debug(q.toSql());
             const new_job= await q;
             return new_job;
         } catch (err) {
@@ -117,15 +112,12 @@ class JobsRepository {
                 offset: job.offset
             });
 
-            this.uow._logger.debug(JSON.stringify(job_model.last_execution));
-
             const q = this.uow._models.Job
                 .query(this.uow._transaction)
                 .where('id', job.id)
                 .patch(job_model)
                 .returning('*');
 
-            this.uow._logger.debug(q.toSql());
             const new_job = await q;
             this.get_job_by_id(job.id);
             return new_job;
@@ -145,7 +137,6 @@ class JobsRepository {
                 .delete()
                 .where('id', id);
 
-            this.uow._logger.debug(q.toSql());
             await q;
             return;
         } catch (err) {

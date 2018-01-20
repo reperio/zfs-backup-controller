@@ -1,5 +1,5 @@
 class SchedulesRepository {
-    constructor(uow){
+    constructor(uow) {
         this.uow = uow;
     }
 

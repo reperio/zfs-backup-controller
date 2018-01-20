@@ -10,6 +10,8 @@ class UnitOfWork {
         this._models = models;
         this._transaction = null;
 
+        knex.on('query', (query) => logger.debug(query.toNative()));
+
         this._logger = logger;
 
         this._cachedRepositories = {};

@@ -2,7 +2,9 @@ const Model = require('objection').Model;
 const BaseModel = require('./base_model');
 
 class JobHistory extends BaseModel {
-    static get tableName() { return 'job_history'; }
+    static get tableName() {
+        return 'job_history';
+    }
 
     auto_generated_id() {
         return 'id';

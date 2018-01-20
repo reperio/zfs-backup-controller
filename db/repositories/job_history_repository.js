@@ -19,8 +19,6 @@ class JobHistoryRepository {
         if (virtual_machine_id) {
             q = q.andWhere('job_history_job.sdc_vm_id', virtual_machine_id);
         }
-
-        this.uow._logger.debug('JOB HISTORY QUERY: ' + q.toSql());
         
         const job_histories = await q;
         return job_histories;
@@ -45,7 +43,6 @@ class JobHistoryRepository {
                 .query(this.uow._transaction)
                 .insertAndFetch(job_history);
 
-            this.uow._logger.debug('SQL Query: ' + q.toSql());
             const new_job_history = await q;
             return new_job_history;
         } catch (err) {
@@ -66,8 +63,6 @@ class JobHistoryRepository {
                 .patch(job_history)
                 .returning('*');
 
-            this.uow._logger.debug('SQL Query: ' + q.toSql());
-
             const newJobHistory = await q;
             return newJobHistory;
         } catch (err) {
@@ -85,8 +80,6 @@ class JobHistoryRepository {
                 //.eagerAlgorithm(this.uow._models.JobHistory.JoinEagerAlgorithm)
                 .mergeEager('job_history_snapshot')
                 .where('id', job_history_id);
-
-            this.uow._logger.debug(q.debug());
 
             const job_histories = await q;
             

@@ -2,7 +2,9 @@ const Model = require('objection').Model;
 const BaseModel = require('./base_model');
 
 class Schedule extends BaseModel {
-    static get tableName() { return "schedules"; }
+    static get tableName() {
+        return 'schedules';
+    }
 
     auto_generated_id() {
         return 'id';
@@ -10,13 +12,13 @@ class Schedule extends BaseModel {
 
     static get jsonSchema() {
         return {
-            type: "object",
+            type: 'object',
             properties: {
-                id: { type: "string" },
-                name: { type: "string" },
-                display_name: { type: "string" }
+                id: { type: 'string' },
+                name: { type: 'string' },
+                display_name: { type: 'string' }
             }
-        }
+        };
     }
 
     static get relationMappings() {
@@ -27,11 +29,11 @@ class Schedule extends BaseModel {
                 relation: Model.HasOneRelation,
                 modelClass: Job,
                 join: {
-                    from: "schedules.id",
-                    to: "jobs.schedule_id"
+                    from: 'schedules.id',
+                    to: 'jobs.schedule_id'
                 }
             }
-        }
+        };
     }
 }
 

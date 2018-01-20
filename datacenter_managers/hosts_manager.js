@@ -10,7 +10,7 @@ class HostsManager {
         this.uow._logger.info('');
         this.uow._logger.info('Host Manager execution starting');
 
-        try { 
+        try {
             //get all hosts from cn_api
             const cn_api_hosts = await this.cn_api.getAllServers();
 
