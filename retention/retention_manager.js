@@ -44,7 +44,7 @@ class RetentionManager {
 
         const snapshots = await this.uow.snapshots_repository.get_active_snapshots_for_job(job.id);
 
-        console.log(JSON.stringify(snapshots));
+        //console.log(JSON.stringify(snapshots));
 
         this.logger.info(`${job.id} - Found ${snapshots.length} active snapshots for job.`);
         for (let snapshot of snapshots) {
@@ -58,7 +58,7 @@ class RetentionManager {
             this.logger.info(`${job.id} - Processing source retention`);
             const snapshots_to_delete = this.get_snapshots_to_delete(snapshots, source_retention_policy, job.offset, now);
 
-            this.logger.info(`${job.id} - Deleting ${snapshots_to_delete.length} snapshots on source`);
+            this.logger.info(`${job.id} - Processing ${snapshots_to_delete.length} snapshots on source`);
 
             for (let snapshot of snapshots_to_delete) {
                 this.logger.info(`${job.id} - ${snapshot.job_history_id} - ${snapshot.name}`);
@@ -105,7 +105,7 @@ class RetentionManager {
             this.logger.info(`${job.id} - Processing target retention`);
             const snapshots_to_delete = this.get_snapshots_to_delete(snapshots, target_retention_policy, job.offset, now);
             
-            this.logger.info(`${job.id} - Deleting ${snapshots_to_delete.length} snapshots on target`);
+            this.logger.info(`${job.id} - Processing ${snapshots_to_delete.length} snapshots on target`);
 
             for (let snapshot of snapshots_to_delete) {
                 this.logger.info(`${job.id} - ${snapshot.job_history_id} - ${snapshot.name}`);
