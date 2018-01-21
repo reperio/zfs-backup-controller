@@ -44,11 +44,11 @@ class RetentionManager {
 
         const snapshots = await this.uow.snapshots_repository.get_active_snapshots_for_job(job.id);
 
-        //console.log(JSON.stringify(snapshots));
+        console.log(JSON.stringify(snapshots));
 
         this.logger.info(`${job.id} - Found ${snapshots.length} active snapshots for job.`);
         for (let snapshot of snapshots) {
-            this.logger.info(`${job.id} - ${snapshot.name}`);
+            this.logger.info(`${job.id} - ${snapshot.job_history_id} - ${snapshot.name}`);
         }
 
         let source_success = true;
@@ -198,14 +198,14 @@ class RetentionManager {
         }
 
         for(let retention of retention_policy.retentions) {
-            for(let iteration = 0; iteration <= retention.retention; iteration++) {
+            for(let iteration = 0; iteration < retention.retention; iteration++) {
                 let target_date = this.find_retention_target_date(retention.interval, iteration, start_date, offset);
 
-                // this.logger.info();
-                // this.logger.info(`Interval: ${retention.interval}, iteration: ${iteration}, offset: ${offset}`);
-                // this.logger.info(`Initial date: ${start_date}`);
-                // this.logger.info(`Target date: ${target_date}`);
-                // this.logger.info();
+                this.logger.info();
+                this.logger.info(`Interval: ${retention.interval}, iteration: ${iteration}, offset: ${offset}`);
+                this.logger.info(`Initial date: ${start_date}`);
+                this.logger.info(`Target date: ${target_date}`);
+                this.logger.info();
 
                 let policySnapshot = this.getFirstSnapshotAfterDate(sorted_snapshots, target_date);
                 
@@ -214,9 +214,9 @@ class RetentionManager {
                 }
 
                 if (policySnapshot) {
-                    //console.log(`KEEPING ${policySnapshot.job_history_id}`);
-                    // console.log(policySnapshot);
-                    // console.log(`${retention.interval}`);
+                    console.log(`KEEPING ${policySnapshot.job_history_id}`);
+                    //console.log(policySnapshot);
+                    //console.log(`${retention.interval}`);
 
                     snapshots_to_keep.push(policySnapshot.job_history_id);
                 }
