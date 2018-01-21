@@ -61,6 +61,9 @@ class JobManager {
                 }
                 
                 if (updated) {
+                    const end_date_time = new Date();
+                    job.end_date_time = end_date_time;
+                    
                     await this.uow.job_history_repository.update_job_history_entry(job);
                 }
             } catch(err) {
@@ -281,10 +284,6 @@ class JobManager {
             await this.uow.job_history_repository.update_job_history_entry(job_history);
             throw err;
         }
-
-        const end_date_time = new Date();
-        job_history.end_date_time = end_date_time;
-        await this.uow.job_history_repository.update_job_history_entry(job_history);
     }
 }
 
