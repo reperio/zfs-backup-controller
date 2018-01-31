@@ -19,7 +19,7 @@ module.exports = {
     },
 
     retention_manager: {
-        enabled: true,
+        enabled: false,
         interval: 5000
     },
 

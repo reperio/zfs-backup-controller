@@ -77,10 +77,68 @@ routes.push({
     }
 });
 
+function verify_retention_values(data, type, schedule, messages) {
+    const retentions = data.retentions;
+    const intervals = ['quarter_hourly', 'hourly', 'daily', 'weekly', 'monthly'];
+    const scheduleIndex = intervals.indexOf(schedule);
+    let retentionObject = {};
+
+    retentions.forEach(retention => {
+        retentionObject[retention.interval] = retention.retention;
+    });
+
+    console.log(JSON.stringify(retentionObject));
+
+    if (retentionObject.quarter_hourly === null || typeof retentionObject.quarter_hourly === 'undefined') {
+        messages.push(`Retention interval "quarter_hourly" missing on ${type}`);
+    } else if (intervals.indexOf('quarter_hourly') < scheduleIndex && retentionObject.quarter_hourly > 0) {
+        messages.push(`Retention interval "quarter_hourly" cannot be greater than 0 for schedule "${schedule}" on ${type}`);
+    }
+    if (retentionObject.hourly === null || typeof retentionObject.hourly === 'undefined') {
+        messages.push(`Retention interval "hourly" missing on ${type}`);
+    } else if (intervals.indexOf('hourly') < scheduleIndex && retentionObject.hourly > 0) {
+        messages.push(`Retention interval "hourly" cannot be greater than 0 for schedule "${schedule}" on ${type}`);
+    }
+    if (retentionObject.daily === null || typeof retentionObject.daily === 'undefined') {
+        messages.push(`Retention interval "daily" missing on ${type}`);
+    } else if (intervals.indexOf('daily') < scheduleIndex && retentionObject.daily > 0) {
+        messages.push(`Retention interval "daily" cannot be greater than 0 for schedule "${schedule}" on ${type}`);
+    }
+    if (retentionObject.weekly === null || typeof retentionObject.weekly === 'undefined') {
+        messages.push(`Retention interval "weekly" missing on ${type}`);
+    } else if (intervals.indexOf('weekly') < scheduleIndex && retentionObject.weekly > 0) {
+        messages.push(`Retention interval "weekly" cannot be greater than 0 for schedule "${schedule}" on ${type}`);
+    }
+    if (retentionObject.monthly === null || typeof retentionObject.monthly === 'undefined') {
+        messages.push(`Retention interval "monthly" missing on ${type}`);
+    }
+}
+
 async function create_job(request, reply) {
     const uow = await request.app.getNewUoW();
     const job = request.payload.job;
 
+    // verify retention values
+    uow._logger.debug('Source Retention: ' + JSON.stringify(job.source_retention));
+    uow._logger.debug('Target Retention: ' + JSON.stringify(job.target_retention));
+    
+    const schedule = await uow.schedules_repository.get_schedule_by_id(job.schedule_id);
+    const source_retentions = JSON.parse(job.source_retention);
+    const target_retentions = JSON.parse(job.target_retention);
+    
+    console.log(source_retentions);
+    console.log(target_retentions);
+
+    let messages = [];
+    verify_retention_values(source_retentions, 'source', schedule.name, messages);
+    verify_retention_values(target_retentions, 'target', schedule.name, messages);
+
+    if (messages.length > 0) {
+        uow._logger.warn(JSON.stringify(messages));
+        reply(messages).code(400);
+        return;
+    }
+    
     try{
         await uow.jobs_repository.create_job(job);
         return reply(job);
