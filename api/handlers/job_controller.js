@@ -197,6 +197,20 @@ async function edit_job(request, reply) {
 
     uow._logger.info(`Updating job "${job_id}"`);
     try {
+        const schedule = await uow.schedules_repository.get_schedule_by_id(job.schedule_id);
+        const source_retentions = JSON.parse(job.source_retention);
+        const target_retentions = JSON.parse(job.target_retention);
+    
+        let messages = [];
+        verify_retention_values(source_retentions, 'source', schedule.name, messages);
+        verify_retention_values(target_retentions, 'target', schedule.name, messages);
+
+        if (messages.length > 0) {
+            uow._logger.warn(JSON.stringify(messages));
+            reply(messages).code(400);
+            return;
+        }
+
         const updated_job = await uow.jobs_repository.update_job_entry(job);
         return reply(updated_job);
     } catch (err) {
