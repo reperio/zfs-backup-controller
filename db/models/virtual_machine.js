@@ -30,6 +30,7 @@ class VirtualMachine extends BaseModel {
     static get relationMappings() {
         const Host = require('./host');
         const Job = require('./job');
+        const VirtualMachineDataset = require('./virtual_machine_dataset');
 
         return {
             virtual_machine_host: {
@@ -46,6 +47,14 @@ class VirtualMachine extends BaseModel {
                 join: {
                     from: 'virtual_machines.id',
                     to: 'jobs.sdc_vm_id'
+                }
+            },
+            datasets: {
+                relation: Model.HasManyRelation,
+                modelClass: VirtualMachineDataset,
+                join: {
+                    from: 'virtual_machines.id',
+                    to: 'virtual_machine_datasets.virtual_machine_id'
                 }
             }
         };
