@@ -38,7 +38,8 @@ class VirtualMachineManager {
                             status: db_virtual_machine.status,
                             host_id: api_virtual_machine.host_id,
                             state: api_virtual_machine.state,
-                            last_sync: now
+                            last_sync: now,
+                            type: api_virtual_machine.brand
                         };
                         virtual_machines_to_edit.push(new_virtual_machine_to_edit);
                     }
@@ -53,7 +54,8 @@ class VirtualMachineManager {
                         status: '',
                         host_id: api_virtual_machine.host_id,
                         state: api_virtual_machine.state,
-                        lasy_sync: now
+                        lasy_sync: now,
+                        type: api_virtual_machine.brand
                     };
                     virtual_machines_to_create.push(new_virtual_machine_to_create);
                 }

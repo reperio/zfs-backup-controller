@@ -32,7 +32,8 @@ class VmApi {
                     enabled: null,
                     status: null,
                     host_id: vm_records[i].server_uuid,
-                    state: vm_records[i].state
+                    state: vm_records[i].state,
+                    brand: vm_records[i].brand
                 });
             }
 
@@ -66,7 +67,8 @@ class VmApi {
                 enabled: null,
                 status: null,
                 host_id: vm_record.server_uuid,
-                state: vm_record.state
+                state: vm_record.state,
+                brand: vm_record.brand
             };
         } catch (err) {
             this.logger.error(`Failed to fetch record for vm "${uuid}"`);
