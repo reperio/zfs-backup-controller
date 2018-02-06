@@ -28,6 +28,8 @@ class JobHistoryRepository {
         this.uow._logger.info('Fetching unfinished jobs');
         const q = this.uow._models.JobHistory
             .query(this.uow._transaction)
+            .eagerAlgorithm(this.uow._models.JobHistory.JoinEagerAlgorithm)
+            .mergeEager('job_history_job')
             .whereIn('result', [0, 1]);
 
         const job_histories = await q;

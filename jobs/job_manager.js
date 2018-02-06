@@ -9,11 +9,18 @@ class JobManager {
 
         this.job_interval_id = null;
         this.job_interval = job_interval;
+        this.executing = false;
     }
 
     //starts the execution loop
     start() {
-        this.job_interval_id = setInterval(() => this.execute(), this.job_interval);
+        this.job_interval_id = setInterval(async () => {
+            if (!this.executing) {
+                this.executing = true;
+                await this.execute();
+                this.executing = false;
+            }
+        }, this.job_interval);
     }
 
     //main execution of the job manager, finds and executes jobs
@@ -23,7 +30,7 @@ class JobManager {
 
         try {
             const jobs = await this.uow.jobs_repository.getAllEnabledJobs();
-            const filtered_jobs = await this.filter_eligible_jobs(jobs);
+            const filtered_jobs = await this.filter_jobs_on_runnings_hosts(jobs);
             await this.execute_jobs(filtered_jobs);
         } catch(err) {
             this.logger.error('Job manager execution failed.');
@@ -73,8 +80,8 @@ class JobManager {
         }
     }
 
-    async filter_eligible_jobs(jobs) {
-        this.logger.info(`Filtering ${jobs.length} jobs`);
+    async filter_eligible_jobs(jobs) { //TODO filter out any jobs that need to be run for source or target that already have jobs running, order by oldest schedule time
+        this.logger.info(`Filtering ${jobs.length} jobs by job status.`);
 
         const unfinished_job_history_entries = await this.uow.job_history_repository.getUnfinishedJobs();
 
@@ -92,6 +99,29 @@ class JobManager {
 
 
         return _.filter(jobs_not_currently_executing, this.should_job_execute.bind(this));
+    }
+
+    async filter_jobs_on_runnings_hosts(jobs) {
+        this.logger.info(`Filtering ${jobs.length} jobs by hosts.`);
+
+        const unfinished_job_history_entries = await this.uow.job_history_repository.getUnfinishedJobs();
+
+        this.logger.info(`Found ${unfinished_job_history_entries.length} unfinished job history entries.`);
+
+        const busy_host_ids = [];
+
+        for (let unfinished_job of unfinished_job_history_entries) {
+            busy_host_ids.push(unfinished_job.job_history_job.source_host_id);
+            busy_host_ids.push(unfinished_job.job_history_job.target_host_id);
+        }
+
+        this.logger.info(`Found ${busy_host_ids.length} busy hosts: ${busy_host_ids}`);
+        
+        const jobs_not_on_busy_hosts = _.filter(jobs, (job) => {
+            return !_.includes(busy_host_ids, job.source_host_id);
+        });
+
+        return _.filter(jobs_not_on_busy_hosts, this.should_job_execute.bind(this));
     }
 
     should_job_execute(job) {

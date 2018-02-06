@@ -41,7 +41,7 @@ class UnitOfWork {
             throw new Error("A transaction does not exist for this unit of work");
         }
         await this._transaction.commit();
-        this.transaction = null;
+        this._transaction = null;
     }
 
     async rollbackTransaction() {
