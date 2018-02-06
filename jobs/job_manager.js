@@ -32,8 +32,18 @@ class JobManager {
             const jobs = await this.uow.jobs_repository.getAllEnabledJobs();
             const filtered_jobs = await this.filter_jobs_on_runnings_hosts(jobs);
 
-            const ordered_jobs = _.orderBy(filtered_jobs, ['last_schedule'], ['desc']);
-            await this.execute_jobs(ordered_jobs[0]);
+            if (filtered_jobs.length > 0) {
+
+                
+
+                const ordered_jobs = _.orderBy(filtered_jobs, ['last_schedule'], ['asc']);
+
+                ordered_jobs.length = 1;
+
+                
+
+                await this.execute_jobs(ordered_jobs);
+            }
         } catch(err) {
             this.logger.error('Job manager execution failed.');
             this.logger.error(err);
