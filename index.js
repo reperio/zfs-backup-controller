@@ -178,7 +178,7 @@ server.app.agent_api = agent_api;
 const uow = new UoW(server.app.logger);
 
 if (Config.job_manager.enabled) {
-    const job_manager = new JobManager(server.app.logger, uow, agent_api, Config.job_manager.interval);
+    const job_manager = new JobManager(server.app.logger, uow, agent_api, Config.job_manager.interval, Config.job_manager.max_jobs_per_iteration);
     job_manager.start();
 }
 

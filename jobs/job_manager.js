@@ -2,13 +2,14 @@ const _ = require('lodash');
 const moment = require('moment');
 
 class JobManager {
-    constructor(logger, uow, agentApi, job_interval) {
+    constructor(logger, uow, agentApi, job_interval, jobs_per_iteration) {
         this.logger = logger;
         this.uow = uow;
         this.agentApi = agentApi;
 
         this.job_interval_id = null;
         this.job_interval = job_interval;
+        this.jobs_per_iteration = jobs_per_iteration;
         this.executing = false;
     }
 
@@ -33,15 +34,12 @@ class JobManager {
             const filtered_jobs = await this.filter_jobs_on_runnings_hosts(jobs);
 
             if (filtered_jobs.length > 0) {
-
-                
-
                 const ordered_jobs = _.orderBy(filtered_jobs, ['last_schedule'], ['asc']);
 
-                ordered_jobs.length = 1;
-
+                if (ordered_jobs.length > this.jobs_per_iteration) {
+                    ordered_jobs.length = this.jobs_per_iteration;
+                }
                 
-
                 await this.execute_jobs(ordered_jobs);
             }
         } catch(err) {
