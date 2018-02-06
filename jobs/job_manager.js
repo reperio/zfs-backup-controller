@@ -31,7 +31,9 @@ class JobManager {
         try {
             const jobs = await this.uow.jobs_repository.getAllEnabledJobs();
             const filtered_jobs = await this.filter_jobs_on_runnings_hosts(jobs);
-            await this.execute_jobs(filtered_jobs);
+
+            const ordered_jobs = _.orderBy(filtered_jobs, ['last_schedule'], ['desc']);
+            await this.execute_jobs(ordered_jobs[0]);
         } catch(err) {
             this.logger.error('Job manager execution failed.');
             this.logger.error(err);
