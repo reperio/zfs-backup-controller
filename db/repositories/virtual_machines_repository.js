@@ -24,15 +24,7 @@ class VirtualMachinesRepository {
 
             const virtual_machines = await q;
 
-            //TODO this is gross and an extra list traversal, can objectionJS handle boolean <=> bit conversion?
-            //convert the numeric boolean values to actual true/false values
-            // for (let i = 0; i< virtual_machines.length; i++) {
-            //     if (virtual_machines[i].enabled !== null) {
-            //         virtual_machines[i].enabled = virtual_machines[i].enabled === 1 ? true : false;
-            //     }
-            // }
-
-            this.uow._logger.info('Fetched all virtual machines');
+            this.uow._logger.info(`Fetched all ${virtual_machines.length} virtual machines`);
             return virtual_machines;
         } catch (err) {
             this.uow._logger.error('Failed to fetch virtual machines');
@@ -52,13 +44,6 @@ class VirtualMachinesRepository {
 
             const virtual_machines = await q;
 
-            //convert the numeric boolean values to actual true/false values
-            for (let i = 0; i< virtual_machines.length; i++) {
-                if (virtual_machines[i].enabled !== null) {
-                    virtual_machines[i].enabled = virtual_machines[i].enabled === 1 ? true : false;
-                }
-            }
-
             this.uow._logger.info('Fetched all virtual machines');
             return virtual_machines;
         } catch (err) {
@@ -70,15 +55,14 @@ class VirtualMachinesRepository {
 
     async create_new_virtual_machine(virtual_machine) {
         if (virtual_machine.state === 'failed') {
-            this.uow._logger.info(`Skipping "${virtual_machine.sdc_id}" because vm is in a failed state`);
+            this.uow._logger.info(`Skipping "${virtual_machine.id}" because vm is in a failed state`);
             return null;
         }
 
-        this.uow._logger.info(`Creating new virtual machine "${virtual_machine.sdc_id}"`);
+        this.uow._logger.info(`Creating new virtual machine "${virtual_machine.id}"`);
         try {
             const virtual_machine_model = this.uow._models.VirtualMachine.fromJson({
-                id: virtual_machine.sdc_id,
-                sdc_id: virtual_machine.sdc_id,
+                id: virtual_machine.id,
                 name: virtual_machine.name || '',
                 enabled: true,
                 status: '',
@@ -123,10 +107,9 @@ class VirtualMachinesRepository {
     }
 
     async update_virtual_machine(virtual_machine) {
-        this.uow._logger.info(`Updating virtual machine "${virtual_machine.sdc_id}"`);
+        this.uow._logger.info(`Updating virtual machine "${virtual_machine.id}"`);
         try {
             const virtual_machine_model = this.uow._models.VirtualMachine.fromJson({
-                sdc_id: virtual_machine.sdc_id,
                 name: virtual_machine.name || '',
                 enabled: virtual_machine.enabled,
                 status: virtual_machine.status,
@@ -177,16 +160,16 @@ class VirtualMachinesRepository {
             const num_failures_sub = knex('job_history').sum(knex.raw('?? in (??) and `job_id`=??', ['result', [0, 1, 3], 'jobs.id']));
             const num_successes_sub = knex('job_history').sum(knex.raw('??=?? and `job_id`=??', ['result', 2, 'jobs.id']));
             const last_result_sub = knex.select('result').from('job_history').whereRaw('?? = ??', ['job_history.job_id', 'jobs.id']).orderBy('end_date_time', 'desc').limit(1);
-            const q = knex.column({id: 'virtual_machines.id'}, {sdc_id: 'virtual_machines.sdc_id'},
+            const q = knex.column({id: 'virtual_machines.id'},
                 {name: 'virtual_machines.name'}, {host_id: "virtual_machines.host_id"}, {job_id: 'jobs.id'}, {job_name: 'jobs.name'},
                 {job_enabled: 'jobs.enabled'}, {job_last_execution: 'jobs.last_execution'},
                 {num_failures: num_failures_sub}, {num_successes: num_successes_sub}, 
                 {last_result: last_result_sub})
                 .from('virtual_machines')
-                .leftJoin('jobs', 'jobs.sdc_vm_id', 'virtual_machines.sdc_id');
+                .leftJoin('jobs', 'jobs.sdc_vm_id', 'virtual_machines.id');
 
             if (sdc_id) {
-                q.where('virtual_machines.sdc_id', sdc_id);
+                q.where('virtual_machines.id', sdc_id);
             }
 
             const result = await q;

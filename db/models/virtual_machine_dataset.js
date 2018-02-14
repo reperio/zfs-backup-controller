@@ -1,4 +1,4 @@
-const Mode = require('objection').Model;
+const Model = require('objection').Model;
 const BaseModel = require('./base_model');
 
 class VirtualMachineDataset extends BaseModel {
@@ -6,16 +6,12 @@ class VirtualMachineDataset extends BaseModel {
         return 'virtual_machine_datasets';
     }
 
-    auto_generated_id() {
-        return 'id';
-    }
-
     static get jsonSchema() {
         return {
             type: 'Object',
             properties: {
-                id: {type: 'string'},
                 location: {type: 'string'},
+                name: {type: 'string'},
                 virtual_machine_id: {type: 'string'}
             }
         };

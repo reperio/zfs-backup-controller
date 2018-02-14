@@ -34,7 +34,7 @@ describe('DB Integration Tests', function () {
     const _uow = new UoW(logger);
 
     //set timeout
-    this.timeout(15000);
+    this.timeout(25000);
 
     //set up the database
     before(async () => {
