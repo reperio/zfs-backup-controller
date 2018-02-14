@@ -26,15 +26,9 @@ class VmApi {
             let trimmed_records = [];
 
             for (let i = 0; i < vm_records.length; i++) {
-                trimmed_records.push({
-                    sdc_id: vm_records[i].uuid,
-                    name: vm_records[i].alias,
-                    enabled: null,
-                    status: null,
-                    host_id: vm_records[i].server_uuid,
-                    state: vm_records[i].state,
-                    brand: vm_records[i].brand
-                });
+                if (vm_records[i].state !== 'destroyed' && vm_records[i].state !== 'failed') {
+                    trimmed_records.push(this.get_vm_object(vm_records[i]));
+                }
             }
 
             return trimmed_records;
@@ -61,15 +55,7 @@ class VmApi {
         try {
             const vm_record = await request(options);
             this.logger.info(`Fetched record for vm "${vm_record.uuid}"`);
-            return {
-                sdc_id: vm_record.uuid,
-                name: vm_record.alias,
-                enabled: null,
-                status: null,
-                host_id: vm_record.server_uuid,
-                state: vm_record.state,
-                brand: vm_record.brand
-            };
+            return this.get_vm_object(vm_record);
         } catch (err) {
             this.logger.error(`Failed to fetch record for vm "${uuid}"`);
             this.logger.error(err);
@@ -99,6 +85,43 @@ class VmApi {
             this.logger.error(err);
             throw err;
         }
+    }
+
+    get_vm_object(vm_record) {
+        const datasets = [];
+        if (vm_record.brand === 'kvm') {
+            for (let i = 0; i < vm_record.disks.length; i++) {
+                datasets.push({
+                    location: vm_record.disks[i].zfs_filesystem,
+                    name: vm_record.disks[i].zfs_filesystem.substr(vm_record.disks[i].zfs_filesystem.lastIndexOf('-') + 1),
+                    virtual_machine_id: vm_record.uuid
+                });
+            }
+        } else {
+            datasets.push({
+                location: vm_record.zfs_filesystem,
+                name: vm_record.zfs_filesystem.substr(vm_record.zfs_filesystem.lastIndexOf('/') + 1),
+                virtual_machine_id: vm_record.uuid
+            });
+            for (let i = 0; i < vm_record.datasets.length; i++) {
+                datasets.push({
+                    location: vm_record.datasets[i],
+                    name: vm_record.datasets[i].substr(vm_record.datasets[i].lastIndexOf('/') + 1),
+                    virtual_machine_id: vm_record.uuid
+                });
+            }
+        }
+
+        return {
+            id: vm_record.uuid,
+            name: vm_record.alias,
+            enabled: true,
+            status: '',
+            host_id: vm_record.server_uuid,
+            state: vm_record.state,
+            type: vm_record.brand,
+            datasets: datasets
+        };
     }
 }
 

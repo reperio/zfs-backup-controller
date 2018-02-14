@@ -6,10 +6,6 @@ class VirtualMachine extends BaseModel {
         return 'virtual_machines';
     }
 
-    auto_generated_id() {
-        return 'id';
-    }
-
     static get jsonSchema() {
         return {
             type: 'Object',
@@ -20,7 +16,6 @@ class VirtualMachine extends BaseModel {
                 status: { type: 'string' },
                 host_id: { type: 'string' },
                 state: { type: 'string' },
-                sdc_id: { type: 'string' },
                 last_sync: {type: 'date'},
                 type: {type: 'string'}
             }
@@ -30,6 +25,7 @@ class VirtualMachine extends BaseModel {
     static get relationMappings() {
         const Host = require('./host');
         const Job = require('./job');
+        const VirtualMachineDataset = require('./virtual_machine_dataset');
 
         return {
             virtual_machine_host: {
@@ -46,6 +42,14 @@ class VirtualMachine extends BaseModel {
                 join: {
                     from: 'virtual_machines.id',
                     to: 'jobs.sdc_vm_id'
+                }
+            },
+            datasets: {
+                relation: Model.HasManyRelation,
+                modelClass: VirtualMachineDataset,
+                join: {
+                    from: 'virtual_machines.id',
+                    to: 'virtual_machine_datasets.virtual_machine_id'
                 }
             }
         };
