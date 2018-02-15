@@ -18,21 +18,21 @@ INSERT INTO jobs (
 ,createdAt
 ,updatedAt)
 VALUES (
- '50ee0dfa-d0d6-11e7-825b-87de28fedc24'
-,'Stack13-12/data'
-,53
+ '594f7a8a-02bb-11e8-b97c-93f65dae5b64'
+,'cpc-kazoo-media-01'
+,129
 ,'95ab491f-8025-4d82-b67d-1d4fee4bf4c2'
-,'{"retentions":[{"interval":"daily","retention":1}]}'
-,'{"retentions":[{"interval":"daily","retention":7},{"interval":"weekly","retention":4},{"interval":"monthly","retention":12}]}'
-,'e57c3bf3-7ed9-4431-9af8-c0c9c7172035'
-,'zones/e57c3bf3-7ed9-4431-9af8-c0c9c7172035-disk1'
-,'zones/e57c3bf3-7ed9-4431-9af8-c0c9c7172035-disk1'
+,'{"retentions":[{"interval":"quarter_hourly","retention":0},{"interval":"hourly","retention":0},{"interval":"daily","retention":0},{"interval":"weekly","retention":0},{"interval":"monthly","retention":0}]}'
+,'{"retentions":[{"interval":"quarter_hourly","retention":0},{"interval":"hourly","retention":0},{"interval":"daily","retention":7},{"interval":"weekly","retention":4},{"interval":"monthly","retention":12}]}'
+,'57bfe549-e925-e91f-ea5c-ee2deac51a60'
+,'zones/57bfe549-e925-e91f-ea5c-ee2deac51a60'
+,'zones/57bfe549-e925-e91f-ea5c-ee2deac51a60'
 ,1
 ,1
-,'efb43ab6-8a03-41b9-91f0-782328ecaa54'
+,'efb8ade8-e53f-44ba-b80d-bfe7491e3ba7'
 ,'66fa38f1-118e-4e5c-a90b-157160b22def'
 ,NULL
 ,NULL
-,1
-,'2017-11-24 00:00:00'
-,'2017-11-24 00:00:00');
+,0
+,'2018-01-26 00:00:00'
+,'2018-01-26 00:00:00');

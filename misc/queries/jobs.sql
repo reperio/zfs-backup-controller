@@ -1,9 +1,9 @@
 SELECT
  j.id
 ,j.name
+,j.offset
 ,hs.name AS source_host
 ,ht.name AS target_host
-,j.offset
 ,s.name AS schedule
 ,j.source_retention
 ,j.target_retention
@@ -24,4 +24,5 @@ INNER JOIN hosts as ht
 ON j.target_host_id = ht.id
 INNER JOIN schedules as s
 ON j.schedule_id = s.id
-ORDER by name ASC
+WHERE j.source_host_id = '23b07664-24fc-4345-815d-bf343271c059'
+ORDER by offset ASC
