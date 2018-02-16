@@ -89,25 +89,33 @@ class VmApi {
 
     get_vm_object(vm_record) {
         const datasets = [];
+
+        datasets.push({
+            location: vm_record.zfs_filesystem,
+            name: 'zfs_filesystem',
+            virtual_machine_id: vm_record.uuid,
+            enabled: vm_record.brand === 'kvm' ? false : true,
+            type: 'root',
+        });
+
         if (vm_record.brand === 'kvm') {
             for (let i = 0; i < vm_record.disks.length; i++) {
                 datasets.push({
                     location: vm_record.disks[i].zfs_filesystem,
                     name: vm_record.disks[i].zfs_filesystem.substr(vm_record.disks[i].zfs_filesystem.lastIndexOf('-') + 1),
-                    virtual_machine_id: vm_record.uuid
+                    virtual_machine_id: vm_record.uuid,
+                    enabled: true,
+                    type: 'zvol'
                 });
             }
         } else {
-            datasets.push({
-                location: vm_record.zfs_filesystem,
-                name: vm_record.zfs_filesystem.substr(vm_record.zfs_filesystem.lastIndexOf('/') + 1),
-                virtual_machine_id: vm_record.uuid
-            });
             for (let i = 0; i < vm_record.datasets.length; i++) {
                 datasets.push({
                     location: vm_record.datasets[i],
                     name: vm_record.datasets[i].substr(vm_record.datasets[i].lastIndexOf('/') + 1),
-                    virtual_machine_id: vm_record.uuid
+                    virtual_machine_id: vm_record.uuid,
+                    enabled: true,
+                    type: 'dataset'
                 });
             }
         }
@@ -115,7 +123,6 @@ class VmApi {
         return {
             id: vm_record.uuid,
             name: vm_record.alias,
-            enabled: true,
             status: '',
             host_id: vm_record.server_uuid,
             state: vm_record.state,

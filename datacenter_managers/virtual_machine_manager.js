@@ -28,6 +28,7 @@ class VirtualMachineManager {
             let virtual_machines_to_create = [];
             let virtual_machines_to_edit = [];
             let datasets_to_create = [];
+            let datasets_to_edit = [];
             
             const now = new Date();
 
@@ -49,8 +50,15 @@ class VirtualMachineManager {
                 }
 
                 for(let j = 0; j < virtual_machines_from_api[i].datasets.length; j++) {
-                    if (!db_dataset_ids.includes(virtual_machines_from_api[i].datasets[j].location)) {
-                        datasets_to_create.push(virtual_machines_from_api[i].datasets[j]);
+                    const dataset = virtual_machines_from_api[i].datasets[j];
+                    if (!db_dataset_ids.includes(dataset.location)) {
+                        datasets_to_create.push(dataset);
+                    } else {
+                        const db_dataset = _.find(db_datasets, (db_dataset) => {
+                            return db_dataset.location === dataset.location;
+                        });
+                        dataset.enabled = (typeof db_dataset.enabled === 'undefined' || db_dataset.enabled === null) ? dataset.enabled : db_dataset.enabled;
+                        datasets_to_edit.push(dataset);
                     }
                 }
             }
@@ -58,11 +66,14 @@ class VirtualMachineManager {
             //create new virtual machines
             await this.uow.virtual_machines_repository.insert_virtual_machines_bulk(virtual_machines_to_create);
 
+            //update existing machines
+            await this.uow.virtual_machines_repository.update_virtual_machines_bulk(virtual_machines_to_edit);
+
             //create vm datasets
             await this.uow.virtual_machine_datasets_repository.create_datasets(datasets_to_create);
 
-            //update existing machines
-            await this.uow.virtual_machines_repository.update_virtual_machines_bulk(virtual_machines_to_edit);
+            //edit vm datasets
+            await this.uow.virtual_machine_datasets_repository.update_datasets(datasets_to_edit);
 
             this.uow._logger.info('VM Manager execution finished');
         } catch(err) {

@@ -64,7 +64,6 @@ class VirtualMachinesRepository {
             const virtual_machine_model = this.uow._models.VirtualMachine.fromJson({
                 id: virtual_machine.id,
                 name: virtual_machine.name || '',
-                enabled: true,
                 status: '',
                 host_id: virtual_machine.host_id === 'null' ? 'NULL' : virtual_machine.host_id,
                 state: virtual_machine.state,
@@ -111,7 +110,6 @@ class VirtualMachinesRepository {
         try {
             const virtual_machine_model = this.uow._models.VirtualMachine.fromJson({
                 name: virtual_machine.name || '',
-                enabled: virtual_machine.enabled,
                 status: virtual_machine.status,
                 host_id: virtual_machine.host_id,
                 state: virtual_machine.state,
