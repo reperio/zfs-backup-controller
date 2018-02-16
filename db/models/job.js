@@ -40,6 +40,7 @@ class Job extends BaseModel {
         const JobHistory = require('./job_history');
         const Snapshot = require('./snapshot');
         const VirtualMachine = require('./virtual_machine');
+        const VirtualMachineDataset = require('./virtual_machine_dataset');
 
         return {
             job_source_host: {
@@ -88,6 +89,14 @@ class Job extends BaseModel {
                 join: {
                     from: 'jobs.sdc_vm_id',
                     to: 'virtual_machines.id'
+                }
+            },
+            dataset: {
+                relation: Model.BelongsToOneRelation,
+                modelClass: VirtualMachineDataset,
+                join: {
+                    from: 'jobs.source_location',
+                    to: 'virtual_machine_datasets.location'
                 }
             }
         };
