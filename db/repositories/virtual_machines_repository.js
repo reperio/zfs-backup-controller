@@ -5,7 +5,8 @@ class VirtualMachinesRepository {
         this.uow = uow;
     }
 
-    async get_all_virtual_machines(host_id, filter) {
+    async get_all_virtual_machines(host_id, filter, all) {
+        all = all | false;
         this.uow._logger.info('Fetching all virtual machines from database');
         try {
             let q = this.uow._models.VirtualMachine
@@ -22,6 +23,11 @@ class VirtualMachinesRepository {
                 q = q.where('virtual_machines.name', 'like', `%${filter}%`);
             }
 
+            if (!all) {
+                q.where('state', '=', 'running')
+                .orWhere('state', '=', 'stopped');
+            }
+
             const virtual_machines = await q;
 
             this.uow._logger.info(`Fetched all ${virtual_machines.length} virtual machines`);
@@ -33,14 +39,19 @@ class VirtualMachinesRepository {
         }
     }
 
-    async get_all_virtual_machines_by_host_id(id) {
+    async get_all_virtual_machines_by_host_id(id, all) {
+        all = all | false;
         this.uow._logger.info(`Fetching all virtual machines from database with host_id ${id}`);
         try {
             const q = this.uow._models.VirtualMachine
                 .query(this.uow._transaction)
                 .where('host_id', id)
-                .where('state', '<>', 'destroyed')
                 .orderBy('name', 'asc');
+
+            if (!all) {
+                q.where('state', '=', 'running')
+                .orWhere('state', '=', 'stopped');
+            }
 
             const virtual_machines = await q;
 
