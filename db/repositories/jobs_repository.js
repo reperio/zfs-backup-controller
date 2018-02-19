@@ -52,7 +52,6 @@ class JobsRepository {
                 .mergeEager('job_virtual_machine');
 
             const job = await q;
-            this.uow._logger.debug(JSON.stringify(job.last_execution));
             return job;
         } catch (err) {
             this.uow._logger.error(`Failed to fetch job "${id}"`);

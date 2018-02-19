@@ -2,14 +2,14 @@ const _ = require('lodash');
 const moment = require('moment');
 
 class JobManager {
-    constructor(logger, uow, agentApi, job_interval, jobs_per_iteration) {
+    constructor(logger, uow, agentApi, job_interval, jobs_per_host) {
         this.logger = logger;
         this.uow = uow;
         this.agentApi = agentApi;
 
         this.job_interval_id = null;
         this.job_interval = job_interval;
-        this.jobs_per_iteration = jobs_per_iteration;
+        this.jobs_per_host = jobs_per_host;
         this.executing = false;
     }
 
@@ -30,18 +30,14 @@ class JobManager {
         this.logger.info('Job Manager execution started.');
 
         try {
+            //get current workload, find all enabled jobs, filter to the ones that are ready based on schedule, order them, and filter them by current host workload.
+            const currentWorkload = await this.getCurrentWorkloadByHost();
             const jobs = await this.uow.jobs_repository.getAllEnabledJobs();
-            const filtered_jobs = await this.filter_jobs_on_runnings_hosts(jobs);
+            const jobsScheduledToExecute = _.filter(jobs, this.should_job_execute.bind(this));
+            const ordered_jobs = _.orderBy(jobsScheduledToExecute, ['last_schedule'], ['asc']);
+            const jobsToExecute = await this.filterJobsByWorkload(ordered_jobs, currentWorkload);
 
-            if (filtered_jobs.length > 0) {
-                const ordered_jobs = _.orderBy(filtered_jobs, ['last_schedule'], ['asc']);
-
-                if (ordered_jobs.length > this.jobs_per_iteration) {
-                    ordered_jobs.length = this.jobs_per_iteration;
-                }
-                
-                await this.execute_jobs(ordered_jobs);
-            }
+            await this.execute_jobs(jobsToExecute);
         } catch(err) {
             this.logger.error('Job manager execution failed.');
             this.logger.error(err);
@@ -57,14 +53,47 @@ class JobManager {
         this.logger.info('Job Manager execution finished.');
     }
 
+    async getCurrentWorkloadByHost() {
+        const running_job_history_entries = await this.uow.job_history_repository.getUnfinishedJobs();
+
+        this.logger.info(`Found ${running_job_history_entries.length} running job history entries.`);
+
+        const jobs_per_host = {}; //will hold host_id:int for how many current jobs are running on a host.
+
+        for (let running_job of running_job_history_entries) {
+            
+            const source_host = running_job.job_history_job.source_host_id;
+            const target_host = running_job.job_history_job.target_host_id;
+
+            this.logger.info(`Job: ${running_job.id} source_host: ${source_host} target_host: ${target_host} is currently running.`);
+
+            //increment or set the counter for the current source and target host
+            if (jobs_per_host[source_host]) {
+                jobs_per_host[source_host] += 1;
+            } else {
+                jobs_per_host[source_host] = 1;
+            }
+
+            if (jobs_per_host[target_host]) {
+                jobs_per_host[target_host] += 1;
+            } else {
+                jobs_per_host[target_host] = 1;
+            }
+        }
+
+        this.logger.info(`Current workload: ${JSON.stringify(jobs_per_host)}`);
+
+        return jobs_per_host;
+    }
+
     async cleanup_finished_jobs() {
-        this.logger.info('Fetching unfinished jobs to clean up');
+        this.logger.info('Fetching running jobs to clean up');
         const jobs = await this.uow.job_history_repository.getUnfinishedJobs();
 
         for (let job of jobs) {
             try {
                 let updated = false;
-                this.logger.info(`${job.job_id} | ${job.id} Checking job.`);
+                this.logger.info(`${job.job_id} | ${job.id} Checking job state.`);
                 if (job.source_result === 3 || job.target_result === 3) {
                     this.logger.info(`${job.job_id} | ${job.id} Setting job to failed.`);
                     job.result = 3;
@@ -90,56 +119,45 @@ class JobManager {
         }
     }
 
-    async filter_eligible_jobs(jobs) { //TODO filter out any jobs that need to be run for source or target that already have jobs running, order by oldest schedule time
-        this.logger.info(`Filtering ${jobs.length} jobs by job status.`);
+    async filterJobsByWorkload(jobs, workload) {
+        this.logger.info(`Filtering ${jobs.length} jobs using workload: ${JSON.stringify(workload)}.`);
 
-        const unfinished_job_history_entries = await this.uow.job_history_repository.getUnfinishedJobs();
+        const jobsToExecute = [];
 
-        const job_ids = unfinished_job_history_entries.map((job_history) => {
-            return job_history.job_id;
-        });
+        const newWorkload = Object.assign({}, workload);
 
-        this.logger.info(job_ids);
+        for (const job of jobs) {
+            const source_host = job.source_host_id;
+            const target_host = job.target_host_id;
 
-        const jobs_not_currently_executing = _.filter(jobs, (job) => {
-            return !_.includes(job_ids, job.id);
-        });
+            const currentSourceWorkload = newWorkload[source_host] || 0;
+            const currentTargetWorkload = newWorkload[target_host] || 0;
 
-        this.logger.info(`Filtering ${jobs_not_currently_executing.length} jobs not already executing`);
+            let newSourceWorkload = currentSourceWorkload + 1;
+            let newTargetWorkload = currentTargetWorkload + 1;
 
+            let sourceHasRoom = newSourceWorkload <= this.jobs_per_host;
+            let targetHasRoom = newTargetWorkload <= this.jobs_per_host;
 
-        return _.filter(jobs_not_currently_executing, this.should_job_execute.bind(this));
-    }
-
-    async filter_jobs_on_runnings_hosts(jobs) {
-        this.logger.info(`Filtering ${jobs.length} jobs by hosts.`);
-
-        const unfinished_job_history_entries = await this.uow.job_history_repository.getUnfinishedJobs();
-
-        this.logger.info(`Found ${unfinished_job_history_entries.length} unfinished job history entries.`);
-
-        const busy_host_ids = [];
-
-        for (let unfinished_job of unfinished_job_history_entries) {
-            busy_host_ids.push(unfinished_job.job_history_job.source_host_id);
-            busy_host_ids.push(unfinished_job.job_history_job.target_host_id);
+            if (sourceHasRoom && targetHasRoom) {
+                this.logger.info(`Job ${job.id} allowed to execute based on current workload. source: ${source_host}:${currentSourceWorkload} target: ${target_host}:${currentTargetWorkload}`);
+                jobsToExecute.push(job);
+                newWorkload[source_host] = newSourceWorkload;
+                newWorkload[target_host] = newTargetWorkload;
+            } else {
+                this.logger.info(`Job ${job.id} NOT allowed to execute based on current workload. source: ${source_host}:${currentSourceWorkload} target: ${target_host}:${currentTargetWorkload}`);
+            }
         }
 
-        this.logger.info(`Found ${busy_host_ids.length} busy hosts: ${busy_host_ids}`);
-        
-        const jobs_not_on_busy_hosts = _.filter(jobs, (job) => {
-            return !_.includes(busy_host_ids, job.source_host_id);
-        });
-
-        return _.filter(jobs_not_on_busy_hosts, this.should_job_execute.bind(this));
+        return jobsToExecute;
     }
 
     should_job_execute(job) {
         const current_scheduled_time = this.get_most_recent_schedule_time(job);
-        this.logger.debug(`Current Scheduled Execution Time: ${current_scheduled_time}`);
+        this.logger.debug(`${job.id} - Current Scheduled Execution Time: ${current_scheduled_time}`);
 
         const last_scheduled_execution = moment(job.last_schedule);
-        this.logger.debug(`Last Scheduled Execution Time: ${last_scheduled_execution}`);
+        this.logger.debug(`${job.id} - Last Scheduled Execution Time: ${last_scheduled_execution}`);
 
         return !last_scheduled_execution.isValid() || current_scheduled_time.isAfter(last_scheduled_execution);
     }
@@ -188,6 +206,10 @@ class JobManager {
 
     async execute_jobs(jobs) {
         this.logger.info(`Executing ${jobs.length} jobs`);
+
+        for (let job of jobs) {
+            this.logger.info(`Job: ${job.id}`);
+        }
 
         for (let index = 0 ; index < jobs.length ; ++index) {
             const current_job = jobs[index];
