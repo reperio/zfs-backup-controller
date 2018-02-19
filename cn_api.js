@@ -23,8 +23,12 @@ class CnApi {
 
         try {
             const serverRecords = await request(http_options);
+            let full_server_records = [];
+            for (let i = 0; i < serverRecords.length; i++) {
+                full_server_records.push(await this.getServerRecord(serverRecords[i].uuid));
+            }
             this.logger.info('Retrieved servers from cn_api');
-            return serverRecords;
+            return full_server_records;
         } catch (err) {
             this.logger.error(err);
             throw err;

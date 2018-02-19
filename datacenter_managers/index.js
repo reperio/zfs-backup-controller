@@ -13,7 +13,7 @@ class DataCenterApisManager {
         const cn_api = new CnApi(this.config, this.uow._logger);
         const vm_api = new VmApi(this.config, this.uow._logger);
 
-        const host_manager = new HostManager(this.uow, cn_api);
+        const host_manager = new HostManager(this.uow, cn_api, this.config.default_host_port, this.config.cnapi_admin_network);
         const vm_manager = new VirtualMachineManager(this.uow, vm_api);
 
         this.interval_id = setInterval(async () => {

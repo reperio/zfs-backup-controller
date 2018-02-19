@@ -1,9 +1,12 @@
 const _ = require('lodash');
+const range = require('range_check');
 
 class HostsManager {
-    constructor(uow, cn_api) {
+    constructor(uow, cn_api, default_host_port, admin_network) {
         this.uow = uow;
         this.cn_api = cn_api;
+        this.default_host_port = default_host_port;
+        this.admin_network = admin_network;
     }
 
     async execute() {
@@ -20,8 +23,8 @@ class HostsManager {
                     id: api_host.uuid,
                     name: api_host.hostname,
                     sdc_id: api_host.uuid,
-                    ip_address: '',
-                    port: 0
+                    ip_address: this.get_ip_addresses(api_host),
+                    port: this.default_host_port
                 });
             });
 
@@ -35,16 +38,15 @@ class HostsManager {
             _(converted_api_hosts).each((api_host) => {
                 let is_in_database = false;
 
-                //const ip_address = this.get_ip_addresses(api_host);
                 _(db_hosts).each((db_host) => {
                     if (api_host.sdc_id === db_host.sdc_id) {
                         is_in_database = true;
                         const new_updated_host = {
                             id: db_host.id,
-                            name: db_host.name,
+                            name: api_host.name,
                             sdc_id: db_host.sdc_id,
-                            ip_address: db_host.ip_address,
-                            port: db_host.port
+                            ip_address: api_host.ip_address,
+                            port: db_host.port || this.default_host_port
                         };
                         hosts_to_update.push(new_updated_host);
                     }
@@ -69,16 +71,17 @@ class HostsManager {
     }
 
     get_ip_addresses(host) {
-        let addresses = [];
         let nics = host.sysinfo['Network Interfaces'];
 
         for(let nic in nics) {
             if (nics[nic]['Link Status'] === 'up') {
-                addresses.push(nics[nic].ip4addr);
+                if (range.inRange(nics[nic].ip4addr, this.admin_network)) {
+                    return nics[nic].ip4addr;
+                }
             }
         }
 
-        return addresses.join(', ');
+        return '';
     }
 }
 
