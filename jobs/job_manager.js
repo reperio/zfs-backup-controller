@@ -31,11 +31,26 @@ class JobManager {
 
         try {
             //get current workload, find all enabled jobs, filter to the ones that are ready based on schedule, order them, and filter them by current host workload.
-            const currentWorkload = await this.getCurrentWorkloadByHost();
+            const runningJobEntries = await this.uow.job_history_repository.getUnfinishedJobs();
+            const runningJobIds = _.uniq(_.map(runningJobEntries, 'job_id'));
+
+            const currentWorkload = await this.getCurrentWorkloadByHost(runningJobEntries);
+
             const jobs = await this.uow.jobs_repository.getAllEnabledJobs();
+            this.logger.info(`Found ${jobs.length} enabled jobs`);
+
             const jobsScheduledToExecute = _.filter(jobs, this.should_job_execute.bind(this));
-            const ordered_jobs = _.orderBy(jobsScheduledToExecute, ['last_schedule'], ['asc']);
+            this.logger.info(`Found ${jobsScheduledToExecute.length} jobs scheduled to execute`);
+
+            const jobsScheduledAndNotRunning = _.filter(jobsScheduledToExecute, (job) => {
+                return !_.includes(runningJobIds, job.id);
+            });
+            this.logger.info(`Found ${jobsScheduledAndNotRunning.length} jobs not already running`);
+
+            const ordered_jobs = _.orderBy(jobsScheduledAndNotRunning, ['last_schedule'], ['asc']);
+
             const jobsToExecute = await this.filterJobsByWorkload(ordered_jobs, currentWorkload);
+            this.logger.info(`Found ${jobsToExecute.length} jobs able to execute based on workload`);
 
             await this.execute_jobs(jobsToExecute);
         } catch(err) {
@@ -53,9 +68,7 @@ class JobManager {
         this.logger.info('Job Manager execution finished.');
     }
 
-    async getCurrentWorkloadByHost() {
-        const running_job_history_entries = await this.uow.job_history_repository.getUnfinishedJobs();
-
+    async getCurrentWorkloadByHost(running_job_history_entries) {
         this.logger.info(`Found ${running_job_history_entries.length} running job history entries.`);
 
         const jobs_per_host = {}; //will hold host_id:int for how many current jobs are running on a host.

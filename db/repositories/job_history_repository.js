@@ -25,7 +25,7 @@ class JobHistoryRepository {
     }
 
     async getUnfinishedJobs() {
-        this.uow._logger.info('Fetching unfinished jobs');
+        this.uow._logger.info('Fetching running jobs');
         const q = this.uow._models.JobHistory
             .query(this.uow._transaction)
             .eagerAlgorithm(this.uow._models.JobHistory.JoinEagerAlgorithm)
