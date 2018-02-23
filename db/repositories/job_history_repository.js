@@ -24,8 +24,11 @@ class JobHistoryRepository {
         return formattedName;
     }
 
-    //params: {"startRow":0,"endRow":100,"sortModel":[],"filterModel":{}}
+    // examples
+    // {"startRow":0,"endRow":100,"sortModel":[],"filterModel":{}}
     // {"startRow":0,"endRow":100,"sortModel":[{"colId":"job_history_job.name","sort":"desc"}],"filterModel":{}}
+    // {"startRow":0,"endRow":100,"sortModel":[],"filterModel":{"job_history_job.name":{"type":"contains","filter":"stack","filterType":"text"}}}
+    //{"startRow":0,"endRow":100,"sortModel":[],"filterModel":{"job_history_job.name":{"type":"contains","filter":"stack","filterType":"text"},"job_history_job.job_source_host.name":{"type":"contains","filter":"head","filterType":"text"}}}
     async getAllJobHistories(params) {
         this.uow._logger.info(`Fetching all job histories: ${JSON.stringify(params)}`);
         let q = this.uow._models.JobHistory
@@ -42,6 +45,21 @@ class JobHistoryRepository {
         // if (virtual_machine_id) {
         //     q = q.andWhere('job_history_job.sdc_vm_id', virtual_machine_id);
         // }
+
+        if (params.filterModel['job_history_job.name']) {
+            const filter = params.filterModel['job_history_job.name'].filter + '%';
+            q = q.whereRaw('job_history_job.name LIKE ? ', [filter]);
+        }
+
+        if (params.filterModel['job_history_job.job_source_host.name']) {
+            const filter = params.filterModel['job_history_job.job_source_host.name'].filter + '%';
+            q = q.whereRaw('`job_history_job:job_source_host`.`name` LIKE ? ', [filter]);
+        }
+
+        if (params.filterModel['job_history_job.job_virtual_machine.name']) {
+            const filter = params.filterModel['job_history_job.job_virtual_machine.name'].filter + '%';
+            q = q.whereRaw('`job_history_job:job_virtual_machine`.`name` LIKE ? ', [filter]);
+        }
 
         for (let sort of params.sortModel) {
             q = q.orderBy(this.formatColumnForSort(sort.colId), sort.sort);
