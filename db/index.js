@@ -1,16 +1,12 @@
-const {knex, Model} = require('./connect');
-
 const models = require('./models');
 const repositories = require('./repositories');
 
 class UnitOfWork {
-    constructor(logger) {
+    constructor(logger, knex, Model) {
         this._knex = knex;
         this._Model = Model;
         this._models = models;
         this._transaction = null;
-
-        //knex.on('query', (query) => logger.debug(query.toNative()));
 
         this._logger = logger;
 
@@ -57,4 +53,16 @@ class UnitOfWork {
     }
 }
 
-module.exports = UnitOfWork;
+module.exports = (logger) => {
+    const {knex, Model} = require('./connect');
+
+    knex.on('query', (query) => {
+        logger.debug(`Query ID: ${query.__knexQueryUid}`);
+        logger.debug(query.toNative());
+    });
+
+    return () => {
+        return new UnitOfWork(logger, knex, Model);
+    };
+};
+

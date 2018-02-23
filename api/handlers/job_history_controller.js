@@ -6,27 +6,21 @@ const Joi = require('joi');
 const routes = [];
 
 routes.push({
-    method: ['GET'],
+    method: ['POST'],
     path: '/job_histories',
     handler: getAllJobHistories,
     config: {
-        cors: true,
-        validate: {
-            query: {
-                host_id: Joi.string().optional(),
-                virtual_machine_id: Joi.string().optional()
-            }
-        }
+        cors: true
     }
 });
 
 async function getAllJobHistories(request, reply) {
     const uow = await request.app.getNewUoW();
 
-    uow._logger.info(`Fetching job history: ${JSON.stringify(request.query)}`);
+    uow._logger.info(`Fetching job history: ${JSON.stringify(request.payload)}`);
 
     try {
-        const job_histories = await uow.job_history_repository.getAllJobHistories(request.query.host_id, request.query.virtual_machine_id);
+        const job_histories = await uow.job_history_repository.getAllJobHistories(request.payload);
 
         return reply(job_histories);
     } catch (err) {

@@ -9,7 +9,7 @@ require('winston-daily-rotate-file');
 const JobManager = require('./jobs/job_manager');
 const RetentionManager = require('./retention/retention_manager');
 const DatacenterApisManager = require('./datacenter_managers/index');
-const UoW = require('./db');
+
 const AgentApi = require('./agent_api');
 const CnApi = require('./cn_api');
 const VmApi = require('./vm_api');
@@ -129,6 +129,8 @@ server.ext({
     }
 });
 
+const CreateUow = require('./db')(server.app.logger);
+
 server.ext({
     type: "onRequest",
     method: async (request, reply) => {
@@ -137,7 +139,7 @@ server.ext({
         request.app.vmapis = [];
 
         request.app.getNewUoW = async () => {
-            const uow = new UoW(server.app.logger);
+            const uow = CreateUow(server.app.logger);
             request.app.uows.push(uow);
             return uow;
         };
@@ -158,10 +160,6 @@ server.ext({
     }
 });
 
-// if (!Config.db_logging) {
-//     server.app.db._db.sequelize.options.logging = false;
-// }
-
 server.start(err => {
     if (err) {
         app_logger.error(err);
@@ -175,7 +173,7 @@ const agent_api = new AgentApi(Config, server.app.logger);
 
 server.app.agent_api = agent_api;
 
-const uow = new UoW(server.app.logger);
+const uow = CreateUow(server.app.logger);
 
 if (Config.job_manager.enabled) {
     const job_manager = new JobManager(server.app.logger, uow, agent_api, Config.job_manager.interval, Config.job_manager.max_jobs_per_host);

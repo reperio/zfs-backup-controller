@@ -3,8 +3,31 @@ class JobHistoryRepository {
         this.uow = uow;
     }
 
-    async getAllJobHistories(host_id, virtual_machine_id) {
-        this.uow._logger.info(`Fetching all job histories: ${host_id} | ${virtual_machine_id}`);
+    formatColumnForSort(columnName) {
+        let formattedName = '';
+        let parts = columnName.split('.');
+
+        for (let index = 0 ; index < parts.length ; ++index) {
+            const part = parts[index];
+            
+            if (index > 0) {
+                if (index === (parts.length - 1)) {
+                    formattedName += '.';
+                } else {
+                    formattedName += ':';
+                }
+            }
+
+            formattedName += part;
+        }
+
+        return formattedName;
+    }
+
+    //params: {"startRow":0,"endRow":100,"sortModel":[],"filterModel":{}}
+    // {"startRow":0,"endRow":100,"sortModel":[{"colId":"job_history_job.name","sort":"desc"}],"filterModel":{}}
+    async getAllJobHistories(params) {
+        this.uow._logger.info(`Fetching all job histories: ${JSON.stringify(params)}`);
         let q = this.uow._models.JobHistory
             .query(this.uow._transaction)
             .eagerAlgorithm(this.uow._models.JobHistory.JoinEagerAlgorithm)
@@ -12,16 +35,23 @@ class JobHistoryRepository {
             .mergeEager('job_history_job.job_target_host')
             .mergeEager('job_history_job.job_virtual_machine');
 
-        if (host_id) {
-            q = q.where('job_history_job.source_host_id', host_id);
+        // if (host_id) {
+        //     q = q.where('job_history_job.source_host_id', host_id);
+        // }
+
+        // if (virtual_machine_id) {
+        //     q = q.andWhere('job_history_job.sdc_vm_id', virtual_machine_id);
+        // }
+
+        for (let sort of params.sortModel) {
+            q = q.orderBy(this.formatColumnForSort(sort.colId), sort.sort);
         }
 
-        if (virtual_machine_id) {
-            q = q.andWhere('job_history_job.sdc_vm_id', virtual_machine_id);
-        }
+        q = q.limit(params.endRow - params.startRow).offset(params.startRow);
         
         const job_histories = await q;
-        return job_histories;
+        const count = await this.uow._models.JobHistory.query(this.uow._transaction).count('id as count');
+        return {data: job_histories, count: count[0].count};
     }
 
     async getUnfinishedJobs() {
