@@ -24,8 +24,7 @@ class VirtualMachinesRepository {
             }
 
             if (!all) {
-                q.where('state', '=', 'running')
-                .orWhere('state', '=', 'stopped');
+                q.where('state', 'in', ['running', 'stopped']);
             }
 
             const virtual_machines = await q;
@@ -49,8 +48,7 @@ class VirtualMachinesRepository {
                 .orderBy('name', 'asc');
 
             if (!all) {
-                q.where('state', '=', 'running')
-                .orWhere('state', '=', 'stopped');
+                q.where('state', 'in', ['running', 'stopped']);
             }
 
             const virtual_machines = await q;
