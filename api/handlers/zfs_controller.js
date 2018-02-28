@@ -100,7 +100,9 @@ async function receive_complete(request, reply) {
 
         logger.info(`  ${job_history.job_id} | ${job_history.id} - Updating job snapshot.`);
         let snapshot = job_history.job_history_snapshot;
-        snapshot.target_host_status = 1;
+        
+        //set snapshot target status to 'receive_failed' if the 'result' is failed, otherwise set it to 'created'
+        snapshot.target_host_status = result === 3 ? 4 : 1;
         await uow.snapshots_repository.updateSnapshotEntry(snapshot);
         logger.info(`  ${job_history.job_id} | ${job_history.id} - Job snapshot updated.`);
 
