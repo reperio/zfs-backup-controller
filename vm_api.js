@@ -92,10 +92,10 @@ class VmApi {
 
         datasets.push({
             location: vm_record.zfs_filesystem,
-            name: 'zfs_filesystem',
+            name: 'root',
             virtual_machine_id: vm_record.uuid,
             enabled: vm_record.brand === 'kvm' ? false : true,
-            type: 'root',
+            type: 'root'
         });
 
         if (vm_record.brand === 'kvm') {
