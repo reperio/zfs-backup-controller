@@ -3,7 +3,7 @@ class HostsRepository {
         this.uow = uow;
     }
 
-    async getAllHosts() {
+    async get_all_hosts() {
         this.uow._logger.info('Fetching all hosts from database');
         try {
             const q = this.uow._models.Host
