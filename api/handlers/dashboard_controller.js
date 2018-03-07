@@ -1,25 +1,25 @@
 'use strict';
 /* eslint no-use-before-define: 0*/
 
+const _ = require('lodash');
 const Boom = require('boom');
 
 const routes = [];
 
-function getServerStatus(server_uuid, virtual_machines, logger) {
+function getServerStatus(server_uuid, datasets) {
     let status = 'good';
 
-    for (let j = 0; j < virtual_machines.length; j++) {
-        if(virtual_machines[j].host_id === server_uuid) {
-            const virtual_machine = virtual_machines[j];
-            if (virtual_machine.job_id === null || virtual_machine.num_successes <= 0) {
+    for (let j = 0; j < datasets.length; j++) {
+        if(datasets[j].host_id === server_uuid) {
+            const dataset = datasets[j];
+            if (dataset.job_id === null || dataset.num_successes <= 0) {
                 status = 'bad';
-                //since the colors are by host and not by job, we can break out of this loop because we already know the status for this host
+                //since the colors are by host and not by dataset, we can break out of this loop because we already know the status for this host
                 break;
-            } else if (virtual_machine.last_result !== 2) {
+            } else if (dataset.last_result !== 2) {
                 //don't break here because we could still land in a bad status
                 status = 'warn';
             }
-            logger.debug(`server: ${server_uuid}, job: ${virtual_machine.job_id}, num_failures: ${virtual_machine.num_failures}, num_successes: ${virtual_machine.num_successes}, last_result: ${virtual_machine.last_result}, status: ${status}`);
         }
     }
 
@@ -42,32 +42,50 @@ async function getDashboardData(request, reply) {
     logger.info('Retrieving dashboard data');
 
     try {
-        const servers = await cnapi.getAllServers();
+        //fetch hosts from database
+        const hosts = await uow.hosts_repository.get_all_hosts();
+        const datasets = await uow.virtual_machine_datasets_repository.get_dataset_backup_statistics();
 
-        let serverPromises = [];
-
-        for(let i = 0; i < servers.length; i++) {
-            serverPromises.push(cnapi.getServerRecord(servers[i].uuid));
+        let promises = [];
+        for (let i = 0; i < hosts.length; i++) {
+            if (hosts[i].sdc_id !== '') {
+                promises.push(cnapi.getServerRecord(hosts[i].sdc_id));
+            } else {
+                hosts[i].sdc_id = 'n/a';
+                hosts[i].memory_total_bytes = 200;
+                hosts[i].memory_provisionable_bytes = 1;
+                hosts[i].memory_available_bytes = 1;
+                hosts[i].reservation_ratio = 1;
+                hosts[i].disk_pool_alloc_bytes = 0;
+                hosts[i].disk_pool_size_bytes = 100;
+                hosts[i].datacenter = 'n/a';
+            }
         }
 
-        let serverRecords = await Promise.all(serverPromises);
+        for (let i = 0; i < promises.length; i++) {
+            const cnapi_record = await promises[i];
 
-        //append status to each server record
-        //good: All enabled machines have a job and a successful backup
-        //warning: Last backup failed
-        //bad: Not configured or no successful backups
-        
-        //fetch all virtual machines from the database
-        const virtual_machines = await uow.virtual_machines_repository.get_virtual_machine_status();
-        
-        for (let i = 0; i < serverRecords.length; i++) {
-            const server_uuid = serverRecords[i].uuid;
-            const status = getServerStatus(server_uuid, virtual_machines, logger);
-            
-            serverRecords[i].status = status;
+            const db_host = _.find(hosts, host => {
+                return host.sdc_id === cnapi_record.uuid;
+            });
+
+            db_host.memory_total_bytes = cnapi_record.memory_total_bytes;
+            db_host.memory_provisionable_bytes = cnapi_record.memory_provisionable_bytes;
+            db_host.memory_available_bytes = cnapi_record.memory_available_bytes;
+            db_host.reservation_ratio = cnapi_record.reservation_ratio;
+            db_host.disk_pool_alloc_bytes = cnapi_record.disk_pool_alloc_bytes;
+            db_host.disk_pool_size_bytes = cnapi_record.disk_pool_size_bytes;
+            db_host.datacenter = cnapi_record.datacenter;
+            db_host.vms = cnapi_record.vms;
+
+            //append status to each server record
+            //good: All enabled machines have a job and a successful backup
+            //warning: Last backup failed
+            //bad: Not configured or no successful backups
+            db_host.status = getServerStatus(hosts[i].sdc_id, datasets);
         }
 
-        return reply(serverRecords);
+        return reply(hosts);
     } catch (err) {
         logger.error('Failed to retrieve dashboard data');
         logger.error(err);
@@ -75,6 +93,5 @@ async function getDashboardData(request, reply) {
         return reply(Boom.badImplementation('Failed to retrieve dashboard data'));
     }
 }
-
 
 module.exports = routes;
