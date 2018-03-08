@@ -36,7 +36,8 @@ class JobHistoryRepository {
             .eagerAlgorithm(this.uow._models.JobHistory.JoinEagerAlgorithm)
             .mergeEager('job_history_job.job_source_host')
             .mergeEager('job_history_job.job_target_host')
-            .mergeEager('job_history_job.job_virtual_machine');
+            .mergeEager('job_history_job.job_virtual_machine')
+            .mergeEager('job_history_snapshot');
 
         if (params.filterModel['job_history_job.name']) {
             const filter = params.filterModel['job_history_job.name'].filter + '%';
@@ -60,7 +61,7 @@ class JobHistoryRepository {
         // const count = await q.clone().count('*');
         const countQ = q.clone().select({count: this.uow._Model.raw("count(*)")});
         const countData = await countQ;
-        const count = parseInt(countData[0].count);
+        const count = countData.length > 0 ? parseInt(countData[0].count) : 0;
 
         q = q.limit(params.endRow - params.startRow).offset(params.startRow);
         

@@ -126,7 +126,8 @@ class VirtualMachineDatasetsRepository {
                 .from('virtual_machine_datasets')                
                 .leftJoin('virtual_machines', 'virtual_machines.id', 'virtual_machine_datasets.virtual_machine_id')
                 .leftJoin('jobs', 'jobs.source_location', 'virtual_machine_datasets.location')
-                .where('virtual_machine_datasets.enabled', true);
+                .where('virtual_machine_datasets.enabled', true)
+                .whereIn('virtual_machines.state', ['running', 'stopped']);
 
             if (virtual_machine_id) {
                 q.where('virtual_machines.sdc_id', virtual_machine_id);
