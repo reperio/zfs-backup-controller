@@ -28,7 +28,7 @@ class JobHistoryRepository {
     // {"startRow":0,"endRow":100,"sortModel":[],"filterModel":{}}
     // {"startRow":0,"endRow":100,"sortModel":[{"colId":"job_history_job.name","sort":"desc"}],"filterModel":{}}
     // {"startRow":0,"endRow":100,"sortModel":[],"filterModel":{"job_history_job.name":{"type":"contains","filter":"stack","filterType":"text"}}}
-    //{"startRow":0,"endRow":100,"sortModel":[],"filterModel":{"job_history_job.name":{"type":"contains","filter":"stack","filterType":"text"},"job_history_job.job_source_host.name":{"type":"contains","filter":"head","filterType":"text"}}}
+    // {"startRow":0,"endRow":100,"sortModel":[],"filterModel":{"job_history_job.name":{"type":"contains","filter":"stack","filterType":"text"},"job_history_job.job_source_host.name":{"type":"contains","filter":"head","filterType":"text"}}}
     async getAllJobHistories(params) {
         this.uow._logger.info(`Fetching all job histories: ${JSON.stringify(params)}`);
         let q = this.uow._models.JobHistory
@@ -37,14 +37,6 @@ class JobHistoryRepository {
             .mergeEager('job_history_job.job_source_host')
             .mergeEager('job_history_job.job_target_host')
             .mergeEager('job_history_job.job_virtual_machine');
-
-        // if (host_id) {
-        //     q = q.where('job_history_job.source_host_id', host_id);
-        // }
-
-        // if (virtual_machine_id) {
-        //     q = q.andWhere('job_history_job.sdc_vm_id', virtual_machine_id);
-        // }
 
         if (params.filterModel['job_history_job.name']) {
             const filter = params.filterModel['job_history_job.name'].filter + '%';
@@ -65,11 +57,16 @@ class JobHistoryRepository {
             q = q.orderBy(this.formatColumnForSort(sort.colId), sort.sort);
         }
 
+        // const count = await q.clone().count('*');
+        const countQ = q.clone().select({count: this.uow._Model.raw("count(*)")});
+        const countData = await countQ;
+        const count = parseInt(countData[0].count);
+
         q = q.limit(params.endRow - params.startRow).offset(params.startRow);
         
         const job_histories = await q;
-        const count = await this.uow._models.JobHistory.query(this.uow._transaction).count('id as count');
-        return {data: job_histories, count: count[0].count};
+        
+        return {data: job_histories, count: count};
     }
 
     async getUnfinishedJobs() {

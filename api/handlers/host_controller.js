@@ -19,7 +19,7 @@ async function getHosts(request, reply) {
 
     try {
         uow._logger.info('Fetching hosts');
-        const hosts = await uow.hosts_repository.getAllHosts();
+        const hosts = await uow.hosts_repository.get_all_hosts();
 
         return reply(hosts);
     } catch (err) {
