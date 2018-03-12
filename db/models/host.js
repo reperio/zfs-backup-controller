@@ -16,7 +16,7 @@ class Host extends BaseModel {
             properties: {
                 id: { type: 'string' },
                 name: { type: 'string' },
-                sdc_id: { type: 'string' },
+                sdc_id: { type: ['string', 'null'] },
                 ip_address: { type: 'string' },
                 port: { type: 'integer' }
             }

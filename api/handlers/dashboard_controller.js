@@ -48,10 +48,10 @@ async function getDashboardData(request, reply) {
 
         let promises = [];
         for (let i = 0; i < hosts.length; i++) {
-            if (hosts[i].sdc_id !== '') {
+            if (hosts[i].sdc_id !== '' && hosts[i].sdc_id != null) {
                 promises.push(cnapi.getServerRecord(hosts[i].sdc_id));
             } else {
-                hosts[i].sdc_id = 'n/a';
+                hosts[i].sdc_id = null;
                 hosts[i].memory_total_bytes = 200;
                 hosts[i].memory_provisionable_bytes = 1;
                 hosts[i].memory_available_bytes = 1;
