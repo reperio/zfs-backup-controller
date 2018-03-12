@@ -21,13 +21,23 @@ class HostsRepository {
         }
     }
 
+    async get_host_by_id(host_id) {
+        this.uow._logger.info(`Fetching host with id "${host_id}"`);
+
+        const q = this.uow._models.Host
+            .query(this.uow._transaction)
+            .findById(host_id);
+
+        const host = await q;
+        return host;
+    }
+
     async create_host(host) {
         this.uow._logger.info(`Creating new host entry "${host.sdc_id}"`);
         try {
             const host_model = this.uow._models.Host.fromJson({
-                id: host.sdc_id,
                 name: host.name,
-                sdc_id: host.sdc_id,
+                sdc_id: host.sdc_id || null,
                 ip_address: host.ip_address,
                 port: host.port
             });
@@ -47,7 +57,7 @@ class HostsRepository {
     }
 
     async update_host(host) {
-        this.uow._logger.info(`Updating host entry "${host.sdc_id}"`);
+        this.uow._logger.info(`Updating host entry "${host.id}"`);
         try {
             const host_model = this.uow._models.Host.fromJson({
                 name: host.name,
@@ -106,6 +116,30 @@ class HostsRepository {
             return updated_hosts;
         } catch (err) {
             this.uow._logger.error('Failed batch update');
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async delete_host_by_id(host_id) {
+        try {
+            this.uow._logger.info(`Deleting host with id: "${host_id}"`);
+
+            //make sure we can actually delete this host
+            const host = await this.get_host_by_id(host_id);
+
+            if (host.sdc_id !== null) {
+                throw new Error('Cannot delete host: Host from cnapi');
+            }
+
+            const q = this.uow._models.Host
+                .query(this.uow._transaction)
+                .deleteById(host_id);
+
+            await q;
+            return true;
+        } catch (err) {
+            this.uow._logger.error('Failed to delete host');
             this.uow._logger.error(err);
             throw err;
         }
