@@ -126,7 +126,7 @@ class VirtualMachineDatasetsRepository {
             for (let i = 0; i < datasets.length; i++) {
                 this.update_dataset(datasets[i]);
             }
-        } catch (err) { 
+        } catch (err) {
             this.uow._logger.error('Failed to create dataset entries');
             this.uow._logger.error(err);
         }
@@ -141,17 +141,23 @@ class VirtualMachineDatasetsRepository {
             const last_result_sub = knex.select('result').from('job_history').whereRaw('?? = ??', ['job_history.job_id', 'jobs.id']).orderBy('end_date_time', 'desc').limit(1);
             const q = knex.column({location: 'virtual_machine_datasets.location'}, {host_id: 'virtual_machines.host_id'}, {job_id: 'jobs.id'},
                 {num_failures: num_failures_sub}, {num_successes: num_successes_sub}, {last_result: last_result_sub})
-                .from('virtual_machine_datasets')                
+                .from('virtual_machine_datasets')
                 .leftJoin('virtual_machines', 'virtual_machines.id', 'virtual_machine_datasets.virtual_machine_id')
                 .leftJoin('jobs', 'jobs.source_location', 'virtual_machine_datasets.location')
                 .where('virtual_machine_datasets.enabled', true)
                 .whereIn('virtual_machines.state', ['running', 'stopped']);
 
             if (virtual_machine_id) {
-                q.where('virtual_machines.sdc_id', virtual_machine_id);
+                q.where('virtual_machines.id', virtual_machine_id);
             }
 
             const result = await q;
+            // for(let r of result) {
+            //     if (r.host_id === '00000000-0000-0000-0000-0cc47a088bc8') {
+            //         console.log(r);
+            //     }
+            // }
+            
             return result;
         } catch (err) {
             this.uow._logger.error('Failed to fetch dataset backup statistics');

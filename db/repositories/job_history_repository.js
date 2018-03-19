@@ -33,11 +33,11 @@ class JobHistoryRepository {
         this.uow._logger.info(`Fetching all job histories: ${JSON.stringify(params)}`);
         let q = this.uow._models.JobHistory
             .query(this.uow._transaction)
-            .eagerAlgorithm(this.uow._models.JobHistory.JoinEagerAlgorithm)
+            //.eagerAlgorithm(this.uow._models.JobHistory.JoinEagerAlgorithm)
+            .eager('job_history_snapshot')
             .mergeEager('job_history_job.job_source_host')
             .mergeEager('job_history_job.job_target_host')
-            .mergeEager('job_history_job.job_virtual_machine')
-            .mergeEager('job_history_snapshot');
+            .mergeEager('job_history_job.job_virtual_machine');
 
         if (params.filterModel['job_history_job.name']) {
             const filter = params.filterModel['job_history_job.name'].filter + '%';
@@ -66,6 +66,8 @@ class JobHistoryRepository {
         q = q.limit(params.endRow - params.startRow).offset(params.startRow);
         
         const job_histories = await q;
+
+        console.log(job_histories[0]);
         
         return {data: job_histories, count: count};
     }
