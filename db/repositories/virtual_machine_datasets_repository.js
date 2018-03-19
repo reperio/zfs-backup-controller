@@ -26,13 +26,31 @@ class VirtualMachineDatasetsRepository {
         try {
             let q = this.uow._models.VirtualMachineDataset
                 .query(this.uow._transaction)
-                .where('virtual_machine_id', virtual_machine_id);
+                .where('virtual_machine_id', virtual_machine_id)
+                .mergeEager('job');
 
             this.uow._logger.debug(q.toSql());
             const datasets = await q;
             return datasets;
         } catch (err) {
             this.uow._logger.error(`Failed to fetch all datasets for virtual machine "${virtual_machine_id}"`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async get_dataset_by_id(id) {
+        this.uow._logger.info(`Fetching dataset "${id}"`);
+        try {
+            let q = this.uow._models.VirtualMachineDataset
+                .query(this.uow._transaction)
+                .where('location', id);
+
+            this.uow._logger.debug(q.toSql());
+            const datasets = await q;
+            return datasets;
+        } catch (err) {
+            this.uow._logger.error(`Failed dataset "${id}"`);
             this.uow._logger.error(err);
             throw err;
         }

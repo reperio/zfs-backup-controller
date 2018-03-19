@@ -103,8 +103,14 @@ class JobHistoryRepository {
     async update_job_history_entry(job_history) {
         this.uow._logger.info(`${job_history.job_id} - Updating job history.`);
         this.uow._logger.debug('Job History Entry: ' + JSON.stringify(job_history));
-
+        
+        let update_job = false;
         try {
+            if (job_history.result === 2 || job_history.result === 3) {
+                await this.uow.beginTransaction();
+                update_job = true;
+            }
+
             const q = this.uow._models.JobHistory
                 .query(this.uow._transaction)
                 .where('id', job_history.id)
@@ -112,8 +118,22 @@ class JobHistoryRepository {
                 .returning('*');
 
             const newJobHistory = await q;
+
+            if (update_job) {
+                const r = this.uow._models.Job
+                    .query(this.uow._transaction)
+                    .where('id', job_history.job_id)
+                    .patch({last_result: job_history.result});
+
+                await r;
+                this.uow.commitTransaction();
+            }
+            
             return newJobHistory;
         } catch (err) {
+            if (update_job) {
+                await this.uow.rollbackTransaction();
+            }
             this.uow._logger.error(err);
             throw err;
         }
