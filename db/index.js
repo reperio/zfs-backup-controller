@@ -26,7 +26,7 @@ class UnitOfWork {
             throw new Error("A transaction already exists for this unit of work");
         }
         await new Promise(resolve => {
-            knex.transaction(trx => {
+            this._knex.transaction(trx => {
                 this._transaction = trx;
                 resolve();
             });
