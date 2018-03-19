@@ -28,6 +28,7 @@ class UnitOfWork {
         await new Promise(resolve => {
             knex.transaction(trx => {
                 this._transaction = trx;
+                resolve();
             });
         });
     }

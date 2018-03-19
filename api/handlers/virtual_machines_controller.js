@@ -1,8 +1,10 @@
 'use strict';
 /* eslint no-use-before-define: 0*/
-
+const _ = require('lodash');
 const Boom = require('boom');
 const Joi = require('joi');
+const StatusService = require('../../backup_status');
+const DATASET_FIELD = 'virtual_machine_id';
 
 const routes = [];
 
@@ -23,14 +25,58 @@ routes.push({
 
 async function get_all_virtual_machines(request, reply) {
     const uow = await request.app.getNewUoW();
-
+    const statusService = new StatusService(uow);
+    
     uow._logger.info(`Fetching virtual machines: ${JSON.stringify(request.query)}`);
 
     try {
         const virtual_machines = await uow.virtual_machines_repository.get_all_virtual_machines(request.query.host_id, request.query.filter);
-
+        const status_records = await statusService.get_statuses(DATASET_FIELD, 'virtual_machines.name', request.query.filter);
+        for (let i = 0; i < virtual_machines.length; i++) {
+            const status_result = _.find(status_records, record => {
+                return record.id === virtual_machines[i].id;
+            });
+            virtual_machines[i].status = status_result.status;
+            virtual_machines[i].status_messages = status_result.messages;
+        }
         return reply(virtual_machines);
     } catch (err) {
+        uow._logger.error(err);
+        return reply(Boom.badImplementation('Failed to retrieve virtual machines.'));
+    }
+}
+
+routes.push({
+    method: ['GET'],
+    path: '/virtual_machines/{id}',
+    handler: get_virtual_machine_by_id,
+    config: {
+        cors: true,
+        validate: {
+            params: {
+                id: Joi.string().guid().required()
+            }
+        }
+    }
+});
+
+async function get_virtual_machine_by_id(request, reply) {
+    const uow = await request.app.getNewUoW();
+    const statusService = new StatusService(uow);
+    
+    uow._logger.info(`Fetching virtual machines: ${JSON.stringify(request.query)}`);
+    
+    try {
+        const virtual_machine = await uow.virtual_machines_repository.get_virtual_machine_by_id(request.params.id);
+        const status_records = await statusService.get_statuses(DATASET_FIELD, 'virtual_machines.id', request.params.id);
+        const status_result = _.find(status_records, record => {
+            return record.id === virtual_machine.id;
+        });
+        virtual_machine.status = status_result.status;
+        virtual_machine.status_messages = status_result.messages;
+        return reply(virtual_machine);
+    } catch (err) {
+        uow._logger.error(err);
         return reply(Boom.badImplementation('Failed to retrieve virtual machines.'));
     }
 }

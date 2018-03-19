@@ -27,6 +27,7 @@ class Job extends BaseModel {
                 source_host_id: { type: 'string' },
                 target_host_id: { type: 'string' },
                 last_execution: { type: 'date' },
+                last_result: { type: 'string'},
                 last_schedule: { type: 'date' },
                 enabled: { type: 'boolean' },
                 offset: { type: 'integer' }

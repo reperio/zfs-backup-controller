@@ -12,11 +12,10 @@ class VirtualMachinesRepository {
             let q = this.uow._models.VirtualMachine
                 .query(this.uow._transaction)
                 .eagerAlgorithm(this.uow._models.VirtualMachine.JoinEagerAlgorithm)
-                .mergeEager('virtual_machine_host')
-                .mergeEager('virtual_machine_jobs');
+                .mergeEager('virtual_machine_host');
 
             if (host_id) {
-                q = q.where('host_id', host_id);
+                q = q.where('virtual_machine_host.id', host_id);
             }
 
             if (filter) {
@@ -57,6 +56,25 @@ class VirtualMachinesRepository {
             return virtual_machines;
         } catch (err) {
             this.uow._logger.error(`Failed to fetch all virtual machines from database with host_id ${id}`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async get_virtual_machine_by_id(id) {
+        this.uow._logger.info(`Fetching virtual machine ${id}`);
+        try {
+            const q = this.uow._models.VirtualMachine
+                .query(this.uow._transaction)
+                .findOne('id', id);
+
+
+            const virtual_machine = await q;
+
+            this.uow._logger.info('Fetched virtual machine');
+            return virtual_machine;
+        } catch (err) {
+            this.uow._logger.error(`Failed to fetch virtual machine with id ${id}`);
             this.uow._logger.error(err);
             throw err;
         }

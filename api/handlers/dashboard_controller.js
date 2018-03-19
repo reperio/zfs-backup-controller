@@ -3,28 +3,29 @@
 
 const _ = require('lodash');
 const Boom = require('boom');
+const StatusService = require('../../backup_status');
 
 const routes = [];
+const HOST_SDC_ID_COLUMN = 'host_sdc_id';
+// function getServerStatus(server_uuid, datasets) {
+//     let status = 'good';
 
-function getServerStatus(server_uuid, datasets) {
-    let status = 'good';
+//     for (let j = 0; j < datasets.length; j++) {
+//         if(datasets[j].host_id === server_uuid) {
+//             const dataset = datasets[j];
+//             if (dataset.job_id === null || dataset.num_successes <= 0) {
+//                 status = 'bad';
+//                 //since the colors are by host and not by dataset, we can break out of this loop because we already know the status for this host
+//                 break;
+//             } else if (dataset.last_result !== 2) {
+//                 //don't break here because we could still land in a bad status
+//                 status = 'warn';
+//             }
+//         }
+//     }
 
-    for (let j = 0; j < datasets.length; j++) {
-        if(datasets[j].host_id === server_uuid) {
-            const dataset = datasets[j];
-            if (dataset.job_id === null || dataset.num_successes <= 0) {
-                status = 'bad';
-                //since the colors are by host and not by dataset, we can break out of this loop because we already know the status for this host
-                break;
-            } else if (dataset.last_result !== 2) {
-                //don't break here because we could still land in a bad status
-                status = 'warn';
-            }
-        }
-    }
-
-    return status;
-}
+//     return status;
+// }
 
 routes.push({
     method: ['GET'],
@@ -37,6 +38,7 @@ routes.push({
 
 async function getDashboardData(request, reply) {
     const uow = await request.app.getNewUoW();
+    const statusService = new StatusService(uow);
     const logger = request.server.app.logger;
     const cnapi = await request.app.getNewCnApi();
     logger.info('Retrieving dashboard data');
@@ -44,7 +46,7 @@ async function getDashboardData(request, reply) {
     try {
         //fetch hosts from database
         const hosts = await uow.hosts_repository.get_all_hosts();
-        const datasets = await uow.virtual_machine_datasets_repository.get_dataset_backup_statistics();
+        //const datasets = await uow.virtual_machine_datasets_repository.get_dataset_backup_statistics();
 
         let promises = [];
         for (let i = 0; i < hosts.length; i++) {
@@ -61,6 +63,8 @@ async function getDashboardData(request, reply) {
                 hosts[i].datacenter = 'n/a';
             }
         }
+
+        const status_records = await statusService.get_statuses(HOST_SDC_ID_COLUMN);
 
         for (let i = 0; i < promises.length; i++) {
             const cnapi_record = await promises[i];
@@ -82,7 +86,12 @@ async function getDashboardData(request, reply) {
             //good: All enabled machines have a job and a successful backup
             //warning: Last backup failed
             //bad: Not configured or no successful backups
-            db_host.status = getServerStatus(hosts[i].sdc_id, datasets);
+            const db_host_status = _.find(status_records, record => {
+                return record.id === db_host.sdc_id;
+            });
+
+            db_host.status = db_host_status.status;
+            db_host.status_messages = db_host_status.messages;
         }
 
         return reply(hosts);
