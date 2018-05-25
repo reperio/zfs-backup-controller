@@ -11,7 +11,8 @@ class JobsRepository {
             .mergeEager('job_schedule')
             .mergeEager('job_source_host')
             .mergeEager('job_target_host')
-            .mergeEager('job_virtual_machine');
+            .mergeEager('job_virtual_machine')
+            .mergeEager('dataset');
 
         const jobs = await q;
 
