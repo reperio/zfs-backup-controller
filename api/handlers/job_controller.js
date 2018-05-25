@@ -7,31 +7,20 @@ const Joi = require('joi');
 const routes = [];
 
 routes.push({
-    method: ['GET'],
-    path: '/jobs',
+    method: ['POST'],
+    path: '/jobs/all',
     handler: getAllJobs,
     config: {
-        cors: true,
-        validate: {
-            query: {
-                node_id: Joi.string().allow(''),
-                order_by: Joi.string(),
-                order_direction: Joi.string()
-            }
-        }
+        cors: true
     }
 });
 
 async function getAllJobs(request, reply) {
     const uow = await request.app.getNewUoW();
 
-    const node_id = request.query.node_id || null;
-    const order_by = request.query.order_by || null;
-    const order_direction= request.query.order_direction || null;
-
     try {
-        uow._logger.info(`Fetching all jobs, filtered by ${node_id} and ordered by ${order_by}, ${order_direction}`);
-        const jobs = await uow.jobs_repository.getAllJobs(node_id, order_by, order_direction);
+        uow._logger.info('Fetching all jobs');
+        const jobs = await uow.jobs_repository.getAllJobs(request.payload);
 
         return reply(jobs);
     } catch (err) {

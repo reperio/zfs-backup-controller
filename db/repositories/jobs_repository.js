@@ -3,7 +3,7 @@ class JobsRepository {
         this.uow = uow;
     }
 
-    async getAllJobs(node_id, order_by, order_direction) {
+    async getAllJobs(params) {
         this.uow._logger.info('Fetching all jobs');
 
         const q = this.uow._models.Job
@@ -12,14 +12,6 @@ class JobsRepository {
             .mergeEager('job_source_host')
             .mergeEager('job_target_host')
             .mergeEager('job_virtual_machine');
-
-        if (node_id) {
-            q.where('source_host_id', node_id);
-        }
-
-        if (order_by && order_direction) {
-            q.orderBy(order_by, order_direction);
-        }
 
         const jobs = await q;
 
