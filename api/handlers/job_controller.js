@@ -135,8 +135,7 @@ async function create_job(request, reply) {
 
     if (messages.length > 0) {
         uow._logger.warn(JSON.stringify(messages));
-        reply(messages).code(400);
-        return;
+        return reply(messages).code(400);
     }
     
     try{
@@ -207,11 +206,43 @@ async function edit_job(request, reply) {
 
         if (messages.length > 0) {
             uow._logger.warn(JSON.stringify(messages));
-            reply(messages).code(400);
-            return;
+            return reply(messages).code(400);
         }
 
         const updated_job = await uow.jobs_repository.update_job_entry(job);
+        return reply(updated_job);
+    } catch (err) {
+        uow._logger.error('Failed to update job');
+        uow._logger.error(err);
+        return reply(Boom.badImplementation('Failed to update job'));
+    }
+}
+
+routes.push({
+    method: ['PUT'],
+    path: '/jobs/{id}/enabled',
+    handler: edit_job_enabled_status,
+    config: {
+        cors: true,
+        validate: {
+            payload: {
+                enabled: Joi.boolean().required()
+            },
+            params: {
+                id: Joi.string().guid()
+            }
+        }
+    }
+});
+
+async function edit_job_enabled_status(request, reply) {
+    const uow = await request.app.getNewUoW();
+    const job_id = request.params.id;
+    const enabled = request.payload.enabled;
+
+    uow._logger.info(`Updating enabled status for job "${job_id}"`);
+    try {
+        const updated_job = await uow.jobs_repository.update_job_enabled_status(job_id, enabled);
         return reply(updated_job);
     } catch (err) {
         uow._logger.error('Failed to update job');

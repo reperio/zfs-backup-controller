@@ -1,6 +1,6 @@
-const BaseModel = require('./base_model');
+const Model = require('objection').Model;
 
-class JobDetail extends BaseModel {
+class JobDetail extends Model {
     static get tableName() {
         return 'job_details';
     }

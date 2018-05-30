@@ -22,7 +22,6 @@ class Job extends BaseModel {
                 sdc_vm_id: { type: 'string' },
                 source_location: { type: 'string' },
                 target_location: { type: 'string' },
-                zfs_type: { type: 'integer' },
                 zfs_size: { type: 'integer' },
                 source_host_id: { type: 'string' },
                 target_host_id: { type: 'string' },

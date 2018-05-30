@@ -71,7 +71,6 @@ class JobsRepository {
                 source_retention: job.source_retention,
                 target_location: job.target_location,
                 target_retention: job.target_retention,
-                zfs_type: job.zfs_type,
                 zfs_size: job.zfs_size,
                 source_host_id: job.source_host_id,
                 target_host_id: job.target_host_id,
@@ -122,6 +121,27 @@ class JobsRepository {
             return new_job;
         } catch (err) {
             this.uow._logger.error(`  ${job.id} - Failed to update job record`);
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async update_job_enabled_status(job_id, enabled) {
+        this.uow._logger.info(`  ${job_id} - Updating job enabled status.`);
+
+        try {
+            const job_model = this.uow._models.Job.fromJson({
+                enabled: enabled
+            });
+
+            const q = this.uow._models.Job
+                .query(this.uow._transaction)
+                .patchAndFetchById(job_id, job_model);
+            
+            const updated_job = await q;
+            return updated_job;
+        } catch (err) {
+            this.uow._logger.error(`  ${job_id} - Failed to update job record`);
             this.uow._logger.error(err);
             throw err;
         }
