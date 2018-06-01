@@ -39,6 +39,34 @@ async function getAllJobs(request, reply) {
     }
 }
 
+routes.push({
+    method: ['GET'],
+    path: '/jobs/{id}',
+    handler: getJob,
+    config: {
+        cors: true,
+        validate: {
+            params: {
+                id: Joi.string().guid().required()
+            }
+        }
+    }
+});
+
+async function getJob(request, reply) {
+    const uow = await request.app.getNewUoW();
+
+    const id = request.params.id;
+
+    try {
+        uow._logger.info(`Fetching job with id: ${id}`);
+        const job = await uow.jobs_repository.get_job_by_id(id);
+
+        return reply(job);
+    } catch (err) {
+        return reply(Boom.badImplementation('failed to retrieve jobs.'));
+    }
+}
 
 routes.push({
     method: ['POST'],
