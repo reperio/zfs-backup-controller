@@ -52,6 +52,8 @@ class BackupStatus {
             let status_record = { id: id, status: 'good', messages: [] };
             _.each(records, record => {
                 if (record[field] === id && status_record.id === id) {
+                    status_record.host_sdc_id = record.host_sdc_id;
+
                     //skip if the dataset is not enabled
                     if (record.enabled === false) {
                         if (status_record.status === 'good') {
@@ -60,6 +62,15 @@ class BackupStatus {
                         status_record.messages.push(`Dataset "${record.location}" not enabled`);
                         return true;
                     }
+
+                    //return bad status if no job is defined
+                    if (record.job_id === null) {
+                        status_record.messages.push(`Dataset "${record.location}" does not have a job`);
+                        status_record.status = 'bad';
+                        //return true;
+                    }
+
+                    status_record.last_execution = record.last_execution;
 
                     //check successes and failures
                     if (record.num_successes === 0) {
@@ -76,11 +87,40 @@ class BackupStatus {
 
                     // check if the backup ran within the last schedule period that it could have run in
                     if (record.last_execution != null) {
-                        const last_execution = moment().utc(record.last_execution);
-                        const schedule_boundaries = this.get_schedule(record.schedule, record.job_offset);
-                        if (!(schedule_boundaries.start > last_execution) && last_execution < schedule_boundaries.end) {
-                            status_record.status = 'warn';
-                            status_record.messages.push(`Dataset "${record.location}" missed the last backup`);
+                        switch (record.schedule) {
+                            case 'quarter_hour':
+                                if (moment(record.last_execution) < moment().utc().subtract(15, 'minutes')) {
+                                    status_record.status = 'warn';
+                                    status_record.messages.push(`Dataset "${record.location}" missed the last backup`);
+                                }
+                                break;
+                            case 'hourly':
+                                if (moment(record.last_execution) < moment().utc().subtract(1, 'hour')) {
+                                    status_record.status = 'warn';
+                                    status_record.messages.push(`Dataset "${record.location}" missed the last backup`);
+                                }
+                                break;
+                            case 'daily':
+                                if (moment(record.last_execution) < moment().utc().subtract(1, 'day')) {
+                                    status_record.status = 'warn';
+                                    status_record.messages.push(`Dataset "${record.location}" missed the last backup`);
+                                }
+                                break;
+                            case 'weekly':
+                                if (moment(record.last_execution) < moment().utc().subtract(1, 'week')) {
+                                    status_record.status = 'warn';
+                                    status_record.messages.push(`Dataset "${record.location}" missed the last backup`);
+                                }
+                                break;
+                            case 'monthly':
+                                if (moment(record.last_execution) < moment().utc().subtract(1, 'month')) {
+                                    status_record.status = 'warn';
+                                    status_record.messages.push(`Dataset "${record.location}" missed the last backup`);
+                                }
+                                break;
+                            default:
+                                this.uow._logger.error(`Schedule (${record.schedule}) provided to backup status service does not match any known schedules`);
+                                throw new Error(`Schedule (${record.schedule}) provided to backup status service does not match any known schedules`);
                         }
                     }
                 }
