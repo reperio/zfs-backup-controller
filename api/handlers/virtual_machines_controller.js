@@ -6,7 +6,6 @@ const Joi = require('joi');
 const StatusService = require('../../backup_status');
 const DATASET_FIELD = 'virtual_machine_id';
 const LOCATION_DATASET_FIELD = 'location';
-const VM_ID_FIELD = 'virtual_machine_id';
 const routes = [];
 
 routes.push({
@@ -32,28 +31,28 @@ async function get_all_virtual_machines(request, reply) {
 
     try {
         const virtual_machines = await uow.virtual_machines_repository.get_all_virtual_machines(request.query.host_id, request.query.filter);
-        const status_records = await statusService.get_statuses(DATASET_FIELD, 'virtual_machines.name', request.query.filter);
         const datasets = await uow.virtual_machine_datasets_repository.get_all_datasets();
-        const dataset_status_records = await statusService.get_statuses(LOCATION_DATASET_FIELD);
+        const dataset_status_records = await statusService.get_statuses(LOCATION_DATASET_FIELD, 'virtual_machines.name', request.query.filter);
 
         for (let i = 0; i < virtual_machines.length; i++) {
             const vm_datasets = _.filter(datasets, dataset => {
                 return dataset.virtual_machine_id === virtual_machines[i].id;
             });
+
+            virtual_machines[i].status_messages = [];
             
             for (let j = 0; j < vm_datasets.length; j++) {
                 const status_result = _.find(dataset_status_records, record => {
                     return record.id === vm_datasets[j].location;
                 });
+
                 vm_datasets[j].status = status_result.status;
                 vm_datasets[j].status_messages = status_result.messages;
+                vm_datasets[j].last_execution = status_result.last_execution;
+                virtual_machines[i].status = get_worse_status(virtual_machines[i].status, status_result.status);
+                virtual_machines[i].status_messages.push(status_result.messages[0]);
             }
 
-            const status_result = _.find(status_records, record => {
-                return record.id === virtual_machines[i].id;
-            });
-            virtual_machines[i].status = status_result.status;
-            virtual_machines[i].status_messages = status_result.messages;
             virtual_machines[i].datasets = vm_datasets;
         }
         return reply(virtual_machines);
@@ -61,6 +60,14 @@ async function get_all_virtual_machines(request, reply) {
         uow._logger.error(err);
         return reply(Boom.badImplementation('Failed to retrieve virtual machines.'));
     }
+}
+
+function get_worse_status(oldStatus, newStatus) {
+    const statuses = [null, 'good', 'warn', 'bad'];
+    if (statuses.indexOf(oldStatus) > statuses.indexOf(newStatus)) {
+        return oldStatus;
+    }
+    return newStatus;
 }
 
 routes.push({

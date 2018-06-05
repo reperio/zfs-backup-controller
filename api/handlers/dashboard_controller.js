@@ -6,7 +6,6 @@ const Boom = require('boom');
 const StatusService = require('../../backup_status');
 
 const routes = [];
-const HOST_SDC_ID_COLUMN = 'host_sdc_id';
 // function getServerStatus(server_uuid, datasets) {
 //     let status = 'good';
 
@@ -64,7 +63,7 @@ async function getDashboardData(request, reply) {
             }
         }
 
-        const status_records = await statusService.get_statuses(HOST_SDC_ID_COLUMN);
+        const status_records = await statusService.get_statuses('location');
 
         for (let i = 0; i < promises.length; i++) {
             const cnapi_record = await promises[i];
@@ -81,17 +80,19 @@ async function getDashboardData(request, reply) {
             db_host.disk_pool_size_bytes = cnapi_record.disk_pool_size_bytes;
             db_host.datacenter = cnapi_record.datacenter;
             db_host.vms = cnapi_record.vms;
-
+            db_host.status_messages = [];
             //append status to each server record
             //good: All enabled machines have a job and a successful backup
             //warning: Last backup failed
             //bad: Not configured or no successful backups
-            const db_host_status = _.find(status_records, record => {
-                return record.id === db_host.sdc_id;
+            const db_host_statuses = _.filter(status_records, record => {
+                return record.host_sdc_id === db_host.sdc_id;
             });
 
-            db_host.status = db_host_status.status;
-            db_host.status_messages = db_host_status.messages;
+            _.forEach(db_host_statuses, status => {
+                db_host.status = get_worse_status(db_host.status, status.status);
+                db_host.status_messages.push(status.messages[0]);
+            });
         }
 
         return reply(hosts);
@@ -101,6 +102,14 @@ async function getDashboardData(request, reply) {
 
         return reply(Boom.badImplementation('Failed to retrieve dashboard data'));
     }
+}
+
+function get_worse_status(oldStatus, newStatus) {
+    const statuses = [null, 'good', 'warn', 'bad'];
+    if (statuses.indexOf(oldStatus) > statuses.indexOf(newStatus)) {
+        return oldStatus;
+    }
+    return newStatus;
 }
 
 module.exports = routes;
