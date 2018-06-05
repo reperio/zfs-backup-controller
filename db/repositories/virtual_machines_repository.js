@@ -26,6 +26,8 @@ class VirtualMachinesRepository {
                 q.where('state', 'in', ['running', 'stopped']);
             }
 
+            q.orderBy('name');
+
             const virtual_machines = await q;
 
             this.uow._logger.info(`Fetched all ${virtual_machines.length} virtual machines`);
