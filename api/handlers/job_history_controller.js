@@ -20,7 +20,7 @@ async function getAllJobHistories(request, reply) {
     uow._logger.info(`Fetching job history: ${JSON.stringify(request.payload)}`);
 
     try {
-        const job_histories = await uow.job_history_repository.getAllJobHistories(request.payload);
+        const job_histories = await uow.job_history_details_repository.getAllJobHistoryDetails(request.payload);
 
         return reply(job_histories);
     } catch (err) {
