@@ -18,7 +18,10 @@ class Host extends BaseModel {
                 name: { type: 'string' },
                 sdc_id: { type: ['string', 'null'] },
                 ip_address: { type: 'string' },
-                port: { type: 'integer' }
+                port: { type: 'integer' },
+                max_total_jobs: { type: 'integer' },
+                max_backup_jobs: { type: 'integer' },
+                max_retention_jobs: { type: 'integer' }
             }
         };
     }
