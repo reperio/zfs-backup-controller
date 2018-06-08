@@ -78,10 +78,7 @@ class RetentionManager {
                 }
 
                 try {
-                    this.logger.info(`${job.id} - Deleting snapshot ${source_snapshot.name} from source ${source_snapshot.snapshot_source_host.ip_address}`);
-                    await this.agentApi.zfs_destroy_snapshot(source_snapshot, source_snapshot.snapshot_source_host);
-                    source_snapshot.source_host_status = 2;
-                    await this.uow.snapshots_repository.updateSnapshotEntry(source_snapshot);
+                    await this.delete_snapshot(job.id, source_snapshot, source_snapshot.source_host_id);
                 } catch (err) {
                     source_success = false;
                     this.logger.error(`${job.id} - Deleting snapshot ${source_snapshot.name} from source ${source_snapshot.snapshot_source_host.ip_address} failed.`);
@@ -124,12 +121,8 @@ class RetentionManager {
                     continue;
                 }
 
-                //delete snapshot at host
                 try {
-                    this.logger.info(`${job.id} - Deleting snapshot ${target_snapshot.name} from target ${target_snapshot.snapshot_target_host.ip_address}`);
-                    await this.agentApi.zfs_destroy_snapshot(target_snapshot, target_snapshot.snapshot_target_host);
-                    target_snapshot.target_host_status = 2;
-                    await this.uow.snapshots_repository.updateSnapshotEntry(target_snapshot);
+                    await this.delete_snapshot(job.id, target_snapshot, target_snapshot.target_host_id);
                 } catch (err) {
                     this.logger.error(`${job.id} - Deleting snapshot ${target_snapshot.name} from target ${target_snapshot.snapshot_target_host.ip_address} failed.`);
                     this.logger.error(err);
@@ -141,6 +134,27 @@ class RetentionManager {
         } catch (err) {
             this.logger.error(`${job.id} - Applying target retention schedule failed`);
             this.logger.error(err);
+        }
+    }
+
+    async delete_snapshot(job_id, snapshot, host_id) {
+        try {
+            if (host_id === snapshot.soure_host) {
+                snapshot.source_host_status = 5;
+                
+                await this.uow.snapshots_repository.updateSnapshotEntry(snapshot);
+                this.logger.info(`${job_id} - Deleting snapshot ${snapshot.name} from source ${snapshot.snapshot_source_host.ip_address}`);
+                await this.agentApi.zfs_destroy_snapshot(snapshot, snapshot.snapshot_source_host);
+            } else {
+                snapshot.target_host_status = 5;
+
+                await this.uow.snapshots_repository.updateSnapshotEntry(snapshot);
+                this.logger.info(`${job_id} - Deleting snapshot ${snapshot.name} from target ${snapshot.snapshot_target_host.ip_address}`);
+                await this.agentApi.zfs_destroy_snapshot(snapshot, snapshot.snapshot_target_host);
+            }
+        } catch (err) {
+            this.logger.error(err);
+            throw err;
         }
     }
 

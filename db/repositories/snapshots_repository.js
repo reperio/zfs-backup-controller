@@ -11,6 +11,16 @@ class SnapshotsRepository {
         const snapshots = await q;
         return snapshots;
     }
+    
+    async get_by_job_history_id(job_history_id) {
+        this.uow._logger.info(`Fetching all snapshots with job_history_id: ${job_history_id}`);
+        const q = this.uow._models.Snapshot
+            .query(this.uow._transaction)
+            .findOne('job_history_id', job_history_id);
+
+        const snapshot = await q;
+        return snapshot;
+    }
 
     async getAllSnapshotsByHostId(hostId) {
         this.uow._logger.info(`Fetching all snapshots with host_id: ${hostId}`);

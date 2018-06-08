@@ -71,10 +71,10 @@ class AgentApi {
         };
 
         try {
-            await request(http_options);
+            const result = await request(http_options);
             this.logger.info(`  ${snapshot.job_id} | ${snapshot.job_history_id} - Snapshot ${snapshot.name} destroyed on host ${host.ip_address}.`);
 
-            return true;
+            return result;
         } catch (err) {
             this.logger.error(`  ${snapshot.job_id} | ${snapshot.job_history_id} - Failed to destroy snapshot on host ${host.ip_address}`);
             this.logger.error(err);
