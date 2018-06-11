@@ -30,6 +30,13 @@ class JobManager {
         this.logger.info('Job Manager execution started.');
 
         try {
+            await this.cleanup_finished_jobs();
+        } catch (err) {
+            this.logger.error('Finished job cleanup failed.');
+            this.logger.error(err);
+        }
+
+        try {
             //get current workload, find all enabled jobs, filter to the ones that are ready based on schedule, order them, and filter them by current host workload.
             const runningJobEntries = await this.uow.job_history_repository.getUnfinishedJobs();
             const runningJobIds = _.uniq(_.map(runningJobEntries, 'job_id'));
@@ -55,13 +62,6 @@ class JobManager {
             await this.execute_jobs(jobsToExecute);
         } catch(err) {
             this.logger.error('Job manager execution failed.');
-            this.logger.error(err);
-        }
-
-        try {
-            await this.cleanup_finished_jobs();
-        } catch (err) {
-            this.logger.error('Finished job cleanup failed.');
             this.logger.error(err);
         }
         
