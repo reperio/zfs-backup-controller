@@ -2,12 +2,15 @@
 exports.up = async function(knex) {
     await knex.transaction(async (tx) => {
         try {
-            if (tx.hasTable('snapshot_status')) {
-                await tx('snapshot_status').insert([{
-                    id: 4,
-                    name: 'receive_failed'
-                }]);
-            }
+            tx.schema.hasTable('snapshot_status').then(async (exists) => {
+                if (exists) {
+                    await tx('snapshot_status').insert([{
+                        id: 4,
+                        name: 'receive_failed'
+                    }]);
+                }
+            });
+            
             await tx.commit();
         } catch (err) {
             console.log(err);
@@ -19,9 +22,12 @@ exports.up = async function(knex) {
 exports.down = async function(knex) {
     await knex.transaction(async (tx) => {
         try {
-            if (tx.hasTable('snapshot_status')) {
-                await tx('snapshot_status').where('id', 4).delete();
-            }
+            tx.schema.hasTable('snapshot_status').then(async (exists) => {
+                if (exists) {
+                    await tx('snapshot_status').where('id', 4).delete();
+                }
+            });
+
             await tx.commit();
         } catch (err) {
             console.log(err);

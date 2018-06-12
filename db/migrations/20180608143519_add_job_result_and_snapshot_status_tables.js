@@ -2,6 +2,19 @@
 exports.up = async function (knex, Promise) {
     await knex.transaction(async (tx) => {
         try {
+            // drop the tables if they exist
+            tx.schema.hasTable('job_result').then(async (exists) => {
+                if (exists) {
+                    await tx.schema.droptTable('job_result');
+                }
+            });
+
+            tx.schema.hasTable('snapshot_status').then(async (exists) => {
+                if (exists) {
+                    await tx.schema.droptTable('snapshot_status');
+                }
+            });
+
             // create tables
             await tx.schema.createTable('job_result', t => {
                 t.integer('id')
