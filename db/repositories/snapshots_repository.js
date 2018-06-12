@@ -16,7 +16,11 @@ class SnapshotsRepository {
         this.uow._logger.info(`Fetching all snapshots with job_history_id: ${job_history_id}`);
         const q = this.uow._models.Snapshot
             .query(this.uow._transaction)
-            .findOne('job_history_id', job_history_id);
+            .findOne('job_history_id', job_history_id)
+            .mergeEager('snapshot_source_host')
+            .mergeEager('snapshot_target_host')
+            .mergeEager('snapshot_job_history')
+            .mergeEager('snapshot_job');
 
         const snapshot = await q;
         return snapshot;

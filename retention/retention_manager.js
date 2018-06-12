@@ -139,16 +139,16 @@ class RetentionManager {
 
     async delete_snapshot(job_id, snapshot, host_id) {
         try {
-            if (host_id === snapshot.soure_host) {
+            if (host_id === snapshot.source_host_id) {
                 snapshot.source_host_status = 5;
-                
                 await this.uow.snapshots_repository.updateSnapshotEntry(snapshot);
+                
                 this.logger.info(`${job_id} - Deleting snapshot ${snapshot.name} from source ${snapshot.snapshot_source_host.ip_address}`);
                 await this.agentApi.zfs_destroy_snapshot(snapshot, snapshot.snapshot_source_host);
-            } else {
+            } else if (host_id === snapshot.target_host_id) {
                 snapshot.target_host_status = 5;
-
                 await this.uow.snapshots_repository.updateSnapshotEntry(snapshot);
+                
                 this.logger.info(`${job_id} - Deleting snapshot ${snapshot.name} from target ${snapshot.snapshot_target_host.ip_address}`);
                 await this.agentApi.zfs_destroy_snapshot(snapshot, snapshot.snapshot_target_host);
             }

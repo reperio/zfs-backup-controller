@@ -26,4 +26,4 @@ async function getAllSchedules(request, reply) {
     }
 }
 
-module.exports = routes;
+module.exports = { routes: routes };

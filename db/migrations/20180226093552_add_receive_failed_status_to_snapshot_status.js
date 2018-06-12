@@ -1,39 +1,21 @@
 
 exports.up = async function(knex) {
-    await knex.transaction(async (tx) => {
-        try {
-            tx.schema.hasTable('snapshot_status').then(async (exists) => {
-                if (exists) {
-                    await tx('snapshot_status').insert([{
-                        id: 4,
-                        name: 'receive_failed'
-                    }]);
-                }
-            });
-            
-            await tx.commit();
-        } catch (err) {
-            console.log(err);
-            await tx.rollback();
+    knex.schema.hasTable('snapshot_status').then(async (exists) => {
+        if (exists) {
+            await knex('snapshot_status').insert([{
+                id: 4,
+                name: 'receive_failed'
+            }]);
         }
     });
 };
 
 exports.down = async function(knex) {
-    await knex.transaction(async (tx) => {
-        try {
-            tx.schema.hasTable('snapshot_status').then(async (exists) => {
-                if (exists) {
-                    await tx('snapshot_status').where('id', 4).delete();
-                }
-            });
-
-            await tx.commit();
-        } catch (err) {
-            console.log(err);
-            await tx.rollback();
+    knex.schema.hasTable('snapshot_status').then(async (exists) => {
+        if (exists) {
+            await knex('snapshot_status').where('id', 4).delete();
         }
     });
 };
 
-exports.config = { transaction: false };
+exports.config = { transaction: true };

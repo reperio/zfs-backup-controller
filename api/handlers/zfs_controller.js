@@ -140,7 +140,7 @@ async function destroy_complete(request, reply) {
     const host_id = request.payload.host_id;
 
     try {
-        const snapshot = uow.snapshots_repository.get_by_job_history_id(job_history_id);
+        const snapshot = await uow.snapshots_repository.get_by_job_history_id(job_history_id);
         if (snapshot.source_host_id === host_id) {
             if (snapshot.source_host_status !== 5) {
                 logger.warn(`${snapshot.job_history_id} - source snapshot deleted before being set to 'deleting' status`);
@@ -163,4 +163,8 @@ async function destroy_complete(request, reply) {
     }
 }
 
-module.exports = routes;
+const handlers = {
+    destroy_complete: destroy_complete
+};
+
+module.exports = { routes: routes, handlers: handlers };
