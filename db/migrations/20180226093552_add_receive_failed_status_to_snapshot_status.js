@@ -2,11 +2,12 @@
 exports.up = async function(knex) {
     await knex.transaction(async (tx) => {
         try {
-            await knex('snapshot_status').insert([{
-                id: 4,
-                name: 'receive_failed'
-            }]);
-
+            if (tx.hasTable('snapshot_status')) {
+                await tx('snapshot_status').insert([{
+                    id: 4,
+                    name: 'receive_failed'
+                }]);
+            }
             await tx.commit();
         } catch (err) {
             console.log(err);
@@ -18,8 +19,9 @@ exports.up = async function(knex) {
 exports.down = async function(knex) {
     await knex.transaction(async (tx) => {
         try {
-            await knex('snapshot_status').where('id', 4).delete();
-
+            if (tx.hasTable('snapshot_status')) {
+                await tx('snapshot_status').where('id', 4).delete();
+            }
             await tx.commit();
         } catch (err) {
             console.log(err);
@@ -27,3 +29,5 @@ exports.down = async function(knex) {
         }
     });
 };
+
+exports.config = { transaction: false };

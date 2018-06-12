@@ -2,9 +2,9 @@
 exports.up = async function(knex, Promise) {
     await knex.transaction(async (tx) => {
         try {
-            await knex.schema.alterTable('virtual_machines', (t) => {
+            await tx.schema.alterTable('virtual_machines', (t) => {
                 t.string('type');
-            }).transacting(tx);
+            });
     
             await tx.commit();
         } catch(err) {
@@ -17,9 +17,9 @@ exports.up = async function(knex, Promise) {
 exports.down = async function(knex, Promise) {
     await knex.transaction(async (tx) => {
         try {
-            await knex.schema.alterTable('virtual_machines', (t) => {
+            await tx.schema.alterTable('virtual_machines', (t) => {
                 t.dropColumn('type');
-            }).transacting(tx);
+            });
     
             await tx.commit();
         } catch(err) {
@@ -28,3 +28,5 @@ exports.down = async function(knex, Promise) {
         }
     });
 };
+
+exports.config = { transaction: false };

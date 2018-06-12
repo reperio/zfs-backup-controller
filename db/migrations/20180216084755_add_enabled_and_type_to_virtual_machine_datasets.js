@@ -2,11 +2,11 @@
 exports.up = async function(knex, Promise) {
     await knex.transaction(async (tx) => {
         try {
-            await knex.schema.alterTable('virtual_machines', t => {
+            await tx.schema.alterTable('virtual_machines', t => {
                 t.dropColumn('enabled');
             });
 
-            await knex.schema.alterTable('virtual_machine_datasets', t => {
+            await tx.schema.alterTable('virtual_machine_datasets', t => {
                 t.boolean('enabled');
                 t.text('type');
             });
@@ -28,11 +28,11 @@ exports.up = async function(knex, Promise) {
 exports.down = async function(knex, Promise) {
     await knex.transaction(async (tx) => {
         try {
-            await knex.schema.alterTable('virtual_machines', t => {
+            await tx.schema.alterTable('virtual_machines', t => {
                 t.boolean('enabled');
             });
 
-            await knex.schema.alterTable('virtual_machine_datasets', t => {
+            await tx.schema.alterTable('virtual_machine_datasets', t => {
                 t.dropColumn('enabled');
                 t.dropColumn('type');
             });
@@ -47,3 +47,5 @@ exports.down = async function(knex, Promise) {
         }
     });
 };
+
+exports.config = { transaction: false };

@@ -42,3 +42,5 @@ exports.down = async function(knex, Promise) {
         }
     });
 };
+
+exports.config = { transaction: false };

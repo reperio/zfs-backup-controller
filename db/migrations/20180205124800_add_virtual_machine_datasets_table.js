@@ -1,11 +1,11 @@
 exports.up = async function(knex, Promise) {
     await knex.transaction(async (tx) => {
         try {
-            await knex.schema.alterTable('virtual_machines', t => {
+            await tx.schema.alterTable('virtual_machines', t => {
                 t.dropColumn('sdc_id');
             });
 
-            await knex.schema.createTable('virtual_machine_datasets', t => {
+            await tx.schema.createTable('virtual_machine_datasets', t => {
                 t.string('location', 60)
                     .primary();
                 t.string('name');
@@ -16,7 +16,7 @@ exports.up = async function(knex, Promise) {
                     .onDelete('restrict');
                 t.dateTime('createdAt');
                 t.dateTime('updatedAt');
-            }).transacting(tx);
+            });
     
             await tx.commit();
         } catch(err) {
@@ -29,9 +29,9 @@ exports.up = async function(knex, Promise) {
 exports.down = async function(knex, Promise) {
     await knex.transaction(async (tx) => {
         try {
-            await knex.schema.dropTable('virtual_machine_datasets').transacting(tx);
+            await tx.schema.dropTable('virtual_machine_datasets');
 
-            await knex.schema.alterTable('virtual_machines', t => {
+            await tx.schema.alterTable('virtual_machines', t => {
                 t.string('sdc_id');
             });
     
@@ -42,3 +42,5 @@ exports.down = async function(knex, Promise) {
         }
     });
 };
+
+exports.config = { transaction: false };
