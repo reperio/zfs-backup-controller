@@ -48,7 +48,7 @@ class AgentApi {
         }
     }
 
-    async zfs_destroy_snapshot(snapshot, host) {
+    async zfs_destroy_snapshot(snapshot, host, host_id) {
         this.logger.info(`  ${snapshot.job_id} | ${snapshot.job_history_id} - Sending ZFS Destroy Snapshot command to source ${host.ip_address}.`);
 
         const url = `http://${host.ip_address}:${host.port}${this.urls.zfs_destroy_snapshot}`;
@@ -56,7 +56,8 @@ class AgentApi {
 
         const payload = {
             snapshot_name: snapshot.name,
-            job_history_id: snapshot.job_history_id
+            job_history_id: snapshot.job_history_id,
+            host_id: host_id
         };
 
         this.logger.info(`  ${snapshot.job_id} | ${snapshot.job_history_id} - Sending ZFS Destroy Snapshot command sending with payload: ${JSON.stringify(payload)}`);
