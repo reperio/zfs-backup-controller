@@ -1,3 +1,5 @@
+const {knex} = require('../connect');
+
 class HostsRepository {
     constructor(uow) {
         this.uow = uow;
@@ -16,6 +18,31 @@ class HostsRepository {
             return hosts;
         } catch (err) {
             this.uow._logger.error('Failed to fetch hosts from database');
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
+    async get_all_workload_details() {
+        this.uow._logger.info('Fetching all host workloads from database');
+
+        try {
+            const active_backup_jobs_query = knex('job_history').count('*').where(knex.raw('?? = ?? AND (?? = ?? OR ?? = ??)', ['job_history.result', 1, 'jobs.source_host_id', 'hosts.id', 'jobs.target_host_id', 'hosts.id'])).leftJoin('jobs', 'jobs.id', 'job_history.job_id');
+            const active_retention_jobs_query = knex('snapshots').count('*').where(knex.raw('(?? = ?? AND ?? = ??) OR (?? = ?? AND ?? = ??)', ['snapshots.source_host_status', 5, 'snapshots.source_host_id', 'hosts.id', 'snapshots.target_host_status', 5, 'snapshots.target_host_id', 'hosts.id']));
+            const q = knex.column(
+                {id: 'hosts.id'},
+                {name: 'hosts.name'},
+                {max_total_jobs: 'hosts.max_total_jobs'},
+                {max_backup_jobs: 'hosts.max_backup_jobs'},
+                {max_retention_jobs: 'hosts.max_retention_jobs'},
+                {current_backup_jobs: active_backup_jobs_query},
+                {current_retention_jobs: active_retention_jobs_query})
+                .from('hosts');
+
+            const results = await q;
+            return results;
+        } catch (err) {
+            this.uow._logger.error('Failed to fetch all host workloads from database');
             this.uow._logger.error(err);
             throw err;
         }

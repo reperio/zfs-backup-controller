@@ -12,6 +12,9 @@ exports.seed = function(knex, Promise) {
           name: 'agent-1', 
           ip_address: '192.168.1.2', 
           port: 3000,
+          max_total_jobs: 2,
+          max_backup_jobs: 1,
+          max_retention_jobs: 1,
           createdAt: moment().utc().toDate(),
           updatedAt: moment().utc().toDate()
         },
@@ -20,6 +23,9 @@ exports.seed = function(knex, Promise) {
           name: 'agent-2', 
           ip_address: '192.168.1.3', 
           port: 3000,
+          max_total_jobs: 2,
+          max_backup_jobs: 1,
+          max_retention_jobs: 1,
           createdAt: moment().utc().toDate(),
           updatedAt: moment().utc().toDate()
         }

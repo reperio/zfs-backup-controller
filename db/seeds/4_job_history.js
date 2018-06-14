@@ -35,6 +35,21 @@ exports.seed = function(knex, Promise) {
           port: 57495,
           createdAt: moment().utc().toDate(),
           updatedAt: moment().utc().toDate()
+        },
+        { 
+          id: 'a0e798c7-b553-46f7-9670-c361d8e4cea3',
+          job_id: 'b21d3b67-4e78-4b2c-8169-5891520048a8',
+          start_date_time: moment().utc().toDate(),
+          end_date_time: moment().utc().toDate(),
+          schedule_date_time: moment().utc().toDate(),
+          result: 1,
+          source_message: '',
+          target_message: '',
+          source_result: 2,
+          target_result: 2,
+          port: 57495,
+          createdAt: moment().utc().toDate(),
+          updatedAt: moment().utc().toDate()
         }
       ]);
     });
