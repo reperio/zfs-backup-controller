@@ -23,7 +23,8 @@ class HostsRepository {
         }
     }
 
-    async get_all_workload_details() {
+    async get_all_workload_details(host_id) {
+        const filter_host_id = host_id || null;
         this.uow._logger.info('Fetching all host workloads from database');
 
         try {
@@ -38,6 +39,10 @@ class HostsRepository {
                 {current_backup_jobs: active_backup_jobs_query},
                 {current_retention_jobs: active_retention_jobs_query})
                 .from('hosts');
+
+            if (filter_host_id) {
+                q.where('id', filter_host_id);
+            }
 
             const results = await q;
             return results;

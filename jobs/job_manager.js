@@ -2,14 +2,13 @@ const _ = require('lodash');
 const moment = require('moment');
 
 class JobManager {
-    constructor(logger, uow, agentApi, job_interval, jobs_per_host) {
+    constructor(logger, uow, agentApi, job_interval) {
         this.logger = logger;
         this.uow = uow;
         this.agentApi = agentApi;
 
         this.job_interval_id = null;
         this.job_interval = job_interval;
-        this.jobs_per_host = jobs_per_host;
         this.executing = false;
     }
 
@@ -41,8 +40,11 @@ class JobManager {
             const runningJobEntries = await this.uow.job_history_repository.getUnfinishedJobs();
             const runningJobIds = _.uniq(_.map(runningJobEntries, 'job_id'));
 
-            const currentWorkload = await this.getCurrentWorkloadByHost(runningJobEntries);
+            const current_workload = await this.uow.hosts_repository.get_all_workload_details();
 
+            //const currentWorkload = await this.getCurrentWorkloadByHost(runningJobEntries);
+        
+            const hosts = await this.uow.hosts_repository.get_all_hosts();
             const jobs = await this.uow.jobs_repository.getAllEnabledJobs();
             this.logger.info(`Found ${jobs.length} enabled jobs`);
 
@@ -56,7 +58,8 @@ class JobManager {
 
             const ordered_jobs = _.orderBy(jobsScheduledAndNotRunning, ['last_schedule'], ['asc']);
 
-            const jobsToExecute = await this.filterJobsByWorkload(ordered_jobs, currentWorkload);
+            //const jobsToExecute = await this.filterJobsByWorkload(hosts, ordered_jobs, currentWorkload);
+            const jobsToExecute = await this.filterJobsByWorkload(hosts, ordered_jobs, current_workload);
             this.logger.info(`Found ${jobsToExecute.length} jobs able to execute based on workload`);
 
             await this.execute_jobs(jobsToExecute);
@@ -68,36 +71,36 @@ class JobManager {
         this.logger.info('Job Manager execution finished.');
     }
 
-    async getCurrentWorkloadByHost(running_job_history_entries) {
-        this.logger.info(`Found ${running_job_history_entries.length} running job history entries.`);
+    // async getCurrentWorkloadByHost(running_job_history_entries) {
+    //     this.logger.info(`Found ${running_job_history_entries.length} running job history entries.`);
 
-        const jobs_per_host = {}; //will hold host_id:int for how many current jobs are running on a host.
+    //     const jobs_per_host = {}; //will hold host_id:int for how many current jobs are running on a host.
 
-        for (let running_job of running_job_history_entries) {
+    //     for (let running_job of running_job_history_entries) {
             
-            const source_host = running_job.job_history_job.source_host_id;
-            const target_host = running_job.job_history_job.target_host_id;
+    //         const source_host = running_job.job_history_job.source_host_id;
+    //         const target_host = running_job.job_history_job.target_host_id;
 
-            this.logger.info(`Job: ${running_job.id} source_host: ${source_host} target_host: ${target_host} is currently running.`);
+    //         this.logger.info(`Job: ${running_job.id} source_host: ${source_host} target_host: ${target_host} is currently running.`);
 
-            //increment or set the counter for the current source and target host
-            if (jobs_per_host[source_host]) {
-                jobs_per_host[source_host] += 1;
-            } else {
-                jobs_per_host[source_host] = 1;
-            }
+    //         //increment or set the counter for the current source and target host
+    //         if (jobs_per_host[source_host]) {
+    //             jobs_per_host[source_host] += 1;
+    //         } else {
+    //             jobs_per_host[source_host] = 1;
+    //         }
 
-            if (jobs_per_host[target_host]) {
-                jobs_per_host[target_host] += 1;
-            } else {
-                jobs_per_host[target_host] = 1;
-            }
-        }
+    //         if (jobs_per_host[target_host]) {
+    //             jobs_per_host[target_host] += 1;
+    //         } else {
+    //             jobs_per_host[target_host] = 1;
+    //         }
+    //     }
 
-        this.logger.info(`Current workload: ${JSON.stringify(jobs_per_host)}`);
+    //     this.logger.info(`Current workload: ${JSON.stringify(jobs_per_host)}`);
 
-        return jobs_per_host;
-    }
+    //     return jobs_per_host;
+    // }
 
     async cleanup_finished_jobs() {
         this.logger.info('Fetching running jobs to clean up');
@@ -132,33 +135,71 @@ class JobManager {
         }
     }
 
-    async filterJobsByWorkload(jobs, workload) {
-        this.logger.info(`Filtering ${jobs.length} jobs using workload: ${JSON.stringify(workload)}.`);
+    // async filterJobsByWorkload(hosts, jobs, workload) {
+    //     this.logger.info(`Filtering ${jobs.length} jobs using workload: ${JSON.stringify(workload)}.`);
+
+    //     const jobsToExecute = [];
+
+    //     const newWorkload = Object.assign({}, workload);
+
+    //     for (const job of jobs) {
+    //         const job_source_host = _.find(hosts, host => {
+    //             return host.id === job.source_host_id;
+    //         });
+            
+    //         const job_target_host = _.find(hosts, host => {
+    //             return host.id === job.target_host_id;
+    //         });
+
+    //         const source_host = job.source_host_id;
+    //         const target_host = job.target_host_id;
+
+    //         const currentSourceWorkload = newWorkload[source_host] || 0;
+    //         const currentTargetWorkload = newWorkload[target_host] || 0;
+
+    //         let newSourceWorkload = currentSourceWorkload + 1;
+    //         let newTargetWorkload = currentTargetWorkload + 1;
+
+    //         let sourceHasRoom = newSourceWorkload < job_source_host.max_total_jobs && newSourceWorkload < job_source_host.max_backup_jobs;
+    //         let targetHasRoom = newTargetWorkload < job_target_host.max_total_jobs && newTargetWorkload < job_target_host.max_backup_jobs;
+
+    //         if (sourceHasRoom && targetHasRoom) {
+    //             this.logger.info(`Job ${job.id} allowed to execute based on current workload. source: ${source_host}:${currentSourceWorkload} target: ${target_host}:${currentTargetWorkload}`);
+    //             jobsToExecute.push(job);
+    //             newWorkload[source_host] = newSourceWorkload;
+    //             newWorkload[target_host] = newTargetWorkload;
+    //         } else {
+    //             this.logger.info(`Job ${job.id} NOT allowed to execute based on current workload. source: ${source_host}:${currentSourceWorkload} target: ${target_host}:${currentTargetWorkload}`);
+    //         }
+    //     }
+
+    //     return jobsToExecute;
+    // }
+
+    async filterJobsByWorkload(jobs, host_workloads) {
+        this.logger.info(`Filtering ${jobs.length} jobs using workload: ${JSON.stringify(host_workloads)}.`);
 
         const jobsToExecute = [];
 
-        const newWorkload = Object.assign({}, workload);
-
         for (const job of jobs) {
-            const source_host = job.source_host_id;
-            const target_host = job.target_host_id;
+            const source_host_workload = _.find(host_workloads, workload => {
+                return workload.id === job.source_host_id;
+            });
+            
+            const target_host_workload = _.find(host_workloads, workload => {
+                return workload.id === job.target_host_id;
+            });
 
-            const currentSourceWorkload = newWorkload[source_host] || 0;
-            const currentTargetWorkload = newWorkload[target_host] || 0;
-
-            let newSourceWorkload = currentSourceWorkload + 1;
-            let newTargetWorkload = currentTargetWorkload + 1;
-
-            let sourceHasRoom = newSourceWorkload <= this.jobs_per_host;
-            let targetHasRoom = newTargetWorkload <= this.jobs_per_host;
+            let sourceHasRoom = source_host_workload.current_backup_jobs < source_host_workload.max_backup_jobs && source_host_workload.current_backup_jobs + source_host_workload.current_retention_jobs < source_host_workload.max_total_jobs;
+            let targetHasRoom = target_host_workload.current_backup_jobs < target_host_workload.max_backup_jobs && target_host_workload.current_backup_jobs + target_host_workload.current_retention_jobs < target_host_workload.max_total_jobs;
 
             if (sourceHasRoom && targetHasRoom) {
-                this.logger.info(`Job ${job.id} allowed to execute based on current workload. source: ${source_host}:${currentSourceWorkload} target: ${target_host}:${currentTargetWorkload}`);
+                this.logger.info(`Job ${job.id} allowed to execute based on current workload. source: ${source_host_workload.id}:${source_host_workload} target: ${target_host_workload.id}:${target_host_workload}`);
                 jobsToExecute.push(job);
-                newWorkload[source_host] = newSourceWorkload;
-                newWorkload[target_host] = newTargetWorkload;
+                source_host_workload.current_backup_jobs += 1;
+                target_host_workload.current_backup_jobs += 1;
             } else {
-                this.logger.info(`Job ${job.id} NOT allowed to execute based on current workload. source: ${source_host}:${currentSourceWorkload} target: ${target_host}:${currentTargetWorkload}`);
+                this.logger.info(`Job ${job.id} NOT allowed to execute based on current workload. source: ${source_host_workload.id}:${source_host_workload} target: ${target_host_workload.id}:${target_host_workload}`);
             }
         }
 

@@ -158,11 +158,16 @@ describe('DB Integration Tests', function () {
 
         it('Host "d08a1f76-7c4a-4dd9-a377-83ffffa752f4" should have no retention jobs running', async () => {
             const workloads = await _uow.hosts_repository.get_all_workload_details();
-            console.log(workloads);
             const hostWorkload = _.find(workloads, workload => {
                 return workload.id === 'd08a1f76-7c4a-4dd9-a377-83ffffa752f4';
             });
             assert.equal(hostWorkload.current_retention_jobs, 0);
+        });
+
+        it('Providing an id to get_all_workload_details should return 1 result', async () => {
+            const workloads = await _uow.hosts_repository.get_all_workload_details('d08a1f76-7c4a-4dd9-a377-83ffffa752f4');
+            assert.equal(workloads.length, 1);
+            assert.equal(workloads[0].id, 'd08a1f76-7c4a-4dd9-a377-83ffffa752f4');
         });
     });
 

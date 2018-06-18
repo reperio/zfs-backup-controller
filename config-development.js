@@ -19,8 +19,7 @@ module.exports = {
     job_manager: {
         enabled: false,
         interval: 5000,
-        max_jobs_per_iteration: 2,
-        max_jobs_per_host: 2
+        max_jobs_per_iteration: 2
     },
 
     retention_manager: {
