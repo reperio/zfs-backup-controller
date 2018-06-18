@@ -24,10 +24,11 @@ class RetentionManager {
     async apply_retention_schedules() {
         this.logger.info('Applying Retention Schedules.');
         const jobs = await this.uow.jobs_repository.getAllEnabledJobs();
+        const workloads = await this.uow.hosts_repository.get_all_workload_details();
 
         for (let job of jobs) {
             try {
-                await this.apply_retention_schedule_for_job(job);
+                await this.apply_retention_schedule_for_job(job, workloads);
             } catch (err) {
                 this.logger.error(`${job.id} - Applying retention schedule failed`);
                 this.logger.error(err);
@@ -35,7 +36,7 @@ class RetentionManager {
         }
     }
 
-    async apply_retention_schedule_for_job(job) {
+    async apply_retention_schedule_for_job(job, workloads) {
         this.logger.info(`${job.id} - Applying retention schedule.`);
         const now = moment.utc();
 
@@ -65,6 +66,17 @@ class RetentionManager {
             }
             
             for (let source_snapshot of snapshots_to_delete) {
+                const host_workload = _.find(workloads, workload => {
+                    return workload.id === source_snapshot.source_host_id;
+                });
+                const can_run_retention_job = host_workload.current_retention_jobs < host_workload.max_retention_jobs && host_workload.current_retention_jobs + host_workload.current_backup_jobs < host_workload.max_total_jobs;
+                
+                this.logger.info(`${job.id} - Checking for space to run retention job on source host for snapshot ${source_snapshot.name}`);
+                if (!can_run_retention_job) {
+                    this.logger.info(`${job.id} - Skipping deletion of snapshot ${source_snapshot.name} because maximum job limits have been reached.`);
+                    continue;
+                }
+
                 this.logger.info(`${job.id} - Checking if ${source_snapshot.name} has been created on source`);
                 if (source_snapshot.source_host_status !== 1) {
                     this.logger.info(`${job.id} - Skipping delete because snapshot ${source_snapshot.name} hasn't been created on source.`);
@@ -76,6 +88,8 @@ class RetentionManager {
                     this.logger.info(`${job.id} - Skipping delete because snapshot ${source_snapshot.name} hasn't been created on target.`);
                     continue;
                 }
+
+                this.logger.info(`${job.id} - Checking if ${source_snapshot.name} has been created on target`);
 
                 try {
                     await this.delete_snapshot(job.id, source_snapshot, source_snapshot.source_host_id);
@@ -109,6 +123,17 @@ class RetentionManager {
             }
 
             for (let target_snapshot of snapshots_to_delete) {
+                const host_workload = _.find(workloads, workload => {
+                    return workload.id === target_snapshot.target_host_id;
+                });
+                const can_run_retention_job = host_workload.current_retention_jobs < host_workload.max_retention_jobs && host_workload.current_retention_jobs + host_workload.current_backup_jobs < host_workload.max_total_jobs;
+
+                this.logger.info(`${job.id} - Checking for space to run retention job on target host for snapshot ${target_snapshot.name}`);
+                if (!can_run_retention_job) {
+                    this.logger.info(`${job.id} - Skipping deletion of snapshot ${target_snapshot.name} because maximum job limits have been reached.`);
+                    continue;
+                }
+
                 this.logger.info(`${job.id} - Checking if ${target_snapshot.name} has been created on target`);
                 if (target_snapshot.target_host_status !== 1) {
                     this.logger.info(`${job.id} - Skipping delete because snapshot ${target_snapshot.name} hasn't been created on target.`);
