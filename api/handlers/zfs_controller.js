@@ -115,4 +115,56 @@ async function receive_complete(request, reply) {
     }
 }
 
-module.exports = routes;
+routes.push({
+    method: ['POST'],
+    path: '/zfs/destroy_complete',
+    handler: destroy_complete,
+    config: {
+        cors: true,
+        validate: {
+            payload: {
+                job_history_id: Joi.string().guid().required(),
+                code: Joi.number().required(),
+                host_id: Joi.string().guid().required()
+            }
+        }
+    }
+});
+
+async function destroy_complete(request, reply) {
+    const logger = request.server.app.logger;
+    const uow = await request.app.getNewUoW();
+
+    const job_history_id = request.payload.job_history_id;
+    const code = request.payload.code;
+    const host_id = request.payload.host_id;
+
+    try {
+        const snapshot = await uow.snapshots_repository.get_by_job_history_id(job_history_id);
+        if (snapshot.source_host_id === host_id) {
+            if (snapshot.source_host_status !== 5) {
+                logger.warn(`${snapshot.job_history_id} - source snapshot deleted before being set to 'deleting' status`);
+            }
+            snapshot.source_host_status = code;
+        } else if (snapshot.target_host_id === host_id) {
+            if (snapshot.target_host_status !== 5) {
+                logger.warn(`${snapshot.job_history_id} - target snapshot deleted before being set to 'deleting' status`);
+            }
+            snapshot.target_host_status = code;
+        }
+
+        await uow.snapshots_repository.updateSnapshotEntry(snapshot);
+        return reply({status: 'success'});
+    } catch (err) {
+        logger.error(`${job_history_id} - Processing destroy_complete failed.`);
+        logger.error(err);
+
+        return reply(Boom.badImplementation('destroy_complete failed.'));
+    }
+}
+
+const handlers = {
+    destroy_complete: destroy_complete
+};
+
+module.exports = { routes: routes, handlers: handlers };

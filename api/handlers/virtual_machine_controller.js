@@ -65,4 +65,4 @@ async function get_virtual_machine_record(request, reply) {
     }
 }
 
-module.exports = routes;
+module.exports = { routes: routes };

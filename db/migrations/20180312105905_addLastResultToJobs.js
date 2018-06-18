@@ -2,7 +2,7 @@
 exports.up = async function(knex, Promise) {
     await knex.transaction(async (tx) => {
         try {
-            await knex.schema.alterTable('jobs', t => {
+            await tx.schema.alterTable('jobs', t => {
                 t.integer('last_result');
             });
     
@@ -17,7 +17,7 @@ exports.up = async function(knex, Promise) {
 exports.down = async function(knex, Promise) {
     await knex.transaction(async (tx) => {
         try {
-            await knex.schema.alterTable('jobs', t => {
+            await tx.schema.alterTable('jobs', t => {
                 t.dropColumn('last_result');
             });
     
@@ -28,3 +28,5 @@ exports.down = async function(knex, Promise) {
         }
     });
 };
+
+exports.config = { transaction: false };

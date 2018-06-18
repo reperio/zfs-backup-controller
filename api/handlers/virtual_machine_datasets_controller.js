@@ -90,4 +90,4 @@ async function toggle_dataset_enabled_status(request, reply) {
     }
 }
 
-module.exports = routes;
+module.exports = { routes: routes };

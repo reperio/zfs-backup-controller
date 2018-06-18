@@ -34,16 +34,16 @@ exports.register = function (server, options, next) {
         }
     });
 
-    server.route(ZFSControllerHandlers);
-    server.route(HostControllerHandlers);
-    server.route(JobControllerHandlers);
-    server.route(JobDetailsControllerHandlers);
-    server.route(JobHistoryControllerHandlers);
-    server.route(ScheduleControllerHandlers);
-    server.route(SnapshotsControllerHandlers);
-    server.route(DashboardControllerHandlers);
-    server.route(VirtualMachinesControllerHandlers);
-    server.route(VirtualMachineDatasetControllerHandlers);
+    server.route(ZFSControllerHandlers.routes);
+    server.route(HostControllerHandlers.routes);
+    server.route(JobControllerHandlers.routes);
+    server.route(JobDetailsControllerHandlers.routes);
+    server.route(JobHistoryControllerHandlers.routes);
+    server.route(ScheduleControllerHandlers.routes);
+    server.route(SnapshotsControllerHandlers.routes);
+    server.route(DashboardControllerHandlers.routes);
+    server.route(VirtualMachinesControllerHandlers.routes);
+    server.route(VirtualMachineDatasetControllerHandlers.routes);
     
     next();
 };

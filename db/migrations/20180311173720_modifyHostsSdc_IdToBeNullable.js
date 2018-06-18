@@ -2,7 +2,7 @@
 exports.up = async function (knex, Promise) {
     await knex.transaction(async (tx) => {
         try {
-            await knex.schema.alterTable('hosts', t => {
+            await tx.schema.alterTable('hosts', t => {
                 t.uuid('sdc_id')
                     .nullable()
                     .alter();
@@ -19,7 +19,7 @@ exports.up = async function (knex, Promise) {
 exports.down = async function (knex, Promise) {
     await knex.transaction(async (tx) => {
         try {
-            await knex.schema.alterTable('hosts', t => {
+            await tx.schema.alterTable('hosts', t => {
                 t.uuid('sdc_id')
                     .alter();
             });
@@ -31,3 +31,5 @@ exports.down = async function (knex, Promise) {
         }
     });
 };
+
+exports.config = { transaction: false };

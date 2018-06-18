@@ -112,4 +112,4 @@ function get_worse_status(oldStatus, newStatus) {
     return newStatus;
 }
 
-module.exports = routes;
+module.exports = { routes: routes };

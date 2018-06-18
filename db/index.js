@@ -59,7 +59,7 @@ module.exports = (logger) => {
 
     knex.on('query', (query) => {
         logger.debug(`Query ID: ${query.__knexQueryUid}`);
-        logger.debug(query.toNative());
+        logger.debug(query.sql);
     });
 
     return () => {

@@ -307,4 +307,4 @@ async function delete_job(request, reply) {
     }
 }
 
-module.exports = routes;
+module.exports = { routes: routes };
