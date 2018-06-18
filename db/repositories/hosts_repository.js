@@ -1,3 +1,5 @@
+const {knex} = require('../connect');
+
 class HostsRepository {
     constructor(uow) {
         this.uow = uow;
@@ -21,6 +23,36 @@ class HostsRepository {
         }
     }
 
+    async get_all_workload_details(host_id) {
+        const filter_host_id = host_id || null;
+        this.uow._logger.info('Fetching all host workloads from database');
+
+        try {
+            const active_backup_jobs_query = knex('job_history').count('*').where(knex.raw('?? = ?? AND (?? = ?? OR ?? = ??)', ['job_history.result', 1, 'jobs.source_host_id', 'hosts.id', 'jobs.target_host_id', 'hosts.id'])).leftJoin('jobs', 'jobs.id', 'job_history.job_id');
+            const active_retention_jobs_query = knex('snapshots').count('*').where(knex.raw('(?? = ?? AND ?? = ??) OR (?? = ?? AND ?? = ??)', ['snapshots.source_host_status', 5, 'snapshots.source_host_id', 'hosts.id', 'snapshots.target_host_status', 5, 'snapshots.target_host_id', 'hosts.id']));
+            const q = knex.column(
+                {id: 'hosts.id'},
+                {name: 'hosts.name'},
+                {max_total_jobs: 'hosts.max_total_jobs'},
+                {max_backup_jobs: 'hosts.max_backup_jobs'},
+                {max_retention_jobs: 'hosts.max_retention_jobs'},
+                {current_backup_jobs: active_backup_jobs_query},
+                {current_retention_jobs: active_retention_jobs_query})
+                .from('hosts');
+
+            if (filter_host_id) {
+                q.where('id', filter_host_id);
+            }
+
+            const results = await q;
+            return results;
+        } catch (err) {
+            this.uow._logger.error('Failed to fetch all host workloads from database');
+            this.uow._logger.error(err);
+            throw err;
+        }
+    }
+
     async get_host_by_id(host_id) {
         this.uow._logger.info(`Fetching host with id "${host_id}"`);
 
@@ -39,7 +71,10 @@ class HostsRepository {
                 name: host.name,
                 sdc_id: host.sdc_id || null,
                 ip_address: host.ip_address,
-                port: host.port
+                port: host.port,
+                max_total_jobs: host.max_total_jobs,
+                max_backup_jobs: host.max_backup_jobs,
+                max_retention_jobs: host.max_retention_jobs
             });
 
             const q = this.uow._models.Host
@@ -63,7 +98,10 @@ class HostsRepository {
                 name: host.name,
                 sdc_id: host.sdc_id,
                 ip_address: host.ip_address,
-                port: host.port
+                port: host.port,
+                max_total_jobs: host.max_total_jobs,
+                max_backup_jobs: host.max_backup_jobs,
+                max_retention_jobs: host.max_retention_jobs
             });
 
             const q = this.uow._models.Host

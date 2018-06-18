@@ -3,10 +3,10 @@
 
 process.env.NODE_ENV = 'test';
 
+const _ = require('lodash');
 const moment = require('moment');
 const assert = require('assert');
 
-const UoW = require('../../db');
 const {knex} = require('../../db/connect.js');
 const knex_config = require('../../db/knexfile').test;
 
@@ -31,10 +31,11 @@ describe('DB Integration Tests', function () {
         }};
 
     //initialize uow
-    const _uow = new UoW(logger);
+    const CreateUow = require('../../db')(logger);
+    const _uow = CreateUow(logger);
 
     //set timeout
-    this.timeout(25000);
+    this.timeout(45000);
 
     //set up the database
     before(async () => {
@@ -66,9 +67,9 @@ describe('DB Integration Tests', function () {
             assert.equal(jobs.length, 1);
         });
 
-        it('Should return 0 unfinished jobs', async () => {
+        it('Should return 1 unfinished jobs', async () => {
             const job_histories = await _uow.job_history_repository.getUnfinishedJobs();
-            assert.equal(job_histories.length, 0);
+            assert.equal(job_histories.length, 1);
         });
 
         //create job_history entry
@@ -126,7 +127,7 @@ describe('DB Integration Tests', function () {
                 source_host_id: 'd08a1f76-7c4a-4dd9-a377-83ffffa752f4',
                 source_host_status: 1,
                 target_host_id: '13e5fca8-4bb5-4f48-a91d-9c25df923ae8',
-                target_host_status: 1,
+                target_host_status: 5,
                 snapshot_date_time: '2017-11-20 21:49:42',
                 job_id: 'b21d3b67-4e78-4b2c-8169-5891520048a8',
                 createdAt: timestamp,
@@ -138,6 +139,38 @@ describe('DB Integration Tests', function () {
         });
     });
     
+    describe('Hosts Repository', async () => {
+        it('Host workload details are calculated correctly', async () => {
+            const workload = await _uow.hosts_repository.get_all_workload_details();
+            // it doesn't matter which host we test because both of them are involved in the backup job
+            assert.equal(workload[0].current_backup_jobs, 1);
+        });
+
+        it('Host "13e5fca8-4bb5-4f48-a91d-9c25df923ae8" should have one retention job running', async () => {
+            const workloads = await _uow.hosts_repository.get_all_workload_details();
+            console.log(workloads);
+            const hostWorkload = _.find(workloads, workload => {
+                return workload.id === '13e5fca8-4bb5-4f48-a91d-9c25df923ae8';
+            });
+            
+            assert.equal(hostWorkload.current_retention_jobs, 1);
+        });
+
+        it('Host "d08a1f76-7c4a-4dd9-a377-83ffffa752f4" should have no retention jobs running', async () => {
+            const workloads = await _uow.hosts_repository.get_all_workload_details();
+            const hostWorkload = _.find(workloads, workload => {
+                return workload.id === 'd08a1f76-7c4a-4dd9-a377-83ffffa752f4';
+            });
+            assert.equal(hostWorkload.current_retention_jobs, 0);
+        });
+
+        it('Providing an id to get_all_workload_details should return 1 result', async () => {
+            const workloads = await _uow.hosts_repository.get_all_workload_details('d08a1f76-7c4a-4dd9-a377-83ffffa752f4');
+            assert.equal(workloads.length, 1);
+            assert.equal(workloads[0].id, 'd08a1f76-7c4a-4dd9-a377-83ffffa752f4');
+        });
+    });
+
     //drop the database
     after(async () => {
         const conn = {

@@ -86,6 +86,9 @@ routes.push({
                     port: Joi.number().required(),
                     sdc_id: Joi.string().allow(['', null]),
                     id: Joi.string().allow(['', null]),
+                    max_total_jobs: Joi.number().required(),
+                    max_backup_jobs: Joi.number().required(),
+                    max_retention_jobs: Joi.number().required(),
                     createdAt: Joi.date().optional(),
                     updatedAt: Joi.date().optional()
                 }
@@ -125,6 +128,9 @@ routes.push({
                     port: Joi.number().required(),
                     sdc_id: Joi.string().allow('', null),
                     id: Joi.string().allow('', null),
+                    max_total_jobs: Joi.number().required(),
+                    max_backup_jobs: Joi.number().required(),
+                    max_retention_jobs: Joi.number().required(),
                     createdAt: Joi.date().optional(),
                     updatedAt: Joi.date().optional()
                 }
