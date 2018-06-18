@@ -71,7 +71,10 @@ class HostsRepository {
                 name: host.name,
                 sdc_id: host.sdc_id || null,
                 ip_address: host.ip_address,
-                port: host.port
+                port: host.port,
+                max_total_jobs: host.max_total_jobs,
+                max_backup_jobs: host.max_backup_jobs,
+                max_retention_jobs: host.max_retention_jobs
             });
 
             const q = this.uow._models.Host
@@ -95,7 +98,10 @@ class HostsRepository {
                 name: host.name,
                 sdc_id: host.sdc_id,
                 ip_address: host.ip_address,
-                port: host.port
+                port: host.port,
+                max_total_jobs: host.max_total_jobs,
+                max_backup_jobs: host.max_backup_jobs,
+                max_retention_jobs: host.max_retention_jobs
             });
 
             const q = this.uow._models.Host
