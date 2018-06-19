@@ -66,39 +66,9 @@ class RetentionManager {
             }
             
             for (let source_snapshot of snapshots_to_delete) {
-                const host_workload = _.find(workloads, workload => {
-                    return workload.id === source_snapshot.source_host_id;
-                });
-                const can_run_retention_job = host_workload.current_retention_jobs < host_workload.max_retention_jobs && host_workload.current_retention_jobs + host_workload.current_backup_jobs < host_workload.max_total_jobs;
-                
-                this.logger.info(`${job.id} - Checking for space to run retention job on source host for snapshot ${source_snapshot.name}`);
-                if (!can_run_retention_job) {
-                    this.logger.info(`${job.id} - Skipping deletion of snapshot ${source_snapshot.name} because maximum job limits have been reached.`);
-                    continue;
-                }
-
-                this.logger.info(`${job.id} - Checking if ${source_snapshot.name} has been created on source`);
-                if (source_snapshot.source_host_status !== 1) {
-                    this.logger.info(`${job.id} - Skipping delete because snapshot ${source_snapshot.name} hasn't been created on source.`);
-                    continue;
-                }
-
-                this.logger.info(`${job.id} - Checking if ${source_snapshot.name} has been created on target`);
-                if (source_snapshot.target_host_status !== 1) {
-                    this.logger.info(`${job.id} - Skipping delete because snapshot ${source_snapshot.name} hasn't been created on target.`);
-                    continue;
-                }
-
-                this.logger.info(`${job.id} - Checking if ${source_snapshot.name} has been created on target`);
-
-                try {
-                    await this.delete_snapshot(job.id, source_snapshot, source_snapshot.source_host_id);
-                } catch (err) {
+                const result = await this.process_snapshot(this.job, source_snapshot, workloads, true);
+                if (!result) {
                     source_success = false;
-                    this.logger.error(`${job.id} - Deleting snapshot ${source_snapshot.name} from source ${source_snapshot.snapshot_source_host.ip_address} failed.`);
-                    this.logger.error(err);
-                    source_snapshot.source_host_status = 3; //TODO do we really want to set a failed status here?
-                    await this.uow.snapshots_repository.updateSnapshotEntry(source_snapshot);
                 }
             }
             this.logger.info(`${job.id} - Finished applying source retention schedule`);
@@ -123,42 +93,66 @@ class RetentionManager {
             }
 
             for (let target_snapshot of snapshots_to_delete) {
-                const host_workload = _.find(workloads, workload => {
-                    return workload.id === target_snapshot.target_host_id;
-                });
-                const can_run_retention_job = host_workload.current_retention_jobs < host_workload.max_retention_jobs && host_workload.current_retention_jobs + host_workload.current_backup_jobs < host_workload.max_total_jobs;
-
-                this.logger.info(`${job.id} - Checking for space to run retention job on target host for snapshot ${target_snapshot.name}`);
-                if (!can_run_retention_job) {
-                    this.logger.info(`${job.id} - Skipping deletion of snapshot ${target_snapshot.name} because maximum job limits have been reached.`);
-                    continue;
-                }
-
-                this.logger.info(`${job.id} - Checking if ${target_snapshot.name} has been created on target`);
-                if (target_snapshot.target_host_status !== 1) {
-                    this.logger.info(`${job.id} - Skipping delete because snapshot ${target_snapshot.name} hasn't been created on target.`);
-                    continue;
-                }
-
-                this.logger.info(`${job.id} - Checking if ${target_snapshot.name} has been deleted on source`);
-                if (target_snapshot.source_host_status !== 2) {
-                    this.logger.info(`${job.id} - Skipping delete because snapshot ${target_snapshot.name} hasn't been deleted on source.`);
-                    continue;
-                }
-
-                try {
-                    await this.delete_snapshot(job.id, target_snapshot, target_snapshot.target_host_id);
-                } catch (err) {
-                    this.logger.error(`${job.id} - Deleting snapshot ${target_snapshot.name} from target ${target_snapshot.snapshot_target_host.ip_address} failed.`);
-                    this.logger.error(err);
-                    target_snapshot.target_host_status = 3; //TODO do we really want to set a failed status here?
-                    await this.uow.snapshots_repository.updateSnapshotEntry(target_snapshot);
-                }
+                await this.process_snapshot(job, target_snapshot, workloads, false);
             }
             this.logger.info(`${job.id} - Finished applying target retention schedule`);
         } catch (err) {
             this.logger.error(`${job.id} - Applying target retention schedule failed`);
             this.logger.error(err);
+        }
+    }
+
+    async process_snapshot(job, snapshot, workloads, is_source) {
+        const host_workload = _.find(workloads, workload => {
+            if (is_source) {
+                return workload.id === snapshot.source_host_id;
+            }
+            return workload.id === snapshot.target_host_id;
+        });
+        const can_run_retention_job = host_workload.current_retention_jobs < host_workload.max_retention_jobs && host_workload.current_retention_jobs + host_workload.current_backup_jobs < host_workload.max_total_jobs;
+        
+        this.logger.info(`${job.id} - Checking for space to run retention job on source host for snapshot ${snapshot.name}`);
+        if (!can_run_retention_job) {
+            this.logger.info(`${job.id} - Skipping deletion of snapshot ${snapshot.name} because maximum job limits have been reached.`);
+            return false;
+        }
+
+        if (is_source) { // run source host checks
+            this.logger.info(`${job.id} - Checking if ${snapshot.name} has been created on source`);
+            if (snapshot.source_host_status !== 1) {
+                this.logger.info(`${job.id} - Skipping delete because snapshot ${snapshot.name} hasn't been created on source.`);
+                return false;
+            }
+
+            this.logger.info(`${job.id} - Checking if ${snapshot.name} has been created on target`);
+            if (snapshot.target_host_status !== 1) {
+                this.logger.info(`${job.id} - Skipping delete because snapshot ${snapshot.name} hasn't been created on target.`);
+                return false;
+            }
+        } else { // run target host checks
+            this.logger.info(`${job.id} - Checking if ${snapshot.name} has been created on target`);
+            if (snapshot.target_host_status !== 1) {
+                this.logger.info(`${job.id} - Skipping delete because snapshot ${snapshot.name} hasn't been created on target.`);
+                return false;
+            }
+
+            this.logger.info(`${job.id} - Checking if ${snapshot.name} has been deleted on source`);
+            if (snapshot.source_host_status !== 2) {
+                this.logger.info(`${job.id} - Skipping delete because snapshot ${snapshot.name} hasn't been deleted on source.`);
+                return false;
+            }
+        }
+
+        try {
+            host_workload.current_retention_jobs += 1;
+            await this.delete_snapshot(job.id, snapshot, snapshot.source_host_id);
+            return true;
+        } catch (err) {
+            this.logger.error(`${job.id} - Deleting snapshot ${snapshot.name} from source ${snapshot.snapshot_source_host.ip_address} failed.`);
+            this.logger.error(err);
+            snapshot.source_host_status = 3; //TODO do we really want to set a failed status here?
+            await this.uow.snapshots_repository.updateSnapshotEntry(snapshot);
+            return false;
         }
     }
 
