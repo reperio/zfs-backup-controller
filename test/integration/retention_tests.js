@@ -2,6 +2,7 @@
 /* eslint max-nested-callbacks: 0 */
 process.env.NODE_ENV = 'test';
 
+const _ = require('lodash');
 const assert = require('assert');
 const RetentionManager = require('../../retention/retention_manager.js');
 
@@ -155,6 +156,29 @@ describe('Retention Manager Tests', async function () {
         await handlers.destroy_complete(req, fakeReply);
         const updatedSnapshot = await uow.snapshots_repository.get_by_job_history_id('e714e0ed-9e83-4421-8058-1232024c7e50');
         assert.equal(updatedSnapshot.target_host_status, 3);
+    });
+
+    it('workload is correctly incremented when firing off retention jobs', async () => {
+        const job = await uow.jobs_repository.get_job_by_id('b21d3b67-4e78-4b2c-8169-5891520048a8');
+        const workloads = await uow.hosts_repository.get_all_workload_details();
+        const snapshot = await uow.snapshots_repository.get_by_job_history_id('e714e0ed-9e83-4421-8058-1232024c7e51');
+        const host_workload = _.find(workloads, workload => {
+            return snapshot.source_host_id === workload.id;
+        });
+        await retentionTestClass.process_snapshot(job, snapshot, workloads, true);
+        assert.equal(host_workload.current_retention_jobs, 1);
+    });
+
+    it('retention job will not be fired on host that does not have space', async () => {
+        const job = await uow.jobs_repository.get_job_by_id('b21d3b67-4e78-4b2c-8169-5891520048a8');
+        const workloads = await uow.hosts_repository.get_all_workload_details();
+        const snapshot = await uow.snapshots_repository.get_by_job_history_id('e714e0ed-9e83-4421-8058-1232024c7e51');
+        const host_workload = _.find(workloads, workload => {
+            return snapshot.source_host_id === workload.id;
+        });
+        assert.equal(host_workload.current_retention_jobs, host_workload.max_retention_jobs);
+        const result = await retentionTestClass.process_snapshot(job, snapshot, workloads, true);
+        assert.equal(result, false);
     });
 
     //drop the database
