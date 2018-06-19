@@ -6,7 +6,7 @@ exports.up = async function (knex, Promise) {
     const job_result_promise = new Promise(async(resolve, reject) => {
         knex.schema.hasTable('job_result').then(async (exists) => {
             if (exists) {
-                await knex.schema.droptTable('job_result');
+                await knex.schema.dropTable('job_result');
             }
     
             await knex.schema.createTable('job_result', t => {
@@ -29,7 +29,7 @@ exports.up = async function (knex, Promise) {
     const snapshot_status_promise = new Promise(async(resolve, reject) => {
         knex.schema.hasTable('snapshot_status').then(async (exists2) => {
             if (exists2) {
-                await knex.schema.droptTable('snapshot_status');
+                await knex.schema.dropTable('snapshot_status');
             }
     
             await knex.schema.createTable('snapshot_status', t => {
