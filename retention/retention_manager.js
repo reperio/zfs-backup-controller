@@ -103,6 +103,19 @@ class RetentionManager {
     }
 
     async process_snapshot(job, snapshot, workloads, is_source) {
+        // check if the snapshot is already deleted on the host
+        if (is_source) {
+            if (snapshot.source_host_status !== 1) {
+                this.logger.info(`${job.id} - Snapshot ${snapshot.name} has already been deleted on ${is_source ? 'source' : 'target'} host`);
+                return true;
+            }
+        } else if (!is_source) {
+            if (snapshot.target_host_status !== 1) {
+                this.logger.info(`${job.id} - Snapshot ${snapshot.name} has already been deleted on ${is_source ? 'source' : 'target'} host`);
+                return true;
+            }
+        }
+
         const host_workload = _.find(workloads, workload => {
             if (is_source) {
                 return workload.id === snapshot.source_host_id;
@@ -111,7 +124,7 @@ class RetentionManager {
         });
         const can_run_retention_job = host_workload.current_retention_jobs < host_workload.max_retention_jobs && host_workload.current_retention_jobs + host_workload.current_backup_jobs < host_workload.max_total_jobs;
         
-        this.logger.info(`${job.id} - Checking for space to run retention job on source host for snapshot ${snapshot.name}`);
+        this.logger.info(`${job.id} - Checking for space to run retention job on ${is_source ? 'source' : 'target'} host for snapshot ${snapshot.name}`);
         if (!can_run_retention_job) {
             this.logger.info(`${job.id} - Skipping deletion of snapshot ${snapshot.name} because maximum job limits have been reached.`);
             return false;
