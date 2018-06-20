@@ -104,14 +104,15 @@ class RetentionManager {
 
     async process_snapshot(job, snapshot, workloads, is_source) {
         // check if the snapshot is already deleted on the host
+        this.logger.info(`${job.id} - Checking to make sure snapshot ${snapshot.name} has not already been deleted on ${is_source ? 'source' : 'target'} host`);
         if (is_source) {
             if (snapshot.source_host_status !== 1) {
-                this.logger.info(`${job.id} - Snapshot ${snapshot.name} has already been deleted on ${is_source ? 'source' : 'target'} host`);
+                this.logger.info(`${job.id} - Skipping deletion of snapshot ${snapshot.name} because snapshot has already been deleted on source host`);
                 return true;
             }
         } else if (!is_source) {
             if (snapshot.target_host_status !== 1) {
-                this.logger.info(`${job.id} - Snapshot ${snapshot.name} has already been deleted on ${is_source ? 'source' : 'target'} host`);
+                this.logger.info(`${job.id} - Skipping deletion of snapshot ${snapshot.name} because snapshot has already been deleted on target host`);
                 return true;
             }
         }
@@ -158,10 +159,10 @@ class RetentionManager {
 
         try {
             host_workload.current_retention_jobs += 1;
-            await this.delete_snapshot(job.id, snapshot, snapshot.source_host_id);
+            await this.delete_snapshot(job.id, snapshot, is_source ? snapshot.source_host_id : snapshot.target_host_id);
             return true;
         } catch (err) {
-            this.logger.error(`${job.id} - Deleting snapshot ${snapshot.name} from source ${snapshot.snapshot_source_host.ip_address} failed.`);
+            this.logger.error(`${job.id} - Deleting snapshot ${snapshot.name} from ${is_source ? 'source' : 'target'} ${is_source ? snapshot.snapshot_source_host.ip_address : snapshot.snapshot_target_host.ip_address} failed.`);
             this.logger.error(err);
             snapshot.source_host_status = 3; //TODO do we really want to set a failed status here?
             await this.uow.snapshots_repository.updateSnapshotEntry(snapshot);
