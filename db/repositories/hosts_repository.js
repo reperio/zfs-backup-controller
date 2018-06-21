@@ -28,7 +28,7 @@ class HostsRepository {
         this.uow._logger.info('Fetching all host workloads from database');
 
         try {
-            const active_backup_jobs_query = knex('job_history').count('*').where(knex.raw('?? = ?? AND (?? = ?? OR ?? = ??)', ['job_history.result', 1, 'jobs.source_host_id', 'hosts.id', 'jobs.target_host_id', 'hosts.id'])).leftJoin('jobs', 'jobs.id', 'job_history.job_id');
+            const active_backup_jobs_query = knex('job_history').count('*').where(knex.raw('?? in (??) AND (?? = ?? OR ?? = ??)', ['job_history.result', [0, 1], 'jobs.source_host_id', 'hosts.id', 'jobs.target_host_id', 'hosts.id'])).leftJoin('jobs', 'jobs.id', 'job_history.job_id');
             const active_retention_jobs_query = knex('snapshots').count('*').where(knex.raw('(?? = ?? AND ?? = ??) OR (?? = ?? AND ?? = ??)', ['snapshots.source_host_status', 5, 'snapshots.source_host_id', 'hosts.id', 'snapshots.target_host_status', 5, 'snapshots.target_host_id', 'hosts.id']));
             const q = knex.column(
                 {id: 'hosts.id'},

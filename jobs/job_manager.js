@@ -313,6 +313,7 @@ class JobManager {
             this.logger.info(`  ${job.id} | ${job_history.id} - Updating job history entry.`);
             job_history.source_message = '';
             job_history.source_result = 1;
+            job_history.result = 1;
             await this.uow.job_history_repository.update_job_history_entry(job_history);
             this.logger.info(`  ${job.id} | ${job_history.id} - Job history entry updated.`);
         } catch(err) {
