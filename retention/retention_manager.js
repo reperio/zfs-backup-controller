@@ -66,7 +66,7 @@ class RetentionManager {
             }
             
             for (let source_snapshot of snapshots_to_delete) {
-                const result = await this.process_snapshot(this.job, source_snapshot, workloads, true);
+                const result = await this.process_snapshot(job, source_snapshot, workloads, true);
                 if (!result) {
                     source_success = false;
                 }
