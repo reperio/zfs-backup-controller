@@ -139,18 +139,20 @@ async function destroy_complete(request, reply) {
     const code = request.payload.code;
     const host_id = request.payload.host_id;
 
+    const result = code === 0 ? 2 : 3;
+
     try {
         const snapshot = await uow.snapshots_repository.get_by_job_history_id(job_history_id);
         if (snapshot.source_host_id === host_id) {
             if (snapshot.source_host_status !== 5) {
                 logger.warn(`${snapshot.job_history_id} - source snapshot deleted before being set to 'deleting' status`);
             }
-            snapshot.source_host_status = code;
+            snapshot.source_host_status = result;
         } else if (snapshot.target_host_id === host_id) {
             if (snapshot.target_host_status !== 5) {
                 logger.warn(`${snapshot.job_history_id} - target snapshot deleted before being set to 'deleting' status`);
             }
-            snapshot.target_host_status = code;
+            snapshot.target_host_status = result;
         }
 
         await uow.snapshots_repository.updateSnapshotEntry(snapshot);
