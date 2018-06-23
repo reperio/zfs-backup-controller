@@ -2,13 +2,14 @@ const _ = require('lodash');
 const moment = require('moment');
 
 class JobManager {
-    constructor(logger, uow, agentApi, job_interval) {
+    constructor(logger, uow, agentApi, job_interval, retention_enabled) {
         this.logger = logger;
         this.uow = uow;
         this.agentApi = agentApi;
 
         this.job_interval_id = null;
         this.job_interval = job_interval;
+        this.retention_enabled = retention_enabled;
         this.executing = false;
     }
 

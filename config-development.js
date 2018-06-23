@@ -18,13 +18,11 @@ module.exports = {
     
     job_manager: {
         enabled: false,
-        interval: 5000,
-        max_jobs_per_iteration: 2
+        interval: 5000
     },
 
     retention_manager: {
-        enabled: false,
-        interval: 5000
+        enabled: false
     },
 
     data_manager: {

@@ -7,7 +7,6 @@ const winston = require('winston');
 require('winston-daily-rotate-file');
 
 const JobManager = require('./jobs/job_manager');
-const RetentionManager = require('./retention/retention_manager');
 const DatacenterApisManager = require('./datacenter_managers/index');
 
 const AgentApi = require('./agent_api');
@@ -176,13 +175,8 @@ server.app.agent_api = agent_api;
 const uow = CreateUow(server.app.logger);
 
 if (Config.job_manager.enabled) {
-    const job_manager = new JobManager(server.app.logger, uow, agent_api, Config.job_manager.interval, Config.job_manager.max_jobs_per_host);
+    const job_manager = new JobManager(server.app.logger, uow, agent_api, Config.job_manager.interval, Config.retention_manager.enabled);
     job_manager.start();
-}
-
-if (Config.retention_manager.enabled) {
-    const retention_manager = new RetentionManager(server.app.logger, uow, agent_api, Config.retention_manager.interval);
-    retention_manager.start();
 }
 
 if (Config.data_manager.enabled) {
