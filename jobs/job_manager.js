@@ -67,6 +67,16 @@ class JobManager {
         }
         
         this.logger.info('Job Manager execution finished.');
+
+        this.logger.info('Applying Retention Schedules.');
+
+        try {
+
+        } catch (err) {
+            this.logger.error(`${job.id} - Applying retention schedule failed`);
+            this.logger.error(err);
+        }
+
     }
 
     async cleanup_finished_jobs() {
