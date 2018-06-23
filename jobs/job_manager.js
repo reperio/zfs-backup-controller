@@ -103,8 +103,6 @@ class JobManager {
     }
 
     async filterJobsByWorkload(jobs, host_workloads) {
-        this.logger.info(`Filtering ${jobs.length} jobs using workload: ${JSON.stringify(host_workloads)}.`);
-
         const jobsToExecute = [];
 
         for (const job of jobs) {
