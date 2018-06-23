@@ -36,14 +36,14 @@ class JobManager {
             this.logger.error(err);
         }
 
+        //get current workload to have object available to jobs and retention
+        let current_workload = await this.uow.hosts_repository.get_all_workload_details();
+        this.logger.info(`Current workload: ${JSON.stringify(current_workload)}.`);
+
         try {
             //get current workload, find all enabled jobs, filter to the ones that are ready based on schedule, order them, and filter them by current host workload.
             const runningJobEntries = await this.uow.job_history_repository.getUnfinishedJobs();
             const runningJobIds = _.uniq(_.map(runningJobEntries, 'job_id'));
-
-            //get current workload to have object available to jobs and retention
-            const current_workload = await this.uow.hosts_repository.get_all_workload_details();
-            this.logger.info(`Current workload: ${JSON.stringify(current_workload)}.`);
 
             const jobs = await this.uow.jobs_repository.getAllEnabledJobs();
             this.logger.info(`Found ${jobs.length} enabled jobs`);
