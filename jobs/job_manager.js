@@ -71,7 +71,18 @@ class JobManager {
         this.logger.info(`Retention is enabled?: ${JSON.stringify(this.retention_enabled)}.`);
 
         if (this.retention_enabled) {
-            await apply_retention_schedules();
+            this.logger.info('Applying Retention Schedules.');
+            const jobs = await this.uow.jobs_repository.getAllEnabledJobs();
+            const workloads = await this.uow.hosts_repository.get_all_workload_details();
+
+            for (let job of jobs) {
+                try {
+                    await this.apply_retention_schedule_for_job(job, workloads);
+                } catch (err) {
+                    this.logger.error(`${job.id} - Applying retention schedule failed`);
+                    this.logger.error(err);
+                }
+            }
         }
 
     }
@@ -331,20 +342,6 @@ class JobManager {
             job_history.result = 3;
             await this.uow.job_history_repository.update_job_history_entry(job_history);
             throw err;
-        }
-    }
-    async apply_retention_schedules() {
-        this.logger.info('Applying Retention Schedules.');
-        const jobs = await this.uow.jobs_repository.getAllEnabledJobs();
-        const workloads = await this.uow.hosts_repository.get_all_workload_details();
-
-        for (let job of jobs) {
-            try {
-                await this.apply_retention_schedule_for_job(job, workloads);
-            } catch (err) {
-                this.logger.error(`${job.id} - Applying retention schedule failed`);
-                this.logger.error(err);
-            }
         }
     }
 
