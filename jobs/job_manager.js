@@ -2,7 +2,8 @@ const _ = require('lodash');
 const moment = require('moment');
 
 class JobManager {
-    constructor(logger, uow, agentApi, job_interval, retention_enabled) {
+
+    constructor(logger, uow, agentApi, job_interval, retention_enabled, send_delay) {
         this.logger = logger;
         this.uow = uow;
         this.agentApi = agentApi;
@@ -10,6 +11,7 @@ class JobManager {
         this.job_interval_id = null;
         this.job_interval = job_interval;
         this.retention_enabled = retention_enabled;
+        this.send_delay = send_delay;
         this.executing = false;
     }
 
@@ -316,33 +318,36 @@ class JobManager {
             throw err;
         }
 
-        try {
-            //request zfs send
-            let last_snapshot_name = null;
 
-            const most_recent_successful = await this.uow.job_history_repository.get_most_recent_successful_job_history(job.id);
-
-            if (most_recent_successful) {
-                last_snapshot_name = most_recent_successful.job_history_snapshot.name;
+        setTimeout(async () => {
+            try {
+                //request zfs send
+                let last_snapshot_name = null;
+    
+                const most_recent_successful = await this.uow.job_history_repository.get_most_recent_successful_job_history(job.id);
+    
+                if (most_recent_successful) {
+                    last_snapshot_name = most_recent_successful.job_history_snapshot.name;
+                }
+    
+                await this.agentApi.zfs_send(job, job_history, snapshot_name, port, last_snapshot_name, true);
+    
+                //update job history record
+                this.logger.info(`  ${job.id} | ${job_history.id} - Updating job history entry.`);
+                job_history.source_message = '';
+                job_history.source_result = 1;
+                job_history.result = 1;
+                await this.uow.job_history_repository.update_job_history_entry(job_history);
+                this.logger.info(`  ${job.id} | ${job_history.id} - Job history entry updated.`);
+            } catch(err) {
+                this.logger.error(`  ${job.id} | ${job_history.id} - ZFS Send step failed.`);
+                job_history.source_message = '';
+                job_history.source_result = 3;
+                job_history.result = 3;
+                await this.uow.job_history_repository.update_job_history_entry(job_history);
+                throw err;
             }
-
-            await this.agentApi.zfs_send(job, job_history, snapshot_name, port, last_snapshot_name, true);
-
-            //update job history record
-            this.logger.info(`  ${job.id} | ${job_history.id} - Updating job history entry.`);
-            job_history.source_message = '';
-            job_history.source_result = 1;
-            job_history.result = 1;
-            await this.uow.job_history_repository.update_job_history_entry(job_history);
-            this.logger.info(`  ${job.id} | ${job_history.id} - Job history entry updated.`);
-        } catch(err) {
-            this.logger.error(`  ${job.id} | ${job_history.id} - ZFS Send step failed.`);
-            job_history.source_message = '';
-            job_history.source_result = 3;
-            job_history.result = 3;
-            await this.uow.job_history_repository.update_job_history_entry(job_history);
-            throw err;
-        }
+        }, this.send_delay);
     }
 
     async apply_retention_schedule_for_job(job, workloads) {

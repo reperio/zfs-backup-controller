@@ -14,6 +14,8 @@ module.exports = {
     vmapi_ip_address: '172.20.33.27',
     cnapi_admin_network: '172.20.33.1/24',
 
+    send_delay: 5000,
+
     default_host_port: 3000,
     
     job_manager: {
