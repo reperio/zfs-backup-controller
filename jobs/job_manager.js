@@ -330,6 +330,7 @@ class JobManager {
                     last_snapshot_name = most_recent_successful.job_history_snapshot.name;
                 }
     
+                this.logger.info(`  ${job.id} | ${job_history.id} - Sending ZFS Send command to agent.`);
                 await this.agentApi.zfs_send(job, job_history, snapshot_name, port, last_snapshot_name, true);
     
                 //update job history record
