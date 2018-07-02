@@ -75,10 +75,10 @@ const start = async function() {
         }
         
         failed_jobs_text += `\t${failed_jobs[i].job_name} - ${message}\n`;
-        failed_jobs_html.push(`<tr>
-                                <td style="padding-right: 10px; padding-left: 10px;">${failed_jobs[i].job_name}</td>
-                                <td style="padding-right: 10px; padding-left: 10px;">${message}</td>
-                                <td style="padding-right: 10px; padding-left: 10px;">${failed_jobs[i].last_successful_backup === null ? '' : moment(failed_jobs[i].last_successful_backup).format('LLL')}</td>
+        failed_jobs_html.push(`<tr ${i % 2 === 0 ? 'style="background-color: #d4d4d4;"' : ''}>
+                                <td align="left">${failed_jobs[i].job_name}</td>
+                                <td align="left">${message}</td>
+                                <td align="left">${failed_jobs[i].last_successful_backup === null ? '' : moment(failed_jobs[i].last_successful_backup).format('LLL')}</td>
                             </tr>`);
     }
 
@@ -94,9 +94,9 @@ const start = async function() {
     
     for (let i = 0; i < stuck_jobs.length; i++) {
         stuck_jobs_text += `\t${stuck_jobs[i].job_name}\n`;
-        stuck_jobs_html.push(`<tr>
-                                <td style="padding-right: 10px; padding-left: 10px;">${stuck_jobs[i].job_name}</td>
-                                <td style="padding-right: 10px; padding-left: 10px;">${failed_jobs[i].last_execution === null ? '' : moment(failed_jobs[i].last_execution).format('LLL')}</td>
+        stuck_jobs_html.push(`<tr ${i % 2 === 0 ? 'style="background-color: #d4d4d4;"' : ''}>
+                                <td align="left">${stuck_jobs[i].job_name}</td>
+                                <td align="left">${failed_jobs[i].last_execution === null ? '' : moment(failed_jobs[i].last_execution).format('LLL')}</td>
                             </tr>`);
     }
 
@@ -118,68 +118,72 @@ const start = async function() {
             message = 'No defined job';
         } else if (dataset.ran_within_previous_period === 0) {
             message = 'Missed last scheduled backup';
-        } 
+        }
 
         if (previous_host_sdc_id !== dataset.host_sdc_id) {
-            unprotected_nodes_html.push(`<tr class="host">
-                                            <td style="padding-right: 10px; padding-left: 10px;">${dataset.host_name}</td>
+            unprotected_nodes_html.push(`<tr>
+                                            <td align="left" style="padding-right: 10px; padding-left: 10px;">${dataset.host_name}</td>
+                                            <td></td>
+                                            <td></td>
                                         </tr>`);
             previous_host_sdc_id = dataset.host_sdc_id;
         }
 
         if (previous_virtual_machine_id !== dataset.virtual_machine_id) {
-            unprotected_nodes_html.push(`<tr class="virtual-machine">
-                                            <td style="padding-right: 10px; padding-left: 10px; padding-left:2em">${dataset.virtual_machine_name}</td>
+            unprotected_nodes_html.push(`<tr>
+                                            <td align="left" style="padding-right: 10px; padding-left: 10px; padding-left:2em">${dataset.virtual_machine_name}</td>
+                                            <td></td>
+                                            <td></td>
                                         </tr>`);
             previous_virtual_machine_id = dataset.virtual_machine_id;
         }
 
         unprotected_nodes_text += `${dataset.host_name} - ${dataset.virtual_machine_name} - ${dataset.dataset_name} - ${message} - ${dataset.last_successful_backup === null ? 'n/a' : moment(dataset.last_successful_backup).format('LLL')}`;
-        unprotected_nodes_html.push(`<tr class="dataset">
-                                        <td style="padding-right: 10px; padding-left: 10px; padding-left:4em">\t\t${dataset.dataset_name}</td>
-                                        <td>${message}</td>
-                                        <td>${dataset.last_successful_backup === null ? '' : moment(dataset.last_successful_backup).format('LLL')}</td>
+        unprotected_nodes_html.push(`<tr>
+                                        <td align="left" style="padding-right: 10px; padding-left: 10px; padding-left:4em">\t\t${dataset.dataset_name}</td>
+                                        <td align="left">${message}</td>
+                                        <td align="left">${dataset.last_successful_backup === null ? '' : moment(dataset.last_successful_backup).format('LLL')}</td>
                                     </tr>`);
     });
 
     // send email
     const body_text = failed_jobs_text + '\n' + stuck_jobs_text + '\n' + unprotected_nodes_text;
-    const body_html = `<div>
+    const body_html = `<body>
                             <h3>Failed Jobs: ${failed_jobs.length}</h3>
-                            <table style="border-spacing: 0px;">
+                            <table width="100%" style="border-collapse: collapse;">
                                 <thead>
-                                    <th style="text-align: left; padding-right: 10px; padding-left: 10px; padding-left:4em">Job</th>
-                                    <th style="text-align: left; padding-right: 10px; padding-left: 10px; padding-left:4em">Message</th>
-                                    <th style="text-align: left; padding-right: 10px; padding-left: 10px; padding-left:4em">Last Successful Backup</th>
+                                    <th align="left">Job</th>
+                                    <th align="left">Message</th>
+                                    <th align="left">Last Successful Backup</th>
                                 </thead>
-                                <tbody style="tr:nth-child(even) { background-color: #D3D3D3; }">
+                                <tbody>
                                     ${failed_jobs_html.join('\n')}
                                 </tbody>
                             </table>
 
                             <h3>Stuck Jobs: ${stuck_jobs.length}</h3>
-                            <table style="border-spacing: 0px;">
+                            <table width="100%" style="border-collapse: collapse;">
                                 <thead>
-                                    <th style="text-align: left; padding-right: 10px; padding-left: 10px; padding-left:4em">Job</th>
-                                    <th style="text-align: left; padding-right: 10px; padding-left: 10px; padding-left:4em">Start Time</th>
+                                    <th align="left">Job</th>
+                                    <th align="left">Start Time</th>
                                 </thead>
-                                <tbody style="tr:nth-child(even) { background-color: #D3D3D3; }">
+                                <tbody>
                                     ${stuck_jobs_html.join('\n')}
                                 </tbody>
                             </table>
 
                             <h3>Uprotected Nodes</h3>
-                            <table style="border-spacing: 0px;">
+                            <table width="100%" style="border-collapse: collapse;">
                                 <thead>
-                                    <th style="text-align: left; padding-right: 10px; padding-left: 10px; padding-left:4em">Node</th>
-                                    <th style="text-align: left; padding-right: 10px; padding-left: 10px; padding-left:4em">Message</th>
-                                    <th style="text-align: left; padding-right: 10px; padding-left: 10px; padding-left:4em">Last Successful Backup</th>
+                                    <th align="left">Node</th>
+                                    <th align="left">Message</th>
+                                    <th align="left">Last Successful Backup</th>
                                 </thead>
                                 <tbody>
                                     ${unprotected_nodes_html.join('\n')}
                                 </tbody>
                             </table>
-                        </div>`;
+                        </body>`;
 
     app_logger.info('sending email...');
     sgMail.setApiKey(Config.notification_email.send_grid_api_key);
