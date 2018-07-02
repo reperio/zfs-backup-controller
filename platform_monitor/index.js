@@ -182,18 +182,28 @@ const start = async function() {
                             </ul>
                         </body>`;
 
-    app_logger.info('sending email...');
+    app_logger.info('sending email(s)...');
+    
     sgMail.setApiKey(Config.notification_email.send_grid_api_key);
-    const msg = {
-        to: Config.notification_email.to,
-        from: Config.notification_email.from,
-        subject: 'Platform Monitor',
-        text: body_text,
-        html: body_html
-    };
+    
 
-    await sgMail.send(msg);
-    app_logger.info('email sent');
+    try {
+        const addresses = [].concat(Config.notification_email.to);
+
+        for (let i = 0; i < addresses.length; i++) {
+            const msg = {
+                to: addresses[i],
+                from: Config.notification_email.from,
+                subject: 'Platform Monitor',
+                text: body_text,
+                html: body_html
+            };
+            await sgMail.send(msg);
+        }
+    } catch (err) {
+        console.error(err);
+    }
+    app_logger.info('email(s) sent');
 
     process.exit(0);
 };
