@@ -106,45 +106,42 @@ const start = async function() {
     });
 
     let unprotected_nodes_text = 'Unprotected Nodes:\n';
-    let unprotected_nodes_html = [];
-    
-    let previous_host_sdc_id = null;
-    let previous_virtual_machine_id = null;
-    _.each(unprotected_datasets, dataset => {
-        let message = '';
-        if (dataset.last_result === 3 && dataset.ran_within_previous_period === 1) {
-            message = 'Last run failed';
-        } else if (dataset.job_id === null) {
-            message = 'No defined job';
-        } else if (dataset.ran_within_previous_period === 0) {
-            message = 'Missed last scheduled backup';
+    let unprotected_nodes_html = '';
+
+
+    const unprotected_nodes = _.uniqBy(unprotected_datasets, 'host_sdc_id');
+
+    for (let i = 0; i < unprotected_nodes.length; i++) {
+        unprotected_nodes_html += `<li><span>${unprotected_nodes[i].host_name}</span><ul>`;
+
+        const node_virtual_machines = _.uniqBy(_.filter(unprotected_datasets, dataset => {
+            return dataset.host_sdc_id === unprotected_nodes[i].host_sdc_id;
+        }), 'virtual_machine_id');
+
+        for (let j = 0; j < node_virtual_machines.length; j++) {
+            unprotected_nodes_html += `<li><span>${node_virtual_machines[j].virtual_machine_name}</span><ul>`;
+
+            const virtual_machine_datasets = _.filter(unprotected_datasets, dataset => {
+                return dataset.virtual_machine_id === node_virtual_machines[j].virtual_machine_id;
+            });
+
+            for (let k = 0; k < virtual_machine_datasets.length; k++) {    
+                let message = '';
+                if (virtual_machine_datasets[k].last_result === 3 && virtual_machine_datasets[k].ran_within_previous_period === 1) {
+                    message = 'Last run failed';
+                } else if (virtual_machine_datasets[k].job_id === null) {
+                    message = 'No defined job';
+                } else if (virtual_machine_datasets[k].ran_within_previous_period === 0) {
+                    message = 'Missed last scheduled backup';
+                }
+                unprotected_nodes_html += `<li><table style="width: 100%"><tbody><td width="33%">${virtual_machine_datasets[k].dataset_name}</td><td width="33%">${message}</td><td width="33%">${virtual_machine_datasets[k].last_successful_backup === null ? '' : moment(virtual_machine_datasets[k].last_successful_backup).format('LLL')}</td></tbody></table></li>`;
+            }
+
+            unprotected_nodes_html += '</ul></li>';
         }
 
-        if (previous_host_sdc_id !== dataset.host_sdc_id) {
-            unprotected_nodes_html.push(`<tr>
-                                            <td align="left" style="padding-right: 10px; padding-left: 10px;">${dataset.host_name}</td>
-                                            <td></td>
-                                            <td></td>
-                                        </tr>`);
-            previous_host_sdc_id = dataset.host_sdc_id;
-        }
-
-        if (previous_virtual_machine_id !== dataset.virtual_machine_id) {
-            unprotected_nodes_html.push(`<tr>
-                                            <td align="left" style="padding-right: 10px; padding-left: 10px; padding-left:2em">${dataset.virtual_machine_name}</td>
-                                            <td></td>
-                                            <td></td>
-                                        </tr>`);
-            previous_virtual_machine_id = dataset.virtual_machine_id;
-        }
-
-        unprotected_nodes_text += `${dataset.host_name} - ${dataset.virtual_machine_name} - ${dataset.dataset_name} - ${message} - ${dataset.last_successful_backup === null ? 'n/a' : moment(dataset.last_successful_backup).format('LLL')}`;
-        unprotected_nodes_html.push(`<tr>
-                                        <td align="left" style="padding-right: 10px; padding-left: 10px; padding-left:4em">\t\t${dataset.dataset_name}</td>
-                                        <td align="left">${message}</td>
-                                        <td align="left">${dataset.last_successful_backup === null ? '' : moment(dataset.last_successful_backup).format('LLL')}</td>
-                                    </tr>`);
-    });
+        unprotected_nodes_html += '</ul></li>';
+    }
 
     // send email
     const body_text = failed_jobs_text + '\n' + stuck_jobs_text + '\n' + unprotected_nodes_text;
@@ -173,16 +170,16 @@ const start = async function() {
                             </table>
 
                             <h3>Uprotected Nodes</h3>
-                            <table width="100%" style="border-collapse: collapse;">
-                                <thead>
-                                    <th align="left">Node</th>
-                                    <th align="left">Message</th>
-                                    <th align="left">Last Successful Backup</th>
-                                </thead>
+                            <table style="width: 100%;">
                                 <tbody>
-                                    ${unprotected_nodes_html.join('\n')}
+                                    <th width="33%" align="left">Dataset</th>
+                                    <th width="33%" align="left" style="padding-left: 6.4%;">Message</th>
+                                    <th width="33%" align="left">Last Successful Backup</th>
                                 </tbody>
                             </table>
+                            <ul>
+                                ${unprotected_nodes_html}
+                            </ul>
                         </body>`;
 
     app_logger.info('sending email...');
