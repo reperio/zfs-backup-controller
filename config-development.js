@@ -30,5 +30,11 @@ module.exports = {
     data_manager: {
         enabled: false,
         interval: 1000 * 60 * 60 * 24
+    },
+
+    notification_email: {
+        send_grid_api_key: '',
+        to: 'spencerdangel@sevenhillstechnology.com',
+        from: 'no-reply@sevenhillstechnology.com'
     }
 };
