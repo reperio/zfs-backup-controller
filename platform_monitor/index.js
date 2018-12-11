@@ -8,11 +8,9 @@ require('winston-daily-rotate-file');
 
 console.log('Starting Platform Monitor');
 
-const log_directory = '../logs';
-
 const app_file_transport = new (winston.transports.DailyRotateFile)({
     name: 'file_transport',
-    filename: `${log_directory}/log`,
+    filename: `${Config.log_directory}/log`,
     datePattern: 'controller-app-yyyy-MM-dd.',
     prepend: true,
     level: Config.app_file_log_level,
@@ -23,7 +21,7 @@ const app_file_transport = new (winston.transports.DailyRotateFile)({
 
 const app_json_transport = new (winston.transports.DailyRotateFile)({
     name: 'json_transport',
-    filename: `${log_directory}/log`,
+    filename: `${Config.log_directory}/log`,
     datePattern: 'controller-json-yyyy-MM-dd.',
     prepend: true,
     level: Config.app_json_log_level,
