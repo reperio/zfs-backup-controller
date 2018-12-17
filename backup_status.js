@@ -89,15 +89,15 @@ class BackupStatus {
                     if (record.last_execution != null) {
                         switch (record.schedule) {
                             case 'quarter_hour':
-                                if (moment(record.last_execution) < moment().utc().subtract(15, 'minutes')) {
+                                if (moment(record.last_execution) < moment().utc().subtract(1, 'day')) {
                                     status_record.status = 'warn';
-                                    status_record.messages.push(`Dataset "${record.location}" missed the last backup`);
+                                    status_record.messages.push(`Dataset "${record.location}" not backed up in last 24 hours`);
                                 }
                                 break;
                             case 'hourly':
-                                if (moment(record.last_execution) < moment().utc().subtract(1, 'hour')) {
+                                if (moment(record.last_execution) < moment().utc().subtract(1, 'day')) {
                                     status_record.status = 'warn';
-                                    status_record.messages.push(`Dataset "${record.location}" missed the last backup`);
+                                    status_record.messages.push(`Dataset "${record.location}" not backed up in last 24 hours`);
                                 }
                                 break;
                             case 'daily':
