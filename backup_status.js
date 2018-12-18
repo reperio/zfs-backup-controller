@@ -73,7 +73,7 @@ class BackupStatus {
                     status_record.last_execution = record.last_execution;
 
                     //check successes and failures
-                    if (record.num_successes === 0) {
+                    if (record.num_successes == null || record.num_successes === 0 || record.last_result == null) {
                         status_record.status = 'bad';
                         status_record.messages.push(`Dataset "${record.location}" has no backups`);
                         //return true; // breaks the inner each loop since the status can't get any worse
