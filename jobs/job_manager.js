@@ -331,7 +331,7 @@ class JobManager {
                 }
     
                 this.logger.info(`  ${job.id} | ${job_history.id} - Sending ZFS Send command to agent.`);
-                await this.agentApi.zfs_send(job, job_history, snapshot_name, port, last_snapshot_name, true);
+                await this.agentApi.zfs_send(job, job_history, snapshot_name, port, last_snapshot_name);
     
                 //update job history record
                 this.logger.info(`  ${job.id} | ${job_history.id} - Updating job history entry.`);

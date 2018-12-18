@@ -1,3 +1,4 @@
+const Config = require('./config');
 const request = require('request-promise-native');
 
 class AgentApi {
@@ -85,7 +86,7 @@ class AgentApi {
     }
 
     /* eslint max-params: 0 */
-    async zfs_send(job, job_history, snapshot_name, port, incremental_snapshot_name, include_properties) {
+    async zfs_send(job, job_history, snapshot_name, port, incremental_snapshot_name) {
         this.logger.info(`  ${job.id} | ${job_history.id} - Sending ZFS Send command to source ${job.job_source_host.ip_address}.`);
 
         const url = `http://${job.job_source_host.ip_address}:${job.job_source_host.port}${this.urls.zfs_send}`;
@@ -95,7 +96,7 @@ class AgentApi {
             snapshot_name: snapshot_name,
             host: job.job_target_host.ip_address,
             port: port,
-            include_properties: include_properties,
+            include_properties: Config.job_manager.send_properties,
             mbuffer_size: this.config.mbuffer_size,
             mbuffer_rate: this.config.mbuffer_rate,
             job_history_id: job_history.id
