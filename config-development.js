@@ -20,7 +20,8 @@ module.exports = {
     
     job_manager: {
         enabled: false,
-        interval: 5000
+        interval: 5000,
+        send_properties: false
     },
 
     retention_manager: {
