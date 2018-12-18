@@ -1,4 +1,3 @@
-const Config = require('./config');
 const request = require('request-promise-native');
 
 class AgentApi {
@@ -96,7 +95,7 @@ class AgentApi {
             snapshot_name: snapshot_name,
             host: job.job_target_host.ip_address,
             port: port,
-            include_properties: Config.job_manager.send_properties,
+            include_properties: this.config.job_manager.send_properties,
             mbuffer_size: this.config.mbuffer_size,
             mbuffer_rate: this.config.mbuffer_rate,
             job_history_id: job_history.id
