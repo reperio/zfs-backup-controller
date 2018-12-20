@@ -1,0 +1,173 @@
+<html>
+    <head>
+        <link href="https://fonts.googleapis.com/css?family=Jaldi" rel="stylesheet">
+        <link href="http://fonts.googleapis.com/css?family=Lato:400,700" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Barlow+Condensed" rel="stylesheet">
+        <meta name=”x-apple-disable-message-reformatting”>
+    </head>
+    <body>
+        <div style="width: 100%; background-color: #FFFFFF; display: block; margin-left: auto; margin-right: auto; max-width: 1000px; font-family: Lato, sans-serif; font-size: 1.25em;">
+            <!-- Banner -->
+            <div style="width: 100%;">
+                <img style="max-width:100%; max-height:100%;" alt="reperio-color-bar" src="https://sms-gateway-test.reper.io/reperio-bar.png">
+            </div>
+            <div style="padding-top: 2em; border-left: 2px solid #D7D7D7; border-bottom: 2px solid #D7D7D7; border-right: 2px solid #D7D7D7;">
+                <!-- Introduction Text-->
+                <div style="margin-left: auto; margin-right: auto; width: 80%; display: block; text-align: left; text-decoration: none; color: #646565;">
+                    <p>
+                        <span style="margin-bottom: -0.5em; font-family: Jaldi, sans-serif; color: #4178B7; font-size: 1.75em;">
+                            <b>ZFS Backup Report - {{short_date}}</b>
+                        </span>
+                        <br />
+                        {{message}}
+                    </p>
+                </div>
+
+                {{#if has_failed_jobs}}
+                <!-- Unsuccessful Jobs -->
+                <div style="margin-top: 2em; width: 95%; border: 2px solid #982427; text-align: left; margin-left: auto; margin-right: auto; margin-bottom: 1em;">
+                    <!-- Report Header -->
+                    <div style="text-align: center; color: #FFFFFF; background-color: #C62B31; padding-top: 0.1em; padding-bottom: 0.1em; font-size: 1.5em; font-family: Barlow Condensed, sans-serif;">FAILED JOBS:</div>
+
+                    <!-- Report Body -->
+                    <div style="width: 85%; margin-left: auto; margin-right: auto; margin-top: 2em; margin-bottom: 0.5em;">
+                        {{#each failed_jobs.hosts}}
+                        <div style="border: 1px solid #D7D7D7; margin-bottom: 1em;">
+                            <div style="text-align: center; background-color: #D7D7D7; margin-bottom: 0.2em;"><span>{{name}}</span></div>
+                            <table style="width: 100%;">
+                                <thead style="text-align: left;">
+                                    <tr>
+                                        <th width="20%">Virtual Machine</th>
+                                        <th witdh="20%">Dataset</th>
+                                        <th width="35%">Last Operation</th>
+                                        <th width="25%">Last Backup</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{#each jobs}}
+                                    <tr>
+                                        <td>{{virtual_machine_name}}</td>
+                                        <td>{{dataset_name}}</td>
+                                        <td>{{status_message}}</td>
+                                        <td>{{last_successful_backup}}</td>
+                                    </tr>
+                                    {{/each}}
+                                </tbody>
+                            </table>
+                        </div>
+                        {{/each}}
+                    </div>
+                </div>
+                {{/if}}
+
+                {{#if has_stuck_jobs}}
+                <div style="margin-top: 2em; width: 95%; border: 2px solid #42BDC5; text-align: left; margin-left: auto; margin-right: auto; margin-bottom: 1em;">
+                    <!-- Report Header -->
+                    <div style="text-align: center; color: #FFFFFF; background-color: #42BDC5; padding-top: 0.1em; padding-bottom: 0.1em; font-size: 1.5em; font-family: Barlow Condensed, sans-serif;">STUCK JOBS:</div>
+
+                    <!-- Report Body -->
+                    <div style="width: 85%; margin-left: auto; margin-right: auto; margin-top: 2em; margin-bottom: 0.5em;">
+                        {{#each stuck_jobs.hosts}}
+                        <div style="border: 1px solid #D7D7D7; margin-bottom: 1em;">
+                            <div style="text-align: center; background-color: #D7D7D7; margin-bottom: 0.2em;"><span>{{name}}</span></div>
+                            <table style="width: 100%;">
+                                <thead style="text-align: left;">
+                                    <tr>
+                                        <th width="30%">Virtual Machine</th>
+                                        <th witdh="30%">Dataset</th>
+                                        <th width="40%">Started</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{#each jobs}}
+                                    <tr>
+                                        <td>{{virtual_machine_name}}</td>
+                                        <td>{{job_name}}</td>
+                                        <td>{{last_execution_date}}</td>
+                                    </tr>
+                                    {{/each}}
+                                </tbody>
+                            </table>
+                        </div>
+                        {{/each}}
+                    </div>
+                </div>
+                {{/if}}
+
+                {{#if has_missed_jobs}}
+                <div style="margin-top: 2em; width: 95%; border: 2px solid #C57A32; text-align: left; margin-left: auto; margin-right: auto; margin-bottom: 1em;">
+                    <!-- Report Header -->
+                    <div style="text-align: center; color: #FFFFFF; background-color: #f19437; padding-top: 0.1em; padding-bottom: 0.1em; font-size: 1.5em; font-family: Barlow Condensed, sans-serif;">MISSED JOBS:</div>
+
+                    <!-- Report Body -->
+                    <div style="width: 85%; margin-left: auto; margin-right: auto; margin-top: 2em; margin-bottom: 0.5em;">
+                        {{#each missed_jobs.hosts}}
+                        <div style="border: 1px solid #D7D7D7; margin-bottom: 1em;">
+                            <div style="text-align: center; background-color: #D7D7D7; margin-bottom: 0.2em;"><span>{{name}}</span></div>
+                            <table style="width: 100%;">
+                                <thead style="text-align: left;">
+                                    <tr>
+                                        <th width="30%">Virtual Machine</th>
+                                        <th witdh="30%">Dataset</th>
+                                        <th width="40%">Last Operation</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{#each jobs}}
+                                    <tr>
+                                        <td>{{virtual_machine_name}}</td>
+                                        <td>{{job_name}}</td>
+                                        <td>{{status_message}}</td>
+                                    </tr>
+                                    {{/each}}
+                                </tbody>
+                            </table>
+                        </div>
+                        {{/each}}
+                    </div>
+                </div>
+                {{/if}}
+
+                <div style="margin-top: 2em; width: 95%; border: 2px solid #4178B7; text-align: left; margin-left: auto; margin-right: auto; margin-bottom: 1em;">
+                    <!-- Report Header -->
+                    <div style="text-align: center; color: #FFFFFF; background-color: #4178B7; padding-top: 0.1em; padding-bottom: 0.1em; font-size: 1.5em; font-family: Barlow Condensed, sans-serif;">ALL JOBS:</div>
+
+                    <!-- Report Body -->
+                    <div style="width: 85%; margin-left: auto; margin-right: auto; margin-top: 2em; margin-bottom: 0.5em;">
+                        {{#each all_jobs.hosts}}
+                        <div style="border: 1px solid #D7D7D7; margin-bottom: 1em;">
+                            <div style="text-align: center; background-color: #D7D7D7; margin-bottom: 0.2em;"><span>{{name}}</span></div>
+                            <table style="width: 100%;">
+                                <thead style="text-align: left;">
+                                    <tr>
+                                        <th width="30%">Virtual Machine</th>
+                                        <th witdh="30%">Dataset</th>
+                                        <th width="40%">Last Operation</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{#each jobs}}
+                                    <tr>
+                                        <td>{{virtual_machine_name}}</td>
+                                        <td>{{dataset_name}}</td>
+                                        <td>{{status_message}}</td>
+                                    </tr>
+                                    {{/each}}
+                                </tbody>
+                            </table>
+                        </div>
+                        {{/each}}
+                    </div>
+                    
+                    <!-- Message Footer -->
+                    <div style="width: 85%; margin-top: 1em; margin-bottom: 2em; margin-left: auto; margin-right: auto; font-size: 0.75em;"><b>Generated:</b> {{full_date}}.</div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="width: 100%; margin-left: auto; margin-right: auto; max-width: 1000px; background-color: #D7D7D7;">
+                <div style="width: 95%; margin-left: auto; margin-right: auto; padding-bottom: 0.5em; padding-top: 0.5em; font-size: 0.75em;">Reper.io / 513-780-5960 / support@reper.io</div>
+            </div>
+        </div>
+    </body>
+</html>

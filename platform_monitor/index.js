@@ -1,7 +1,13 @@
+/* eslint max-depth: 0 */
+
 const _ = require('lodash');
 const Config = require('../config');
 
+const fs = require('fs');
+const Handlebars = require('handlebars');
 const moment = require('moment');
+const nodemailer = require('nodemailer');
+const path = require('path');
 const sgMail = require('@sendgrid/mail');
 const winston = require('winston');
 require('winston-daily-rotate-file');
@@ -55,153 +61,239 @@ const start = async function() {
     const dataset_status = await uow.dataset_status_repository.get_dataset_status();
 
     app_logger.info('generating report...');
-    // failed and missed jobs
-   
-    const failed_jobs = _.filter(dataset_status, status => {
-        return status.dataset_enabled && (status.last_result === 3 || status.ran_within_previous_period === 0);
-    });
-    app_logger.warn(`failed or missed jobs: ${failed_jobs.length}`);
-    let failed_jobs_text = `Failed Jobs: ${failed_jobs.length}\n`;
-    let failed_jobs_html = [];
 
-    for (let i = 0; i < failed_jobs.length; i++) {
-        let message = 'n/a';
-        if (failed_jobs[i].last_result === 3 && failed_jobs[i].ran_within_previous_period === 1) {
-            message = 'Last run failed';
-        } else if (failed_jobs[i].ran_within_previous_period === 0) {
-            message = 'Missed last scheduled backup';
+    const SUCCESS_COLOR = '#5BAF46';
+    const FAILED_COLOR = '#C62B31';
+    const MISSED_COLOR = '#4178B7';
+
+    const get_html_status_message = function(dataset) {
+        if (dataset.job_id == null) {
+            return 'MISSING JOB';
         }
-        
-        failed_jobs_text += `\t${failed_jobs[i].job_name} - ${message}\n`;
-        failed_jobs_html.push(`<tr ${i % 2 === 0 ? 'style="background-color: #d4d4d4;"' : ''}>
-                                <td align="left">${failed_jobs[i].job_name}</td>
-                                <td align="left">${message}</td>
-                                <td align="left">${failed_jobs[i].last_successful_backup === null ? '' : moment(failed_jobs[i].last_successful_backup).format('LLL')}</td>
-                            </tr>`);
-    }
 
-    // jobs running longer than an hour
+        if (!dataset.job_enabled) {
+            return `${dataset.last_execution == null? '' : moment(dataset.last_execution).format('MM/DD/YYYY hh:mm A') + ' - '}JOB DISABLED`;
+        }
+
+        let color = null;
+        let status_text = null;
+        switch (dataset.status) {
+            case 1:
+                status_text = 'SUCCESS';
+                color = SUCCESS_COLOR;
+                break;
+            case 2:
+                status_text = 'MISSED';
+                color = MISSED_COLOR;
+                break;
+            case 3:
+                status_text = 'FAILED';
+                color = FAILED_COLOR;
+                break;
+            default:
+                status_text = 'FAILED';
+                color = FAILED_COLOR;
+                break;
+        }
+
+        return `${dataset.last_execution == null? 'Never' : moment(dataset.last_execution).format('MM/DD/YYYY hh:mm A')} - <span style="color: ${color}">${status_text}</span>`;
+    };
+
+    const get_text_status_message = function(dataset) {
+        if (dataset.job_id == null) {
+            return 'MISSING JOB';
+        }
+
+        if (!dataset.job_enabled) {
+            return `${dataset.last_execution == null? '' : moment(dataset.last_execution).format('MM/DD/YYYY hh:mm A') + ' - '}JOB DISABLED`;
+        }
+
+        let status_text = null;
+        switch (dataset.status) {
+            case 1:
+                status_text = 'SUCCESS';
+                break;
+            case 2:
+                status_text = 'MISSED';
+                break;
+            case 3:
+                status_text = 'FAILED';
+                break;
+            default:
+                status_text = 'FAILED';
+                break;
+        }
+
+        return `${dataset.last_execution == null? 'Never' : moment(dataset.last_execution).format('MM/DD/YYYY hh:mm A')} - ${status_text}`;
+    };
+
+    const all_dataset_jobs = [];
+    dataset_status.map(x => {
+        if (x.status !== 0) {
+            x.status_message = get_html_status_message(x);
+            x.text_status_message = get_text_status_message(x);
+            x.last_successful_backup = moment(x.last_successful_backup).format('MM/DD/YYYY hh:mm:ss A') || 'Never';
+            x.last_execution_date = moment(x.last_execution).format('MM/DD/YYYY hh:mm A');
+            all_dataset_jobs.push(x);
+        }
+    });
+
+    const failed_jobs = _.filter(all_dataset_jobs, job => {
+        return job.dataset_enabled && job.job_enabled && (job.last_result === 3 && job.ran_within_previous_period === 1);
+    });
+
     const start_time = moment().utc().subtract(1, 'hour');
-    
-    const stuck_jobs = _.filter(dataset_status, status => {
-        return start_time > moment(status.last_execution) && (status.last_result === 1 || status.last_result === 0);
+    const stuck_jobs = _.filter(all_dataset_jobs, job => {
+        return job.job_enabled && start_time > moment(job.last_execution) && (job.last_result === 1 || job.last_result === 0);
     });
-    app_logger.warn(`jobs running longer than an hour: ${stuck_jobs.length}`);
-    let stuck_jobs_text = `Stuck Jobs: ${stuck_jobs.length}`;
-    let stuck_jobs_html = [];
-    
-    for (let i = 0; i < stuck_jobs.length; i++) {
-        stuck_jobs_text += `\t${stuck_jobs[i].job_name}\n`;
-        stuck_jobs_html.push(`<tr ${i % 2 === 0 ? 'style="background-color: #d4d4d4;"' : ''}>
-                                <td align="left">${stuck_jobs[i].job_name}</td>
-                                <td align="left">${failed_jobs[i].last_execution === null ? '' : moment(failed_jobs[i].last_execution).format('LLL')}</td>
-                            </tr>`);
+
+    const missed_jobs = _.filter(all_dataset_jobs, job => {
+        return job.job_enabled && job.ran_within_previous_period === 0;
+    });
+
+    const groupByHost = function (data) {
+        return _(_.orderBy(data, ['host_name', 'virtual_machine_name', 'dataset_name']))
+            .groupBy(x => x.host_name)
+            .map((value, key) => ({name: key, jobs: value}))
+            .value();
+    };
+
+    const data = {
+        all_jobs: {
+            hosts: groupByHost(all_dataset_jobs)
+        },
+        failed_jobs: {
+            hosts: groupByHost(failed_jobs)
+        },
+        stuck_jobs: {
+            hosts: groupByHost(stuck_jobs)
+        },
+        missed_jobs: {
+            hosts: groupByHost(missed_jobs)
+        },
+        has_failed_jobs: failed_jobs.length > 0 ? true : false,
+        has_stuck_jobs: stuck_jobs.length > 0 ? true : false,
+        has_missed_jobs: missed_jobs.length > 0 ? true : false,
+        message: `There have been ${failed_jobs.length} failed jobs, ${stuck_jobs.length} stuck jobs, and ${missed_jobs.length} missed jobs in the past day.`,
+        short_date: moment().format('MM/DD/YYYY'),
+        full_date: moment().format('MM/DD/YYYY hh:mm:ss A')
+    };
+
+    const reportTemplate = fs.readFileSync(path.join(__dirname, 'template.html'), 'utf-8');
+    const template = Handlebars.compile(reportTemplate.split('\n').join(''), {noEscape: true});
+
+    const html = template(data);
+
+    const pad = function (str, l, c = null) {
+        let paddedStr = str;
+        while (paddedStr.length < l) {
+            paddedStr += c || ' ';
+        }
+        return paddedStr;
+    };
+
+    let text = `Backup Status Report - ${data.short_date}\n${data.message}`;
+
+    // failed jobs
+    if (data.has_failed_jobs) {
+        const failed_table_header = `\n\nFAILED JOBS\n${pad('Host', 16)}\t${pad('Virtual Machine', 25)}\t${pad('Dataset', 15)}\t${pad('Last Operation', 25)}\t${pad('Last Backup', 0)}`;
+        text += `\n${failed_table_header}\n${pad('', failed_table_header.length, '-')}`;
+        _.each(failed_jobs, job => {
+            text += `\n${pad(job.host_name, 16)}\t${pad(job.virtual_machine_name, 25)}\t${pad(job.dataset_name, 15)}\t${pad(job.text_status_message, 25)}\t${pad(job.last_successful_backup, 0)}`;
+        });
     }
 
-    // uprotected nodes or virtual machines
-    const unprotected_datasets = _.filter(dataset_status, status => {
-        return status.dataset_enabled === true && (status.job_id === null || status.job_enabled !== true || status.num_successful_backups <= 0);
+    // stuck jobs
+    if (data.has_stuck_jobs) {
+        const stuck_table_header = `\n\nSTUCK JOBS\n${pad('Host', 16)}\t${pad('Virtual Machine', 25)}\t${pad('Dataset', 15)}\t${pad('Started', 25)}`;
+        text += `\n${stuck_table_header}\n${pad('', stuck_table_header.length, '-')}`;
+        _.each(stuck_jobs, job => {
+            text += `\n${pad(job.host_name, 16)}\t${pad(job.virtual_machine_name, 25)}\t${pad(job.dataset_name, 15)}\t${pad(job.last_execution_date, 25)}`;
+        });
+    }
+
+    // missed jobs
+    if (data.has_missed_jobs) {
+        const missed_table_header = `\n\nMISSED JOBS\n${pad('Host', 16)}\t${pad('Virtual Machine', 25)}\t${pad('Dataset', 15)}\t${pad('Last Operation', 25)}`;
+        text += `\n${missed_table_header}\n${pad('', missed_table_header.length, '-')}`;
+        _.each(missed_jobs, job => {
+            text += `\n${pad(job.host_name, 16)}\t${pad(job.virtual_machine_name, 25)}\t${pad(job.dataset_name, 15)}\t${pad(job.text_status_message, 25)}`;
+        });
+    }
+
+    // all jobs
+    const all_table_header = `\n\nALL JOBS\n${pad('Host', 16)}\t${pad('Virtual Machine', 25)}\t${pad('Dataset', 15)}\t${pad('Last Operation', 25)}`;
+    text += `\n${all_table_header}\n${pad('', all_table_header.length, '-')}`;
+    _.each(all_dataset_jobs, job => {
+        text += `\n${pad(job.host_name, 16)}\t${pad(job.virtual_machine_name, 25)}\t${pad(job.dataset_name, 15)}\t${pad(job.text_status_message, 25)}`;
     });
 
-    let unprotected_nodes_text = 'Unprotected Nodes:\n';
-    let unprotected_nodes_html = '';
+    text += `\n\nGenerated: ${data.full_date}\nReper.io / 513-780-5960 / support@reper.io`;
 
-
-    const unprotected_nodes = _.uniqBy(unprotected_datasets, 'host_sdc_id');
-
-    for (let i = 0; i < unprotected_nodes.length; i++) {
-        unprotected_nodes_html += `<li><span>${unprotected_nodes[i].host_name}</span><ul>`;
-
-        const node_virtual_machines = _.uniqBy(_.filter(unprotected_datasets, dataset => {
-            return dataset.host_sdc_id === unprotected_nodes[i].host_sdc_id;
-        }), 'virtual_machine_id');
-
-        for (let j = 0; j < node_virtual_machines.length; j++) {
-            unprotected_nodes_html += `<li><span>${node_virtual_machines[j].virtual_machine_name}</span><ul>`;
-
-            const virtual_machine_datasets = _.filter(unprotected_datasets, dataset => {
-                return dataset.virtual_machine_id === node_virtual_machines[j].virtual_machine_id;
-            });
-
-            for (let k = 0; k < virtual_machine_datasets.length; k++) {    
-                let message = '';
-                if (virtual_machine_datasets[k].last_result === 3 && virtual_machine_datasets[k].ran_within_previous_period === 1) {
-                    message = 'Last run failed';
-                } else if (virtual_machine_datasets[k].job_id === null) {
-                    message = 'No defined job';
-                } else if (virtual_machine_datasets[k].ran_within_previous_period === 0) {
-                    message = 'Missed last scheduled backup';
-                }
-                unprotected_nodes_html += `<li><table style="width: 100%"><tbody><td width="33%">${virtual_machine_datasets[k].dataset_name}</td><td width="33%">${message}</td><td width="33%">${virtual_machine_datasets[k].last_successful_backup === null ? '' : moment(virtual_machine_datasets[k].last_successful_backup).format('LLL')}</td></tbody></table></li>`;
+    //send email
+    app_logger.info('sending email(s)...');
+    const addresses = [].concat(Config.notification_email.to);
+    if (Config.notification_email.method === 'sendgrid') {
+    
+        sgMail.setApiKey(Config.notification_email.send_grid_api_key);
+        
+        try {
+            for (let i = 0; i < addresses.length; i++) {
+                const msg = {
+                    to: addresses[i],
+                    from: Config.notification_email.from,
+                    subject: `ZFS Backup Report - ${data.short_date}`,
+                    text: text,
+                    html: html
+                };
+                await sgMail.send(msg);
             }
+            app_logger.info('email(s) sent');
+        } catch (err) {
+            console.error(err);
+        }
+    } else if (Config.notification_email.method === 'smtp') {
+        const transporterOptions = {
+            host: this.config.email.smtpHost,
+            port: parseInt(this.config.email.smtpPort),
+            secure: parseInt(this.config.email.smtpPort) === 465 ? true : false, // true for 465, false for other ports
+            tls: {
+                rejectUnauthorized: this.config.email.rejectUnauthorizedTLS
+            }
+        };
 
-            unprotected_nodes_html += '</ul></li>';
+        // add auth to smtp transporter if it was configured
+        if (this.config.email.smtpUser && this.config.email.smtpPassword) {
+            transporterOptions.auth = {
+                user: this.config.email.smtpUser,
+                password: this.config.email.smtpPassword
+            };
         }
 
-        unprotected_nodes_html += '</ul></li>';
-    }
-
-    // send email
-    const body_text = failed_jobs_text + '\n' + stuck_jobs_text + '\n' + unprotected_nodes_text;
-    const body_html = `<body>
-                            <h3>Failed Jobs: ${failed_jobs.length}</h3>
-                            <table width="100%" style="border-collapse: collapse;">
-                                <thead>
-                                    <th align="left">Job</th>
-                                    <th align="left">Message</th>
-                                    <th align="left">Last Successful Backup</th>
-                                </thead>
-                                <tbody>
-                                    ${failed_jobs_html.join('\n')}
-                                </tbody>
-                            </table>
-
-                            <h3>Stuck Jobs: ${stuck_jobs.length}</h3>
-                            <table width="100%" style="border-collapse: collapse;">
-                                <thead>
-                                    <th align="left">Job</th>
-                                    <th align="left">Start Time</th>
-                                </thead>
-                                <tbody>
-                                    ${stuck_jobs_html.join('\n')}
-                                </tbody>
-                            </table>
-
-                            <h3>Uprotected Nodes</h3>
-                            <table style="width: 100%;">
-                                <tbody>
-                                    <th width="33%" align="left">Dataset</th>
-                                    <th width="33%" align="left" style="padding-left: 6.4%;">Message</th>
-                                    <th width="33%" align="left">Last Successful Backup</th>
-                                </tbody>
-                            </table>
-                            <ul>
-                                ${unprotected_nodes_html}
-                            </ul>
-                        </body>`;
-
-    app_logger.info('sending email(s)...');
-    
-    sgMail.setApiKey(Config.notification_email.send_grid_api_key);
-    
-
-    try {
-        const addresses = [].concat(Config.notification_email.to);
+        // create smtp transporter object
+        this.transporter = nodemailer.createTransport(transporterOptions);
 
         for (let i = 0; i < addresses.length; i++) {
             const msg = {
                 to: addresses[i],
                 from: Config.notification_email.from,
-                subject: 'Platform Monitor',
-                text: body_text,
-                html: body_html
+                subject: `ZFS Backup Report - ${data.short_date}`,
+                text: text,
+                html: html
             };
-            await sgMail.send(msg);
+
+            this.transporter.sendMail(msg, (error, info) => {
+                if (error) {
+                    this.logger.error(error);
+                    this.logger.error(info);
+                } else {
+                    this.logger.debug(info);
+                }
+            });
         }
-    } catch (err) {
-        console.error(err);
+    } else {
+        throw new Error('Notification email method not defined');
     }
-    app_logger.info('email(s) sent');
 
     process.exit(0);
 };
