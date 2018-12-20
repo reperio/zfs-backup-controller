@@ -35,6 +35,11 @@ module.exports = {
 
     notification_email: {
         send_grid_api_key: '',
+        smtp_host: 'localhost',
+        smtp_port: 25,
+        smtp_user: '',
+        smtp_password: '',
+        method: 'smtp',
         to: 'spencerdangel@sevenhillstechnology.com',
         from: 'no-reply@sevenhillstechnology.com'
     }
