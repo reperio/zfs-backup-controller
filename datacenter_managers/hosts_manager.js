@@ -30,7 +30,7 @@ class HostsManager {
 
 
             //get all hosts from database
-            const db_hosts = await this.uow.hosts_repository.getAllHosts();
+            const db_hosts = await this.uow.hosts_repository.get_all_hosts();
 
             let hosts_to_update = [];
             let hosts_to_create = [];
