@@ -17,7 +17,7 @@ class VirtualMachineManager {
             const virtual_machines_from_api = await this.vm_api.get_all_vm_records();
 
             //retrieve all virtual machines from the database
-            const virtual_machines_from_db = await this.uow.virtual_machines_repository.get_all_virtual_machines();
+            const virtual_machines_from_db = await this.uow.virtual_machines_repository.get_all_virtual_machines(null, null, true);
             const db_vm_ids = _.map(virtual_machines_from_db, 'id');
 
             //retrieve all datasets from the database
