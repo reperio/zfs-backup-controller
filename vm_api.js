@@ -26,7 +26,7 @@ class VmApi {
             let trimmed_records = [];
 
             for (let i = 0; i < vm_records.length; i++) {
-                if (vm_records[i].state !== 'destroyed' && vm_records[i].state !== 'failed') {
+                if (vm_records[i].state !== 'destroyed' && vm_records[i].state !== 'failed' && vm_records[i].state !== 'configured') {
                     trimmed_records.push(this.get_vm_object(vm_records[i]));
                 }
             }
