@@ -16,7 +16,7 @@
     "@sendgrid/mail": "^6.3.1",
     "async": "^2.5.0",
     "bcryptjs": "^2.4.3",
-    "handlebars": "^4.0.12",
+    "handlebars": "^4.7.7",
     "hapi": "^16.6.2",
     "joi": "^13.0.0",
     "knex": "^0.14.2",
