@@ -26,8 +26,10 @@ class VmApi {
             let trimmed_records = [];
 
             for (let i = 0; i < vm_records.length; i++) {
-                if (vm_records[i].state !== 'destroyed' && vm_records[i].state !== 'failed' && vm_records[i].state !== 'configured') {
-                    trimmed_records.push(this.get_vm_object(vm_records[i]));
+                if (vm_records[i].state) {
+                    if (vm_records[i].state !== 'destroyed' && vm_records[i].state !== 'failed' && vm_records[i].state !== 'configured') {
+                        trimmed_records.push(this.get_vm_object(vm_records[i]));
+                    }
                 }
             }
 
@@ -101,8 +103,8 @@ class VmApi {
         if (vm_record.brand === 'kvm') {
             for (let i = 0; i < vm_record.disks.length; i++) {
                 datasets.push({
-                    location: vm_record.disks[i].zfs_filesystem,
-                    name: vm_record.disks[i].zfs_filesystem.substr(vm_record.disks[i].zfs_filesystem.lastIndexOf('-') + 1),
+                    location: vm_record.disks[i].zfs_filesystem || null,
+                    name: vm_record.disks[i].zfs_filesystem.substr(vm_record.disks[i].zfs_filesystem.lastIndexOf('-') + 1) || null,
                     virtual_machine_id: vm_record.uuid,
                     enabled: true,
                     type: 'zvol'
